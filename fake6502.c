@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "circuit.h"
+#include "reg.h"
+
 #include "DATA.h"
 #include "STATUS.h"
 
@@ -49,13 +52,14 @@ uint8_t read6502(uint16_t address){
     uint8_t value = MEM[(ADDR.MARH << 8) | ADDR.MARL] ;
     /* if (print){
         if (address >= 0x0400){
-            printf("MEM[%04X] => %02X\n", address, value) ;
+            printf("MEM[%04ALU.X] => %02ALU.X\n", address, value) ;
         }
     } */
 
     return value ;
 }
 
+reg<8> A, B ;
 
 struct ALU {
     uint8_t A ;
@@ -71,7 +75,7 @@ struct ALU {
 
 void ALU_add(uint8_t setV){
     uint16_t sum = ALU.A + ALU.B + ALU.CI ;
-    ALU.ADD = sum & 0XFF ;
+    ALU.ADD = sum & 0xFF ;
     ALU.CO = sum >> 8 ;    
     
     if (setV){
@@ -129,7 +133,7 @@ static void zp() { //zero-page
     ADDR.PC++ ;
 }
 
-static void zpx() { //zero-page,X
+static void zpx() { //zero-page,ALU.X
     ALU.CI = 0 ;
     ALU.A = ALU.X ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ALU.B = DATA.data.v() ;
@@ -173,7 +177,7 @@ static void abso() { //absolute
     ADDR.PC++ ;
 }
 
-static void absx() { //absolute,X
+static void absx() { //absolute,ALU.X
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
@@ -222,7 +226,7 @@ static void ind() { //indirect
     ALU.B = read6502(ADDR.EA) ;
 }
 
-static void indx() { // (indirect,X)
+static void indx() { // (indirect,ALU.X)
     uint16_t eahelp;
     eahelp = (uint16_t)(((uint16_t)read6502(ADDR.PC++) + (uint16_t)ALU.X) & 0xFF); //zero-page wraparound for table pointer
     ADDR.EA = (uint16_t)read6502(eahelp & 0x00FF) | ((uint16_t)read6502((eahelp+1) & 0x00FF) << 8);
@@ -384,7 +388,7 @@ static void clv() {
 static void cmp() {
     ALU.CI = 1 ;
     ALU.A = ALU.ACC ;
-    ALU.B = ALU.B ^ 0x00FF ; 
+    ALU.B = ALU.B ^ 0x00FF ;
     ALU_add(0) ;
     ALU_setC() ;
     ALU_setNZ(ALU.ADD) ; // don't save results
@@ -604,7 +608,7 @@ static void tax() {
 }
 
 static void tay() {
-    ALU.Y = ALU_setNZ(ALU.ACC);
+    ALU.Y = ALU_setNZ(ALU.ACC) ;
 }
 
 static void tsx() {
@@ -679,6 +683,7 @@ static void (*optable[256])() = {
 void reset6502() {
     ADDR.PC = (uint16_t)read6502(0xFFFC) | ((uint16_t)read6502(0xFFFD) << 8);
     ALU.ACC = 0 ;
+    ALU.X = 0 ;
     ALU.X = 0 ;
     ALU.Y = 0 ;
     ADDR.SP = 0xFD ;
