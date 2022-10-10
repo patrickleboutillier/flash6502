@@ -121,6 +121,12 @@ void ALU_setC(){
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
 }
 
+void setC(){
+    STATUS.addr.bit(STATUS_ADDR_C)->v(ALU.c ? 1 : 0) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
+}
+
 uint8_t ALU_setNZ(uint8_t v){
     DATA.data.v(v) ;
     STATUS.addr.bit(STATUS_ADDR_Z)->v(DATA.Z.v()) ;
@@ -287,7 +293,6 @@ static void indy() { // (indirect),Y
     //}
 }
 
-
 static void putvalue(uint16_t data) {
     BUS_ADDR = ADDR.EA ;
     DATA.data.v(data) ;
@@ -306,8 +311,9 @@ static void adc() {
 
 static void and_() {
     A = ACC ;
-    ADD = A & B ;   
-    ACC = ALU_setNZ(ADD) ;
+    ALU_op = ALU_AND ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 static void asl() {
@@ -426,30 +432,21 @@ static void clv() {
 }
 
 static void cmp() {
-    CI = 1 ;
     A = ACC ;
-    B = B ^ 0x00FF ;
-    ALU_add(0) ;
-    ALU_setC() ;
-    ALU_setNZ(ADD) ; // don't save results
+    ALU_op = ALU_CMP ;
+    setC() ; setNZ() ; // don't save results
 }
 
 static void cpx() {
-    CI = 1 ;
     A = X ;
-    B = B ^ 0x00FF ; 
-    ALU_add(0) ;
-    ALU_setC() ;
-    ALU_setNZ(ADD) ; // don't save results
+    ALU_op = ALU_CMP ;
+    setC() ; setNZ() ; // don't save results
 }
 
 static void cpy() {
-    CI = 1 ;
     A = Y ;
-    B = B ^ 0x00FF ; 
-    ALU_add(0) ;
-    ALU_setC() ;
-    ALU_setNZ(ADD) ; // don't save results
+    ALU_op = ALU_CMP ;
+    setC() ; setNZ() ; // don't save results
 }
 
 static void dec() {
@@ -512,20 +509,20 @@ static void jsr() {
 
 static void lda() {
     ALU_op = ALU_PASS ;
-    //ADD = B ;
     ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
-    //ACC = ALU_setNZ(ADD) ;
 }
 
 static void ldx() {
-    ADD = B ;
-    X = ALU_setNZ(ADD) ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    X = ADD ; setNZ() ;
 }
 
 static void ldy() {
-    ADD = B ;
-    Y = ALU_setNZ(ADD) ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    Y = ADD ; setNZ() ;
 }
 
 static void lsr() {
@@ -560,7 +557,10 @@ static void php() {
 }
 
 static void pla() {
-    ACC = ALU_setNZ(pull8());
+    B = pull8() ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 static void plp() {
