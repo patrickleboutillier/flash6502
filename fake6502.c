@@ -4,6 +4,7 @@
 
 #include "circuit.h"
 #include "reg.h"
+#include "ALU.h"
 
 #include "DATA.h"
 #include "STATUS.h"
@@ -52,41 +53,70 @@ uint8_t read6502(uint16_t address){
     uint8_t value = MEM[(ADDR.MARH << 8) | ADDR.MARL] ;
     /* if (print){
         if (address >= 0x0400){
-            printf("MEM[%04ALU.X] => %02ALU.X\n", address, value) ;
+            printf("MEM[%04X] => %02X\n", address, value) ;
         }
     } */
 
     return value ;
 }
 
-reg<8> A, B ;
 
-struct ALU {
-    uint8_t A ;
-    uint8_t B ;
-    uint8_t CI ;
-    uint8_t ADD ;
-    uint8_t CO ;
-    uint8_t ACC ;
-    uint8_t X ;
-    uint8_t Y ;
-} ALU ;
+reg<8> ACC ;
+output<1> ACC_s, ACC_e ;
+reg<8> A, B, ADD ;
+reg<1> CI, CO ;
+output<1> A_s, A_e, B_s, B_e, CI_s, CI_e, ADD_s, ADD_e, CO_s, CO_e ;
+reg<8> X, Y ;
+output<1> X_s, X_e, Y_s, Y_e ;
+
+ALU ALU ;
+output<4> ALU_op ;
+
+void init6502(){
+    ACC_e.connect(ACC.enable) ;
+    ACC_s.connect(ACC.set) ;
+
+    A_e.connect(A.enable) ;
+    A_s.connect(A.set) ;
+    A_e = 1 ;
+    B_e.connect(B.enable) ;
+    B_s.connect(B.set) ;
+    B_e = 1 ;   
+    CI_e.connect(CI.enable) ;
+    CI_s.connect(CI.set) ;
+    CI_e = 1 ;
+    ADD_e.connect(ADD.enable) ;
+    ADD_s.connect(ADD.set) ;
+    CO_e.connect(CO.enable) ;
+    CO_s.connect(CO.set) ;
+
+    X_e.connect(X.enable) ;
+    X_s.connect(X.set) ;
+    Y_e.connect(Y.enable) ;
+    Y_s.connect(Y.set) ;
+
+    A.data_out.connect(ALU.a) ;
+    B.data_out.connect(ALU.b) ;
+    CI.data_out.connect(ALU.c_in) ;    
+    ALU_op.connect(ALU.op) ;
+    ALU.res.connect(ADD.data_in) ;
+}
 
 
 void ALU_add(uint8_t setV){
-    uint16_t sum = ALU.A + ALU.B + ALU.CI ;
-    ALU.ADD = sum & 0xFF ;
-    ALU.CO = sum >> 8 ;    
+    uint16_t sum = A + B + CI ;
+    ADD = sum & 0xFF ;
+    CO = sum >> 8 ;    
     
     if (setV){
-        STATUS.addr.bit(STATUS_ADDR_V)->v(((sum ^ (uint16_t)ALU.A) & (sum ^ ALU.B) & 0x0080) ? 1 : 0) ;
+        STATUS.addr.bit(STATUS_ADDR_V)->v(((sum ^ A) & (sum ^ B) & 0x0080) ? 1 : 0) ;
         STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
         STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
     }
 }
 
 void ALU_setC(){
-    STATUS.addr.bit(STATUS_ADDR_C)->v(ALU.CO ? 1 : 0) ;
+    STATUS.addr.bit(STATUS_ADDR_C)->v(CO ? 1 : 0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
 }
@@ -100,6 +130,16 @@ uint8_t ALU_setNZ(uint8_t v){
     STATUS.addr.bit(STATUS_ADDR_SET_N)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_N)->v(0) ;
     return v ;
+}
+
+
+void setNZ(){
+    STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.z) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
+    STATUS.addr.bit(STATUS_ADDR_N)->v(ALU.n) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(1) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(0) ;
 }
 
 
@@ -123,33 +163,33 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ALU.B = DATA.data.v() ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
 static void zp() { //zero-page
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
-static void zpx() { //zero-page,ALU.X
-    ALU.CI = 0 ;
-    ALU.A = ALU.X ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ALU.B = DATA.data.v() ;
+static void zpx() { //zero-page,X
+    CI = 0 ;
+    A = X ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
     ALU_add(0) ;
-    ADDR.EA = ALU.ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    ADDR.EA = ADD ; 
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
 static void zpy() { //zero-page,Y
-    ALU.CI = 0 ;
-    ALU.A = ALU.Y ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ALU.B = DATA.data.v() ;
+    CI = 0 ;
+    A = Y ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
     ALU_add(0) ;
-    ADDR.EA = ALU.ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    ADDR.EA = ADD ; 
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
@@ -157,62 +197,62 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     if (ADDR.EA & 0x80) ADDR.EA |= 0xFF00 ;
     ADDR.PC++ ;
-    ALU.CI = 0 ;
-    ALU.A = ADDR.EA & 0xFF ;
-    ALU.B = ADDR.PC & 0xFF ;
+    CI = 0 ;
+    A = ADDR.EA & 0xFF ;
+    B = ADDR.PC & 0xFF ;
     ALU_add(0) ;
-    ALU.CI = ALU.CO ;
-    ALU.A = ADDR.EA >> 8 ;
-    ALU.B = ADDR.PC >> 8 ;
-    ADDR.EA = ALU.ADD ;
+    CI = CO ;
+    A = ADDR.EA >> 8 ;
+    B = ADDR.PC >> 8 ;
+    ADDR.EA = ADD ;
     ALU_add(0) ;
-    ADDR.EA |= ALU.ADD << 8 ;
+    ADDR.EA |= ADD << 8 ;
 }
 
 static void abso() { //absolute
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
-static void absx() { //absolute,ALU.X
+static void absx() { //absolute,X
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
-    ALU.CI = 0 ;
-    ALU.A = ALU.X ;
-    ALU.B = ADDR.EA & 0xFF ;
+    CI = 0 ;
+    A = X ;
+    B = ADDR.EA & 0xFF ;
     ALU_add(0) ;  
-    ALU.CI = ALU.CO ;
-    ALU.A = 0 ;
-    ALU.B = ADDR.EA >> 8 ;
-    ADDR.EA = ALU.ADD ;
+    CI = CO ;
+    A = 0 ;
+    B = ADDR.EA >> 8 ;
+    ADDR.EA = ADD ;
     ALU_add(0) ;
-    ADDR.EA |= ALU.ADD << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    ADDR.EA |= ADD << 8 ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
 static void absy() { //absolute,Y
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
-    ALU.CI = 0 ;
-    ALU.A = ALU.Y ;
-    ALU.B = ADDR.EA & 0xFF ;
+    CI = 0 ;
+    A = Y ;
+    B = ADDR.EA & 0xFF ;
     ALU_add(0) ;  
-    ALU.CI = ALU.CO ;
-    ALU.A = 0 ;
-    ALU.B = ADDR.EA >> 8 ;
-    ADDR.EA = ALU.ADD ;
+    CI = CO ;
+    A = 0 ;
+    B = ADDR.EA >> 8 ;
+    ADDR.EA = ADD ;
     ALU_add(0) ;
-    ADDR.EA |= ALU.ADD << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; ALU.B = DATA.data.v() ;
+    ADDR.EA |= ADD << 8 ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
 static void ind() { //indirect
@@ -223,14 +263,14 @@ static void ind() { //indirect
     ADDR.PC++ ;
     eahelp2 = (eahelp & 0xFF00) | ((eahelp + 1) & 0x00FF); //replicate 6502 page-boundary wraparound bug
     ADDR.EA = (uint16_t)read6502(eahelp) | ((uint16_t)read6502(eahelp2) << 8);
-    ALU.B = read6502(ADDR.EA) ;
+    B = read6502(ADDR.EA) ;
 }
 
-static void indx() { // (indirect,ALU.X)
+static void indx() { // (indirect,X)
     uint16_t eahelp;
-    eahelp = (uint16_t)(((uint16_t)read6502(ADDR.PC++) + (uint16_t)ALU.X) & 0xFF); //zero-page wraparound for table pointer
+    eahelp = (uint16_t)(((uint16_t)read6502(ADDR.PC++) + (uint16_t)X) & 0xFF); //zero-page wraparound for table pointer
     ADDR.EA = (uint16_t)read6502(eahelp & 0x00FF) | ((uint16_t)read6502((eahelp+1) & 0x00FF) << 8);
-    ALU.B = read6502(ADDR.EA) ;
+    B = read6502(ADDR.EA) ;
 }
 
 static void indy() { // (indirect),Y
@@ -239,8 +279,8 @@ static void indy() { // (indirect),Y
     eahelp2 = (eahelp & 0xFF00) | ((eahelp + 1) & 0x00FF); //zero-page wraparound
     ADDR.EA = (uint16_t)read6502(eahelp) | ((uint16_t)read6502(eahelp2) << 8);
     startpage = ADDR.EA & 0xFF00;
-    ADDR.EA += (uint16_t)ALU.Y;
-    ALU.B = read6502(ADDR.EA) ;
+    ADDR.EA += (uint16_t)Y;
+    B = read6502(ADDR.EA) ;
 
     //if (startpage != (ADDR.EA & 0xFF00)) { //one cycle penlty for page-crossing on some opcodes
     //    penaltyaddr = 1;
@@ -257,31 +297,31 @@ static void putvalue(uint16_t data) {
 
 //instruction handler functions
 static void adc() {
-    ALU.CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ALU.A = ALU.ACC ;
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    A = ACC ;
     ALU_add(1) ;  
     ALU_setC() ;
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    ACC = ALU_setNZ(ADD) ;
 }
 
 static void and_() {
-    ALU.A = ALU.ACC ;
-    ALU.ADD = ALU.A & ALU.B ;   
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    A = ACC ;
+    ADD = A & B ;   
+    ACC = ALU_setNZ(ADD) ;
 }
 
 static void asl() {
-    ALU.A = ALU.ACC ;
-    uint16_t result = ALU.A << 1 ;
-    ALU.ADD = result ;
-    ALU.CO = result >> 8 ;
+    A = ACC ;
+    uint16_t result = A << 1 ;
+    ADD = result ;
+    CO = result >> 8 ;
     ALU_setC() ;
    
     if ((INST & 0xF) == 0xA){
-        ALU.ACC = ALU_setNZ(ALU.ADD) ;
+        ACC = ALU_setNZ(ADD) ;
     }
     else {
-        putvalue(ALU_setNZ(ALU.ADD)) ;
+        putvalue(ALU_setNZ(ADD)) ;
     }
 }
 
@@ -304,14 +344,14 @@ static void beq() {
 }
 
 static void bit() {
-    ALU.A = ALU.ACC ;
-    ALU.ADD = ALU.A & ALU.B ;
-    STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.ADD ? 0 : 1) ;
+    A = ACC ;
+    ADD = A & B ;
+    STATUS.addr.bit(STATUS_ADDR_Z)->v(ADD ? 0 : 1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
 
     // TODO: How will we get this result on the data bus???
-    DATA.data.v((STATUS.data.v() & 0x3F) | (ALU.B & 0xC0)) ;
+    DATA.data.v((STATUS.data.v() & 0x3F) | (B & 0xC0)) ;
     STATUS.fromDATA.v(1) ;
     STATUS.fromDATA.v(0) ;
 }
@@ -386,70 +426,77 @@ static void clv() {
 }
 
 static void cmp() {
-    ALU.CI = 1 ;
-    ALU.A = ALU.ACC ;
-    ALU.B = ALU.B ^ 0x00FF ;
+    CI = 1 ;
+    A = ACC ;
+    B = B ^ 0x00FF ;
     ALU_add(0) ;
     ALU_setC() ;
-    ALU_setNZ(ALU.ADD) ; // don't save results
+    ALU_setNZ(ADD) ; // don't save results
 }
 
 static void cpx() {
-    ALU.CI = 1 ;
-    ALU.A = ALU.X ;
-    ALU.B = ALU.B ^ 0x00FF ; 
+    CI = 1 ;
+    A = X ;
+    B = B ^ 0x00FF ; 
     ALU_add(0) ;
     ALU_setC() ;
-    ALU_setNZ(ALU.ADD) ; // don't save results
+    ALU_setNZ(ADD) ; // don't save results
 }
 
 static void cpy() {
-    ALU.CI = 1 ;
-    ALU.A = ALU.Y ;
-    ALU.B = ALU.B ^ 0x00FF ; 
+    CI = 1 ;
+    A = Y ;
+    B = B ^ 0x00FF ; 
     ALU_add(0) ;
     ALU_setC() ;
-    ALU_setNZ(ALU.ADD) ; // don't save results
+    ALU_setNZ(ADD) ; // don't save results
 }
 
 static void dec() {
-    ALU.ADD = ALU.B - 1 ;
-    putvalue(ALU_setNZ(ALU.ADD)) ;
+    ALU_op = ALU_DEC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    putvalue(ADD) ; setNZ() ;
 }
 
 static void dex() {
-    ALU.B = ALU.X ;
-    ALU.ADD = ALU.B - 1 ;
-    ALU.X = ALU_setNZ(ALU.ADD) ;
+    B = X ;
+    ALU_op = ALU_DEC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    X = ADD ; setNZ() ;
 }
 
 static void dey() {
-    ALU.B = ALU.Y ;
-    ALU.ADD = ALU.B - 1 ;
-    ALU.Y = ALU_setNZ(ALU.ADD) ;
+    B = Y ;
+    ALU_op = ALU_DEC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    Y = ADD ; setNZ() ;
 }
 
 static void eor() {
-    ALU.A = ALU.ACC ;
-    ALU.ADD = ALU.A ^ ALU.B ;
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    A = ACC ;
+    ALU_op = ALU_EOR ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 static void inc() {
-    ALU.ADD = ALU.B + 1 ;
-    putvalue(ALU_setNZ(ALU.ADD));
+    ALU_op = ALU_INC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    putvalue(ADD) ; setNZ() ;
 }
 
 static void inx() {
-    ALU.B = ALU.X ;
-    ALU.ADD = ALU.B + 1 ;
-    ALU.X = ALU_setNZ(ALU.ADD) ;
+    B = X ;
+    ALU_op = ALU_INC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    X = ADD ; setNZ() ;
 }
 
 static void iny() {
-    ALU.B = ALU.Y ;
-    ALU.ADD = ALU.B + 1 ;
-    ALU.Y = ALU_setNZ(ALU.ADD) ;
+    B = Y ;
+    ALU_op = ALU_INC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    Y = ADD ; setNZ() ;
 }
 
 static void jmp() {
@@ -464,29 +511,29 @@ static void jsr() {
 }
 
 static void lda() {
-    ALU.ADD = ALU.B ;
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    ADD = B ;
+    ACC = ALU_setNZ(ADD) ;
 }
 
 static void ldx() {
-    ALU.ADD = ALU.B ;
-    ALU.X = ALU_setNZ(ALU.ADD) ;
+    ADD = B ;
+    X = ALU_setNZ(ADD) ;
 }
 
 static void ldy() {
-    ALU.ADD = ALU.B ;
-    ALU.Y = ALU_setNZ(ALU.ADD) ;
+    ADD = B ;
+    Y = ALU_setNZ(ADD) ;
 }
 
 static void lsr() {
-    ALU.ADD = ALU.B >> 1 ;
-    ALU.CO = ALU.B & 1 ;
+    ADD = B >> 1 ;
+    CO = B & 1 ;
     ALU_setC() ;
     if ((INST & 0xF) == 0xA){
-        ALU.ACC = ALU_setNZ(ALU.ADD) ;
+        ACC = ALU_setNZ(ADD) ;
     }
     else {
-        putvalue(ALU_setNZ(ALU.ADD)) ;
+        putvalue(ALU_setNZ(ADD)) ;
     }
 }
 
@@ -494,13 +541,13 @@ static void nop() {
 }
 
 static void ora() {
-    ALU.A = ALU.ACC ;
-    ALU.ADD = ALU.A | ALU.B ;
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    A = ACC ;
+    ADD = A | B ;
+    ACC = ALU_setNZ(ADD) ;
 }
 
 static void pha() {
-    push8(ALU.ACC);
+    push8(ACC);
 }
 
 static void php() {
@@ -510,7 +557,7 @@ static void php() {
 }
 
 static void pla() {
-    ALU.ACC = ALU_setNZ(pull8());
+    ACC = ALU_setNZ(pull8());
 }
 
 static void plp() {
@@ -521,31 +568,31 @@ static void plp() {
 }
 
 static void rol() {
-    ALU.CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    uint16_t result = (ALU.B << 1) | ALU.CI ;
-    ALU.ADD = result ;
-    ALU.CO = result >> 8 ;
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    uint16_t result = (B << 1) | CI ;
+    ADD = result ;
+    CO = result >> 8 ;
     ALU_setC() ;
 
     if ((INST & 0xF) == 0xA){
-        ALU.ACC = ALU_setNZ(ALU.ADD) ;
+        ACC = ALU_setNZ(ADD) ;
     }
     else {
-        putvalue(ALU_setNZ(ALU.ADD)) ;
+        putvalue(ALU_setNZ(ADD)) ;
     }
 }
 
 static void ror() {
-    ALU.CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ALU.ADD = (ALU.B >> 1) | (ALU.CI << 7) ;
-    ALU.CO = ALU.B & 1 ;
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    ADD = (B >> 1) | (CI << 7) ;
+    CO = B & 1 ;
     ALU_setC() ;
 
     if ((INST & 0xF) == 0xA){
-        ALU.ACC = ALU_setNZ(ALU.ADD) ;
+        ACC = ALU_setNZ(ADD) ;
     }
     else {
-        putvalue(ALU_setNZ(ALU.ADD)) ;
+        putvalue(ALU_setNZ(ADD)) ;
     }
 }
 
@@ -565,12 +612,12 @@ static void rts() {
 }
 
 static void sbc() {
-    ALU.CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ALU.A = ALU.ACC ;
-    ALU.B = ALU.B ^ 0x00FF ; 
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    A = ACC ;
+    B = B ^ 0x00FF ; 
     ALU_add(1) ;
     ALU_setC() ;
-    ALU.ACC = ALU_setNZ(ALU.ADD) ;
+    ACC = ALU_setNZ(ADD) ;
 }
 
 static void sec() {
@@ -592,39 +639,39 @@ static void sei() {
 }
 
 static void sta() {
-    putvalue(ALU.ACC);
+    putvalue(ACC);
 }
 
 static void stx() {
-    putvalue(ALU.X);
+    putvalue(X);
 }
 
 static void sty() {
-    putvalue(ALU.Y);
+    putvalue(Y);
 }
 
 static void tax() {
-    ALU.X = ALU_setNZ(ALU.ACC) ;
+    X = ALU_setNZ(ACC) ;
 }
 
 static void tay() {
-    ALU.Y = ALU_setNZ(ALU.ACC) ;
+    Y = ALU_setNZ(ACC) ;
 }
 
 static void tsx() {
-    ALU.X = ALU_setNZ(ADDR.SP) ;
+    X = ALU_setNZ(ADDR.SP) ;
 }
 
 static void txa() {
-    ALU.ACC = ALU_setNZ(ALU.X) ;
+    ACC = ALU_setNZ(X) ;
 }
 
 static void txs() {
-    ADDR.SP = ALU.X ;
+    ADDR.SP = X ;
 }
 
 static void tya() {
-    ALU.ACC = ALU_setNZ(ALU.Y) ;
+    ACC = ALU_setNZ(Y) ;
 }
 
 
@@ -682,10 +729,6 @@ static void (*optable[256])() = {
 
 void reset6502() {
     ADDR.PC = (uint16_t)read6502(0xFFFC) | ((uint16_t)read6502(0xFFFD) << 8);
-    ALU.ACC = 0 ;
-    ALU.X = 0 ;
-    ALU.X = 0 ;
-    ALU.Y = 0 ;
     ADDR.SP = 0xFD ;
 }
 
@@ -735,6 +778,7 @@ int main(){
     int nb = fread(MEM, 0x10000, 1, file) ;
     fclose(file) ; 
 
+    init6502() ;
     reset6502() ;
     ADDR.PC = 0x0400 ;
 
