@@ -511,8 +511,11 @@ static void jsr() {
 }
 
 static void lda() {
-    ADD = B ;
-    ACC = ALU_setNZ(ADD) ;
+    ALU_op = ALU_PASS ;
+    //ADD = B ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
+    //ACC = ALU_setNZ(ADD) ;
 }
 
 static void ldx() {
