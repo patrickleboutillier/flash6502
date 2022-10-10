@@ -180,20 +180,20 @@ static void zp() { //zero-page
 }
 
 static void zpx() { //zero-page,X
-    CI = 0 ;
     A = X ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
-    ALU_add(0) ;
+    ALU_op = ALU_ADD ;
+    ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
 }
 
 static void zpy() { //zero-page,Y
-    CI = 0 ;
     A = Y ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
-    ALU_add(0) ;
+    ALU_op = ALU_ADD ;
+    ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
