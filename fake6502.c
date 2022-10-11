@@ -115,6 +115,12 @@ void ALU_add(uint8_t setV){
     }
 }
 
+void setV(){
+    STATUS.addr.bit(STATUS_ADDR_V)->v(ALU.v ? 1 : 0) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
+}
+
 void ALU_setC(){
     STATUS.addr.bit(STATUS_ADDR_C)->v(CO ? 1 : 0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
@@ -273,24 +279,30 @@ static void ind() { //indirect
 }
 
 static void indx() { // (indirect,X)
-    uint16_t eahelp;
-    eahelp = (uint16_t)(((uint16_t)read6502(ADDR.PC++) + (uint16_t)X) & 0xFF); //zero-page wraparound for table pointer
-    ADDR.EA = (uint16_t)read6502(eahelp & 0x00FF) | ((uint16_t)read6502((eahelp+1) & 0x00FF) << 8);
+    B = read6502(ADDR.PC++) ;
+    A = X ; 
+    ALU_op = ALU_ADD ; //zero-page wraparound for table pointer
+    ADD_s = 1 ; ADD_s = 0 ;
+    B = ADD ;
+    ALU_op = ALU_INC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA = read6502(ADD) << 8 ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA |= read6502(ADD) ;
     B = read6502(ADDR.EA) ;
 }
 
 static void indy() { // (indirect),Y
-    uint16_t eahelp, eahelp2, startpage;
-    eahelp = (uint16_t)read6502(ADDR.PC++);
-    eahelp2 = (eahelp & 0xFF00) | ((eahelp + 1) & 0x00FF); //zero-page wraparound
-    ADDR.EA = (uint16_t)read6502(eahelp) | ((uint16_t)read6502(eahelp2) << 8);
-    startpage = ADDR.EA & 0xFF00;
-    ADDR.EA += (uint16_t)Y;
+    B = read6502(ADDR.PC++) ;
+    ALU_op = ALU_INC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA = read6502(ADD) << 8 ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA |= read6502(ADD) ;
+    ADDR.EA += Y ;
     B = read6502(ADDR.EA) ;
-
-    //if (startpage != (ADDR.EA & 0xFF00)) { //one cycle penlty for page-crossing on some opcodes
-    //    penaltyaddr = 1;
-    //}
 }
 
 static void putvalue(uint16_t data) {
@@ -304,9 +316,9 @@ static void putvalue(uint16_t data) {
 static void adc() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
     A = ACC ;
-    ALU_add(1) ;  
-    ALU_setC() ;
-    ACC = ALU_setNZ(ADD) ;
+    ALU_op = ALU_ADC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
 static void and_() {
