@@ -281,7 +281,7 @@ static void ind() { //indirect
 static void indx() { // (indirect,X)
     B = read6502(ADDR.PC++) ;
     A = X ; 
-    ALU_op = ALU_ADD ; //zero-page wraparound for table pointer
+    ALU_op = ALU_ADD ;
     ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
     ALU_op = ALU_INC ;
@@ -330,17 +330,15 @@ static void and_() {
 
 static void asl() {
     A = ACC ;
-    uint16_t result = A << 1 ;
-    ADD = result ;
-    CO = result >> 8 ;
-    ALU_setC() ;
-   
+    ALU_op = ALU_ASL ;
+    ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA){
-        ACC = ALU_setNZ(ADD) ;
+        ACC = ADD ;
     }
     else {
-        putvalue(ALU_setNZ(ADD)) ;
+        putvalue(ADD) ;
     }
+    setC() ; setNZ() ;
 }
 
 static void bcc() {
@@ -364,14 +362,16 @@ static void beq() {
 static void bit() {
     A = ACC ;
     ADD = A & B ;
-    STATUS.addr.bit(STATUS_ADDR_Z)->v(ADD ? 0 : 1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
+    ALU_op = ALU_BIT ;
+    setV() ; setNZ() ;
+    //STATUS.addr.bit(STATUS_ADDR_Z)->v(ADD ? 0 : 1) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
 
     // TODO: How will we get this result on the data bus???
-    DATA.data.v((STATUS.data.v() & 0x3F) | (B & 0xC0)) ;
-    STATUS.fromDATA.v(1) ;
-    STATUS.fromDATA.v(0) ;
+    //DATA.data.v((STATUS.data.v() & 0x3F) | (B & 0xC0)) ;
+    //STATUS.fromDATA.v(1) ;
+    //STATUS.fromDATA.v(0) ;
 }
 
 static void bmi() {
