@@ -196,8 +196,11 @@ static void zpy() { //zero-page,Y
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
+    // TODO: LOGIC
     if (ADDR.EA & 0x80) ADDR.EA |= 0xFF00 ;
     ADDR.PC++ ;
+
+    // TODO: ALU
     CI = 0 ;
     A = ADDR.EA & 0xFF ;
     B = ADDR.PC & 0xFF ;
@@ -207,6 +210,7 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     B = ADDR.PC >> 8 ;
     ADDR.EA = ADD ;
     ALU_add(0) ;
+
     ADDR.EA |= ADD << 8 ;
 }
 
@@ -228,7 +232,7 @@ static void absx() { //absolute,X
     A = X ;
     B = ADDR.EA & 0xFF ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
-    CI = ALU.c ; // this is ok sine ALU_ADD does not use the CI
+    CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
     A = 0 ;
     B = ADDR.EA >> 8 ;
     ADDR.EA = ADD ;         // save first result before going on.
@@ -248,7 +252,7 @@ static void absy() { //absolute,Y
     A = Y ;
     B = ADDR.EA & 0xFF ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
-    CI = ALU.c ; // this is ok sine ALU_ADD does not use the CI
+    CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
     A = 0 ;
     B = ADDR.EA >> 8 ;
     ADDR.EA = ADD ;         // save first result before going on.
@@ -259,6 +263,7 @@ static void absy() { //absolute,Y
 }
 
 static void ind() { //indirect
+    // TODO: ALU
     uint16_t eahelp, eahelp2;
     eahelp = 0  | (uint16_t)read6502(ADDR.PC) ;
     ADDR.PC++ ;
@@ -323,12 +328,10 @@ static void asl() {
     A = ACC ;
     ALU_op = ALU_ASL ;
     ADD_s = 1 ; ADD_s = 0 ;
-    if ((INST & 0xF) == 0xA){
+    if ((INST & 0xF) == 0xA)
         ACC = ADD ;
-    }
-    else {
+    else
         putvalue(ADD) ;
-    }
     setC() ; setNZ() ;
 }
 
@@ -375,6 +378,7 @@ static void bpl() {
     }
 }
 
+// TODO
 static void brk() {
     ADDR.PC++;
     push8(ADDR.PC >> 8) ;
@@ -496,8 +500,8 @@ static void jmp() {
 }
 
 static void jsr() {
-    // TODO: This -- maybe problematic... 
-    ADDR.PC -= 1 ; 
+    // TODO: ALU This -1 may be problematic... 
+    ADDR.PC -= 1 ;
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
     ADDR.PC = ADDR.EA ;
