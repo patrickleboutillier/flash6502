@@ -261,14 +261,23 @@ static void absy() { //absolute,Y
 }
 
 static void ind() { //indirect
-    // TODO: ALU
-    uint16_t eahelp, eahelp2;
-    eahelp = 0  | (uint16_t)read6502(ADDR.PC) ;
+    ADDR.EA = read6502(ADDR.PC) ;
     ADDR.PC++ ;
-    eahelp = eahelp | ((uint16_t)read6502(ADDR.PC) << 8) ;
+    ADDR.EA |= read6502(ADDR.PC) << 8 ;
     ADDR.PC++ ;
-    eahelp2 = (eahelp & 0xFF00) | ((eahelp + 1) & 0x00FF); //replicate 6502 page-boundary wraparound bug
-    ADDR.EA = (uint16_t)read6502(eahelp) | ((uint16_t)read6502(eahelp2) << 8);
+
+    A = read6502(ADDR.EA) ;
+    B = ADDR.EA & 0xFF ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA |= ADD ;
+    B = read6502(ADDR.EA) ;
+    // We need to bring A to ADDR.EAl and B to ADDR.EAh
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA = ADD << 8 ;
+    B = 0 ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA |= ADD ;
+
     B = read6502(ADDR.EA) ;
 }
 
