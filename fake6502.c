@@ -200,16 +200,14 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     if (ADDR.EA & 0x80) ADDR.EA |= 0xFF00 ;
     ADDR.PC++ ;
 
-    // TODO: ALU
-    CI = 0 ;
     A = ADDR.EA & 0xFF ;
     B = ADDR.PC & 0xFF ;
-    ALU_add(0) ;
-    CI = CO ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
+    CI = ALU.c ; // Ok because ALU_ADD currently in use.
     A = ADDR.EA >> 8 ;
     B = ADDR.PC >> 8 ;
     ADDR.EA = ADD ;
-    ALU_add(0) ;
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
 
     ADDR.EA |= ADD << 8 ;
 }
