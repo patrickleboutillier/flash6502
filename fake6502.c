@@ -364,14 +364,6 @@ static void bit() {
     ADD = A & B ;
     ALU_op = ALU_BIT ;
     setV() ; setNZ() ;
-    //STATUS.addr.bit(STATUS_ADDR_Z)->v(ADD ? 0 : 1) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
-
-    // TODO: How will we get this result on the data bus???
-    //DATA.data.v((STATUS.data.v() & 0x3F) | (B & 0xC0)) ;
-    //STATUS.fromDATA.v(1) ;
-    //STATUS.fromDATA.v(0) ;
 }
 
 static void bmi() {
@@ -513,6 +505,7 @@ static void jmp() {
 }
 
 static void jsr() {
+    // TODO: This -- maybe problematic... 
     ADDR.PC -= 1 ; 
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
@@ -538,15 +531,15 @@ static void ldy() {
 }
 
 static void lsr() {
-    ADD = B >> 1 ;
-    CO = B & 1 ;
-    ALU_setC() ;
+    ALU_op = ALU_LSR ;
+    ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA){
-        ACC = ALU_setNZ(ADD) ;
+        ACC = ADD ;
     }
     else {
-        putvalue(ALU_setNZ(ADD)) ;
+        putvalue(ADD) ;
     }
+    setC() ; setNZ() ;
 }
 
 static void nop() {
@@ -559,7 +552,7 @@ static void ora() {
 }
 
 static void pha() {
-    push8(ACC);
+    push8(ACC) ;
 }
 
 static void php() {
