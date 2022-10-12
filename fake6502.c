@@ -222,18 +222,19 @@ static void absx() { //absolute,X
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
-    CI = 0 ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
+
     A = X ;
     B = ADDR.EA & 0xFF ;
-    ALU_add(0) ;  
-    CI = CO ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
+    CI = ALU.c ; // this is ok sine ALU_ADD does not use the CI
     A = 0 ;
     B = ADDR.EA >> 8 ;
-    ADDR.EA = ADD ;
-    ALU_add(0) ;
+    ADDR.EA = ADD ;         // save first result before going on.
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
+
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
@@ -241,18 +242,19 @@ static void absy() { //absolute,Y
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
     ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
     ADDR.PC++ ;
-    CI = 0 ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
+
     A = Y ;
     B = ADDR.EA & 0xFF ;
-    ALU_add(0) ;  
-    CI = CO ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
+    CI = ALU.c ; // this is ok sine ALU_ADD does not use the CI
     A = 0 ;
     B = ADDR.EA >> 8 ;
-    ADDR.EA = ADD ;
-    ALU_add(0) ;
+    ADDR.EA = ADD ;         // save first result before going on.
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
+
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
