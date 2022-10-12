@@ -629,10 +629,9 @@ static void rts() {
 static void sbc() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
     A = ACC ;
-    B = B ^ 0x00FF ; 
-    ALU_add(1) ;
-    ALU_setC() ;
-    ACC = ALU_setNZ(ADD) ;
+    ALU_op = ALU_SBC ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
 static void sec() {
