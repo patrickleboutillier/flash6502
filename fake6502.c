@@ -33,7 +33,7 @@ struct ADDR {
 } ADDR ;
 
 
-uint8_t INST ;
+//uint8_t INST ;
 
 
 uint8_t read6502(uint16_t address){
@@ -72,6 +72,10 @@ output<1> X_s, X_e, Y_s, Y_e ;
 ALU ALU ;
 output<4> ALU_op ;
 
+reg<8> INST ;
+output<1> INST_s, INST_e ;
+
+
 void init6502(){
     ACC_e.connect(ACC.enable) ;
     ACC_s.connect(ACC.set) ;
@@ -100,6 +104,9 @@ void init6502(){
     CI.data_out.connect(ALU.c_in) ;    
     ALU_op.connect(ALU.op) ;
     ALU.res.connect(ADD.data_in) ;
+
+    INST_e.connect(INST.enable) ;
+    INST_s.connect(INST.set) ;
 }
 
 
