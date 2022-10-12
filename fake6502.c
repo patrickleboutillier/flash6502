@@ -121,29 +121,11 @@ void setV(){
     STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
 }
 
-void ALU_setC(){
-    STATUS.addr.bit(STATUS_ADDR_C)->v(CO ? 1 : 0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
-}
-
 void setC(){
     STATUS.addr.bit(STATUS_ADDR_C)->v(ALU.c ? 1 : 0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
 }
-
-uint8_t ALU_setNZ(uint8_t v){
-    DATA.data.v(v) ;
-    STATUS.addr.bit(STATUS_ADDR_Z)->v(DATA.Z.v()) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_N)->v(DATA.N.v()) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(0) ;
-    return v ;
-}
-
 
 void setNZ(){
     STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.z) ;
@@ -533,12 +515,10 @@ static void ldy() {
 static void lsr() {
     ALU_op = ALU_LSR ;
     ADD_s = 1 ; ADD_s = 0 ;
-    if ((INST & 0xF) == 0xA){
+    if ((INST & 0xF) == 0xA)
         ACC = ADD ;
-    }
-    else {
+    else
         putvalue(ADD) ;
-    }
     setC() ; setNZ() ;
 }
 
@@ -547,8 +527,9 @@ static void nop() {
 
 static void ora() {
     A = ACC ;
-    ADD = A | B ;
-    ACC = ALU_setNZ(ADD) ;
+    ALU_op = ALU_ORA ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 static void pha() {
@@ -577,31 +558,24 @@ static void plp() {
 
 static void rol() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    uint16_t result = (B << 1) | CI ;
-    ADD = result ;
-    CO = result >> 8 ;
-    ALU_setC() ;
-
-    if ((INST & 0xF) == 0xA){
-        ACC = ALU_setNZ(ADD) ;
-    }
-    else {
-        putvalue(ALU_setNZ(ADD)) ;
-    }
+    ALU_op = ALU_ROL ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    if ((INST & 0xF) == 0xA)
+        ACC = ADD ;
+    else
+        putvalue(ADD) ;
+    setC() ; setNZ() ;
 }
 
 static void ror() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ADD = (B >> 1) | (CI << 7) ;
-    CO = B & 1 ;
-    ALU_setC() ;
-
-    if ((INST & 0xF) == 0xA){
-        ACC = ALU_setNZ(ADD) ;
-    }
-    else {
-        putvalue(ALU_setNZ(ADD)) ;
-    }
+    ALU_op = ALU_ROR ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    if ((INST & 0xF) == 0xA)
+        ACC = ADD ;
+    else
+        putvalue(ADD) ;
+    setC() ; setNZ() ;
 }
 
 static void rti() {
@@ -614,9 +588,9 @@ static void rti() {
 }
 
 static void rts() {
-    ADDR.EA = 0  | pull8() ;
-    ADDR.EA = ADDR.EA | (pull8() << 8) ;
-    ADDR.PC = ADDR.EA + 1;
+    ADDR.PC = 0 | pull8() ;                 
+    ADDR.PC = ADDR.PC | (pull8() << 8) ;
+    ADDR.PC++ ;
 }
 
 static void sbc() {
@@ -646,39 +620,57 @@ static void sei() {
 }
 
 static void sta() {
-    putvalue(ACC);
+    putvalue(ACC) ;
 }
 
 static void stx() {
-    putvalue(X);
+    putvalue(X) ;
 }
 
 static void sty() {
-    putvalue(Y);
+    putvalue(Y) ;
 }
 
 static void tax() {
-    X = ALU_setNZ(ACC) ;
+    B = ACC ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    X = ADD ; setNZ() ;
 }
 
 static void tay() {
-    Y = ALU_setNZ(ACC) ;
+    B = ACC ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    Y = ADD ; setNZ() ;
 }
 
 static void tsx() {
-    X = ALU_setNZ(ADDR.SP) ;
+    B = ADDR.SP ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    X = ADD ; setNZ() ;
 }
 
 static void txa() {
-    ACC = ALU_setNZ(X) ;
+    B = X ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 static void txs() {
-    ADDR.SP = X ;
+    B = X ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.SP = ADD ; 
 }
 
 static void tya() {
-    ACC = ALU_setNZ(Y) ;
+    B = Y ;
+    ALU_op = ALU_PASS ;
+    ADD_s = 1 ; ADD_s = 0 ;
+    ACC = ADD ; setNZ() ;
 }
 
 
