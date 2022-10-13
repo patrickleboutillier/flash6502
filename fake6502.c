@@ -346,8 +346,6 @@ static void beq() {
 
 static void bit() {
     A = ACC ;
-    // TODO
-    ADD = A & B ;
     ALU_op = ALU_BIT ;
     setV() ; setNZ() ;
 }
@@ -370,7 +368,6 @@ static void bpl() {
     }
 }
 
-// TODO
 static void brk() {
     ADDR.PC++;
     push8(ADDR.PC >> 8) ;
@@ -383,7 +380,7 @@ static void brk() {
     STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
-    ADDR.PC = read6502(0xFFFE) | (read6502(0xFFFF) << 8) ;
+    ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
 static void bvc() {
