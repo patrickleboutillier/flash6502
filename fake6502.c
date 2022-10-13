@@ -109,19 +109,6 @@ void init6502(){
     INST_s.connect(INST.set) ;
 }
 
-
-void ALU_add(uint8_t setV){
-    uint16_t sum = A + B + CI ;
-    ADD = sum & 0xFF ;
-    CO = sum >> 8 ;    
-    
-    if (setV){
-        STATUS.addr.bit(STATUS_ADDR_V)->v(((sum ^ A) & (sum ^ B) & 0x0080) ? 1 : 0) ;
-        STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
-        STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
-    }
-}
-
 void setV(){
     STATUS.addr.bit(STATUS_ADDR_V)->v(ALU.v ? 1 : 0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
@@ -317,24 +304,21 @@ static void putvalue(uint16_t data) {
 
 //instruction handler functions
 static void adc() {
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    A = ACC ;
-    ALU_op = ALU_ADC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ; A = ACC ; 
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
 static void and_() {
     A = ACC ;
-    ALU_op = ALU_AND ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_AND ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
 static void asl() {
     A = ACC ;
-    ALU_op = ALU_ASL ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    B = ACC ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -362,6 +346,7 @@ static void beq() {
 
 static void bit() {
     A = ACC ;
+    // TODO
     ADD = A & B ;
     ALU_op = ALU_BIT ;
     setV() ; setNZ() ;
@@ -398,7 +383,7 @@ static void brk() {
     STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
-    ADDR.PC = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
+    ADDR.PC = read6502(0xFFFE) | (read6502(0xFFFF) << 8) ;
 }
 
 static void bvc() {
@@ -507,8 +492,15 @@ static void jmp() {
 }
 
 static void jsr() {
-    // TODO: ALU This -1 may be problematic... 
-    ADDR.PC -= 1 ;
+    A = ADDR.PC >> 8 ;
+    B = ADDR.PC & 0xFF ;
+    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.PC = ADD ;
+    CI = ALU.c ; // ok because ALU_DEC ignores CI
+    B = 0 ;
+    ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.PC |= ADD << 8 ;
+
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
     ADDR.PC = ADDR.EA ;
@@ -747,7 +739,7 @@ static void (*optable[256])() = {
 
 
 void reset6502() {
-    ADDR.PC = (uint16_t)read6502(0xFFFC) | ((uint16_t)read6502(0xFFFD) << 8);
+    ADDR.PC = read6502(0xFFFC) | read6502(0xFFFD) << 8 ;
     ADDR.SP = 0xFD ;
 }
 
@@ -760,7 +752,7 @@ void nmi6502() {
     STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
-    ADDR.PC = (uint16_t)read6502(0xFFFA) | ((uint16_t)read6502(0xFFFB) << 8);
+    ADDR.PC = read6502(0xFFFA) | read6502(0xFFFB) << 8 ;
 }
 
 void irq6502() {
@@ -772,7 +764,7 @@ void irq6502() {
     STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
-    ADDR.PC = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
+    ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
 uint8_t callexternal = 0;
