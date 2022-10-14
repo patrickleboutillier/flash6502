@@ -150,35 +150,29 @@ static void imp() { //implied
 static void acc() { //accumulator
 }
 
-static void imm() { //immediate
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
-    ADDR.PC++ ;
+static void imm() { //immediate, 1 cycle
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
-static void zp() { //zero-page
+static void zp() { //zero-page, 2 cycles
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
-    ADDR.PC++ ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
-static void zpx() { //zero-page,X
+static void zpx() { //zero-page,X, 5 cycles
     A = X ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
-    ALU_op = ALU_ADD ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
-    ADDR.PC++ ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
-static void zpy() { //zero-page,Y
+static void zpy() { //zero-page,Y, 5 cycles
     A = Y ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ;
-    ALU_op = ALU_ADD ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
-    ADDR.PC++ ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
@@ -199,20 +193,15 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     ADDR.EA |= ADD << 8 ;
 }
 
-static void abso() { //absolute
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
-    ADDR.PC++ ;
+static void abso() { //absolute, 3 cycles
+    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ; ADDR.PC++ ;
     BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
-    ADDR.PC++ ;
+    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
-static void absx() { //absolute,X
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
-    ADDR.PC++ ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    ADDR.PC++ ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
+static void absx() { //absolute,X, 12 cycles
+    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ; ADDR.PC++ ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ; ADDR.PC++ ;
 
     A = X ;
     B = ADDR.EA & 0xFF ;
@@ -227,12 +216,9 @@ static void absx() { //absolute,X
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
-static void absy() { //absolute,Y
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ;
-    ADDR.PC++ ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ;
-    ADDR.PC++ ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
+static void absy() { //absolute,Y,  12 cycles
+    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ; ADDR.PC++ ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ; ADDR.PC++ ;
 
     A = Y ;
     B = ADDR.EA & 0xFF ;
@@ -247,11 +233,9 @@ static void absy() { //absolute,Y
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
-static void ind() { //indirect
-    ADDR.EA = read6502(ADDR.PC) ;
-    ADDR.PC++ ;
-    ADDR.EA |= read6502(ADDR.PC) << 8 ;
-    ADDR.PC++ ;
+static void ind() { //indirect, 13 cycles
+    ADDR.EA = read6502(ADDR.PC) ; ADDR.PC++ ;
+    ADDR.EA |= read6502(ADDR.PC) << 8 ; ADDR.PC++ ;
 
     A = read6502(ADDR.EA) ;
     B = ADDR.EA & 0xFF ;
@@ -268,29 +252,25 @@ static void ind() { //indirect
     B = read6502(ADDR.EA) ;
 }
 
-static void indx() { // (indirect,X)
+static void indx() { // (indirect,X), 9 cycles
     B = read6502(ADDR.PC++) ;
     A = X ; 
-    ALU_op = ALU_ADD ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
-    ALU_op = ALU_INC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = read6502(ADD) << 8 ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= read6502(ADD) ;
     B = read6502(ADDR.EA) ;
 }
 
 static void indy() { // (indirect),Y
-    B = read6502(ADDR.PC++) ;
-    ALU_op = ALU_INC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = read6502(ADD) << 8 ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= read6502(ADD) ;
+    // TODO
     ADDR.EA += Y ;
     B = read6502(ADDR.EA) ;
 }
@@ -303,19 +283,19 @@ static void putvalue(uint16_t data) {
 
 
 //instruction handler functions
-static void adc() {
+static void adc() { // 3 cycles
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ; A = ACC ; 
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
-static void and_() {
+static void and_() { // 3 cycles
     A = ACC ;
     ALU_op = ALU_AND ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
-static void asl() {
+static void asl() { // 4 cycles
     A = ACC ;
     B = ACC ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
@@ -326,43 +306,43 @@ static void asl() {
     setC() ; setNZ() ;
 }
 
-static void bcc() {
+static void bcc() { // 1 cycle
     if (! STATUS.data.bit(STATUS_DATA_C)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bcs() {
+static void bcs() { // 1 cycle
     if (STATUS.data.bit(STATUS_DATA_C)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void beq() {
+static void beq() { // 1 cycle
     if (STATUS.data.bit(STATUS_DATA_Z)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bit() {
+static void bit() { // 3 cycles
     A = ACC ;
     ALU_op = ALU_BIT ;
     setV() ; setNZ() ;
 }
 
-static void bmi() {
+static void bmi() { // 1 cycle
     if (STATUS.data.bit(STATUS_DATA_N)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bne() {
+static void bne() { // 1 cycle
     if (! STATUS.data.bit(STATUS_DATA_Z)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bpl() {
+static void bpl() { // 1 cycle
     if (! STATUS.data.bit(STATUS_DATA_N)->v()) {
         ADDR.PC = ADDR.EA ;
     }
@@ -383,104 +363,97 @@ static void brk() {
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
-static void bvc() {
+static void bvc() { // 1 cycle
     if (! STATUS.data.bit(STATUS_DATA_V)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bvs() {
+static void bvs() { // 1 cycle
     if (STATUS.data.bit(STATUS_DATA_V)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void clc() {
+static void clc() { // 1 cycle
     STATUS.addr.bit(STATUS_ADDR_C)->v(0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
 }
 
-static void cld() {
+static void cld() { // 1 cycle
     STATUS.addr.bit(STATUS_ADDR_D)->v(0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
 }
 
-static void cli() {
+static void cli() { // 1 cycle
     STATUS.addr.bit(STATUS_ADDR_I)->v(0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
 }
 
-static void clv() {
+static void clv() { // 1 cycle
     STATUS.addr.bit(STATUS_ADDR_V)->v(0) ;
     STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
     STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
 }
 
-static void cmp() {
+static void cmp() { // 3 cycles
     A = ACC ;
     ALU_op = ALU_CMP ;
     setC() ; setNZ() ; // don't save results
 }
 
-static void cpx() {
+static void cpx() { // 3 cycles
     A = X ;
     ALU_op = ALU_CMP ;
     setC() ; setNZ() ; // don't save results
 }
 
-static void cpy() {
+static void cpy() { // 3 cycles
     A = Y ;
     ALU_op = ALU_CMP ;
     setC() ; setNZ() ; // don't save results
 }
 
-static void dec() {
-    ALU_op = ALU_DEC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+static void dec() { // 2 cycles
+    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
     putvalue(ADD) ; setNZ() ;
 }
 
-static void dex() {
+static void dex() { // 3 cycles
     B = X ;
-    ALU_op = ALU_DEC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
     X = ADD ; setNZ() ;
 }
 
-static void dey() {
+static void dey() { // 3 cycles
     B = Y ;
-    ALU_op = ALU_DEC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
     Y = ADD ; setNZ() ;
 }
 
 static void eor() {
     A = ACC ;
-    ALU_op = ALU_EOR ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_EOR ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
 static void inc() {
-    ALU_op = ALU_INC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     putvalue(ADD) ; setNZ() ;
 }
 
 static void inx() {
     B = X ;
-    ALU_op = ALU_INC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     X = ADD ; setNZ() ;
 }
 
 static void iny() {
     B = Y ;
-    ALU_op = ALU_INC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     Y = ADD ; setNZ() ;
 }
 
@@ -488,7 +461,7 @@ static void jmp() {
     ADDR.PC = ADDR.EA ;
 }
 
-static void jsr() {
+static void jsr() { // 11 cycles
     A = ADDR.PC >> 8 ;
     B = ADDR.PC & 0xFF ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
@@ -504,26 +477,22 @@ static void jsr() {
 }
 
 static void lda() {
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
 static void ldx() {
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     X = ADD ; setNZ() ;
 }
 
 static void ldy() {
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     Y = ADD ; setNZ() ;
 }
 
 static void lsr() {
-    ALU_op = ALU_LSR ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_LSR ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -536,8 +505,7 @@ static void nop() {
 
 static void ora() {
     A = ACC ;
-    ALU_op = ALU_ORA ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ORA ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
@@ -553,8 +521,7 @@ static void php() {
 
 static void pla() {
     B = pull8() ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setNZ() ;
 }
 
@@ -567,8 +534,7 @@ static void plp() {
 
 static void rol() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ALU_op = ALU_ROL ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -578,8 +544,7 @@ static void rol() {
 
 static void ror() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    ALU_op = ALU_ROR ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -604,9 +569,8 @@ static void rts() {
 
 static void sbc() {
     CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    A = ACC ;
-    ALU_op = ALU_SBC ;
-    ADD_s = 1 ; ADD_s = 0 ;
+    A = ACC ; 
+    ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
@@ -768,8 +732,8 @@ uint8_t callexternal = 0;
 void (*loopexternal)();
 
 
-void step6502() {
-    INST = read6502(ADDR.PC++);
+void step6502() { 
+    INST = read6502(ADDR.PC) ; ADDR.PC++ ; // 1 cycle
 
     (*addrtable[INST])();
     (*optable[INST])();
