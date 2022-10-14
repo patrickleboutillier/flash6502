@@ -199,16 +199,14 @@ static void abso() { //absolute, 3 cycles
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
 }
 
-static void absx() { //absolute,X, 12 cycles
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ; ADDR.PC++ ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ; ADDR.PC++ ;
-
+static void absx() { //absolute,X, 10 cycles
     A = X ;
-    B = ADDR.EA & 0xFF ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
+
     A = 0 ;
-    B = ADDR.EA >> 8 ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
     ADDR.EA = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
@@ -216,16 +214,14 @@ static void absx() { //absolute,X, 12 cycles
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
-static void absy() { //absolute,Y,  12 cycles
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA.data.v() ; ADDR.PC++ ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA.data.v() << 8 ; ADDR.PC++ ;
-
+static void absy() { //absolute,Y,  10 cycles
     A = Y ;
-    B = ADDR.EA & 0xFF ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
+
     A = 0 ;
-    B = ADDR.EA >> 8 ;
+    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA.data.v() ; ADDR.PC++ ;
     ADDR.EA = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
