@@ -76,7 +76,7 @@ class STATUS : public sensor {
         void always() {
             uint8_t d = 0b00100000 ;
             if (fromDATA.v()){
-                d |= (_DATA->data.v() & 0b11101111) ; // Ignore break
+                d |= (_DATA->data.v() & 0b11001111) ; // Ignore break
             }
             else {
                 d |= (addr.bit(STATUS_ADDR_SET_N)->v() ? addr.bit(STATUS_ADDR_N)->v() : addr.bit(STATUS_ADDR_OLD_N)->v()) << 7 ; // N

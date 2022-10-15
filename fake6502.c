@@ -229,19 +229,19 @@ static void absy() { //absolute,Y,  10 cycles
     BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA.data.v() ;
 }
 
-static void ind() { //indirect, 13 cycles
-    ADDR.EA = read6502(ADDR.PC) ; ADDR.PC++ ;
+static void ind() { //indirect, 12 cycles
+    // Load ADDR_EAl and B at the same time
+    ADDR.EA = read6502(ADDR.PC) ; B = read6502(ADDR.PC) ; ADDR.PC++ ;
     ADDR.EA |= read6502(ADDR.PC) << 8 ; ADDR.PC++ ;
 
     A = read6502(ADDR.EA) ;
-    B = ADDR.EA & 0xFF ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD ;
     B = read6502(ADDR.EA) ;
     // We need to bring A to ADDR.EAl and B to ADDR.EAh
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD << 8 ;
-    B = 0 ;
+    B = 0 ; // could be eliminated if the ALU had a PASSA instruction.
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD ;
 
@@ -260,14 +260,18 @@ static void indx() { // (indirect,X), 9 cycles
     B = read6502(ADDR.EA) ;
 }
 
-static void indy() { // (indirect),Y
+static void indy() { // (indirect),Y, 12 cycles
     B = read6502(ADDR.PC) ; ADDR.PC++ ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
+    A = Y ; ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = read6502(ADD) << 8 ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= read6502(ADD) ;
-    // TODO
-    ADDR.EA += Y ;
+    B = read6502(ADD) ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
+    CI = ALU.c ; ADDR.EA |= ADD ; 
+    A = 0 ;
+    B = ADDR.EA >> 8 ;
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
+    ADDR.EA = ADD << 8 | ADDR.EA & 0xFF ;
     B = read6502(ADDR.EA) ;
 }
 
@@ -291,6 +295,7 @@ static void and_() { // 3 cycles
     ACC = ADD ; setNZ() ;
 }
 
+// TODO: Use ALU_ASL to bring down to 3 cycles.
 static void asl() { // 4 cycles
     A = ACC ;
     B = ACC ;
@@ -457,19 +462,23 @@ static void jmp() {
     ADDR.PC = ADDR.EA ;
 }
 
-static void jsr() { // 11 cycles
+static void jsr() { // 10 cycles
     A = ADDR.PC >> 8 ;
     B = ADDR.PC & 0xFF ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.PC = ADD ;
-    CI = ALU.c ; // ok because ALU_DEC ignores CI
+    ADDR.PC = ADD ; CI = ALU.c ; // ok because ALU_DEC ignores CI
     B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.PC |= ADD << 8 ;
 
     push8(ADDR.PC >> 8) ;
+    // B = SP
+    // ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
+    // SP = ADD ; B = ADD ;
     push8(ADDR.PC & 0xFF) ;
-    ADDR.PC = ADDR.EA ;
+    // ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
+    // SP = ADD ; B = ADD ;
+    ADDR.PC = ADDR.EA ; // Should be done in 2 insts through data bus
 }
 
 static void lda() {
@@ -564,8 +573,7 @@ static void rts() {
 }
 
 static void sbc() {
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
-    A = ACC ; 
+    CI = STATUS.data.bit(STATUS_DATA_C)->v() ; A = ACC ; 
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
