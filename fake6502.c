@@ -122,12 +122,10 @@ void setC(){
 }
 
 void setNZ(){
-    STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.z) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_Z)->v(0) ;
     STATUS.addr.bit(STATUS_ADDR_N)->v(ALU.n) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_N)->v(0) ;
+    STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.z) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_NZ)->v(1) ;
+    STATUS.addr.bit(STATUS_ADDR_SET_NZ)->v(0) ;
 }
 
 

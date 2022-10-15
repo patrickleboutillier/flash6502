@@ -1,5 +1,5 @@
 build: fake6502.c
-	g++ -g -O -I../circuit/src -I../circuit/complib -I../circuit/pl6502 fake6502.c -o fake6502
+	g++ -g -O -I../circuit/src -I../circuit/complib -Ipl6502 fake6502.c -o fake6502
 
 
 asm: 6502_functional_test.a65

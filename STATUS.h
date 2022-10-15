@@ -32,11 +32,11 @@
 #define STATUS_ADDR_Z      7
 #define STATUS_ADDR_C      6
 
-#define STATUS_ADDR_SET_N  5
+#define STATUS_ADDR_SET_NZ 5
 #define STATUS_ADDR_SET_V  4
 #define STATUS_ADDR_SET_D  3
 #define STATUS_ADDR_SET_I  2
-#define STATUS_ADDR_SET_Z  1
+// #define STATUS_ADDR_SET_Z  1
 #define STATUS_ADDR_SET_C  0
 
 #define STATUS_DATA_N      7
@@ -79,12 +79,12 @@ class STATUS : public sensor {
                 d |= (_DATA->data.v() & 0b11001111) ; // Ignore break
             }
             else {
-                d |= (addr.bit(STATUS_ADDR_SET_N)->v() ? addr.bit(STATUS_ADDR_N)->v() : addr.bit(STATUS_ADDR_OLD_N)->v()) << 7 ; // N
-                d |= (addr.bit(STATUS_ADDR_SET_V)->v() ? addr.bit(STATUS_ADDR_V)->v() : addr.bit(STATUS_ADDR_OLD_V)->v()) << 6 ; // V
-                d |= (addr.bit(STATUS_ADDR_SET_D)->v() ? addr.bit(STATUS_ADDR_D)->v() : addr.bit(STATUS_ADDR_OLD_D)->v()) << 3 ; // D
-                d |= (addr.bit(STATUS_ADDR_SET_I)->v() ? addr.bit(STATUS_ADDR_I)->v() : addr.bit(STATUS_ADDR_OLD_I)->v()) << 2 ; // I
-                d |= (addr.bit(STATUS_ADDR_SET_Z)->v() ? addr.bit(STATUS_ADDR_Z)->v() : addr.bit(STATUS_ADDR_OLD_Z)->v()) << 1 ; // Z
-                d |= (addr.bit(STATUS_ADDR_SET_C)->v() ? addr.bit(STATUS_ADDR_C)->v() : addr.bit(STATUS_ADDR_OLD_C)->v()) << 0 ; // C
+                d |= (addr.bit(STATUS_ADDR_SET_NZ)->v() ? addr.bit(STATUS_ADDR_N)->v() : addr.bit(STATUS_ADDR_OLD_N)->v()) << 7 ; // N
+                d |= (addr.bit(STATUS_ADDR_SET_V)->v()  ? addr.bit(STATUS_ADDR_V)->v() : addr.bit(STATUS_ADDR_OLD_V)->v()) << 6 ; // V
+                d |= (addr.bit(STATUS_ADDR_SET_D)->v()  ? addr.bit(STATUS_ADDR_D)->v() : addr.bit(STATUS_ADDR_OLD_D)->v()) << 3 ; // D
+                d |= (addr.bit(STATUS_ADDR_SET_I)->v()  ? addr.bit(STATUS_ADDR_I)->v() : addr.bit(STATUS_ADDR_OLD_I)->v()) << 2 ; // I
+                d |= (addr.bit(STATUS_ADDR_SET_NZ)->v() ? addr.bit(STATUS_ADDR_Z)->v() : addr.bit(STATUS_ADDR_OLD_Z)->v()) << 1 ; // Z
+                d |= (addr.bit(STATUS_ADDR_SET_C)->v()  ? addr.bit(STATUS_ADDR_C)->v() : addr.bit(STATUS_ADDR_OLD_C)->v()) << 0 ; // C
             }
             data.v(d) ;
             if (enable.v()){
