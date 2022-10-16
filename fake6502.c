@@ -42,21 +42,11 @@ uint8_t read6502(uint16_t address){
         printf("SUCCESS!\n") ;
         exit(0) ;
     }
-    /* if (address == 0x338e){
-        printf("ad1:%d, ad2:%d\n", MEM[0x000D], MEM[0x000E]) ;
-        if ((MEM[0x000D] == 255)&&(MEM[0x000E] == 255)){
-            print = 1 ;
-        }
-    } */
+
     ADDR.MARH = address >> 8 ;
     ADDR.MARL = address & 0xFF ;
 
     uint8_t value = MEM[(ADDR.MARH << 8) | ADDR.MARL] ;
-    /* if (print){
-        if (address >= 0x0400){
-            printf("MEM[%04X] => %02X\n", address, value) ;
-        }
-    } */
 
     return value ;
 }
@@ -377,11 +367,11 @@ static void brk() {
     push8(ADDR.PC & 0xFF) ;
 
     STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
-    STATUS_b_in = 1 ;
+    STATUS_b_in = 1 ;  STATUS_data_enable = 1 ;
     push8(DATA.data.v()) ; //push CPU status to stack
     STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
-    STATUS_b_in = 0 ;
-    
+    STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
+
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
@@ -545,8 +535,16 @@ static void pha() {
 
 static void php() {
     STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
-    push8(DATA.data.v()) ; //push CPU status to stack
+    STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
+    uint8_t status_old = DATA.data.v() ;
+    uint8_t status = STATUS.data_out.get_value() ;
+    push8(status_old) ; //push CPU status to stack
+    STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
     STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
+
+    //if (status != status_old){
+    //    printf("STATUS_OLD:%X != STATUS:%X, diff:%x\n", status_old, status, status_old ^ status) ;
+    //}
 }
 
 static void pla() {
@@ -560,6 +558,11 @@ static void plp() {
     DATA.data.v(status) ;
     STATUS_OLD.fromDATA.v(1) ;
     STATUS_OLD.fromDATA.v(0) ;
+    STATUS_data_in = status ;
+    STATUS_src_data = 1 ;
+    STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
+    STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
+    STATUS_src_data = 0 ;
 }
 
 static void rol() {
@@ -587,6 +590,11 @@ static void rti() {
     DATA.data.v(status) ;
     STATUS_OLD.fromDATA.v(1) ;
     STATUS_OLD.fromDATA.v(0) ;
+    STATUS_data_in = status ;
+    STATUS_src_data = 1 ;
+    STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
+    STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
+    STATUS_src_data = 0 ;
     ADDR.PC = 0 | pull8() ;                 
     ADDR.PC = ADDR.PC | (pull8() << 8) ; 
 }

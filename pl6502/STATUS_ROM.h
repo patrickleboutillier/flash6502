@@ -41,7 +41,7 @@ class STATUS_ROM : public component {
             Z = (nz_set ? z_in : z_old) ;
             C = (c_set ? c_in : c_old) ;
             B = b_in ;
-       } ;
+        } ;
 } ;
 
 
