@@ -7,8 +7,8 @@
 TEST(test_pl6502, STATUS){
     output<1> n_in, v_in, i_in, z_in, c_in, b_in ;
     output<1> nz_set, v_set, i_set, c_set ;
-    output<8> data_in, src_data ;
-    output<1> data_enable ;
+    output<8> data_in ;
+    output<1> data_enable, src_data ;
     STATUS status ;
     n_in.connect(status.n_in) ;
     v_in.connect(status.v_in) ;

@@ -25,7 +25,7 @@ class STATUS_ROM : public component {
         input<1> n_old, v_old, i_old, z_old, c_old ;
 
     public:
-        STATUS_ROM() : n_in(this),   v_in(this),  i_in(this),  z_in(this), c_in(this), b_in(this),
+        STATUS_ROM() : n_in(),   v_in(),  i_in(),  z_in(), c_in(), b_in(this),
                        nz_set(this), v_set(this), i_set(this), c_set(this){
             N.connect(n_old) ;
             V.connect(v_old) ;
