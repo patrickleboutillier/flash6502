@@ -8,9 +8,10 @@
 
 #include "DATA.h"
 #include "STATUS.h"
+#include "STATUS_OLD.h"
 
 DATA DATA ;
-STATUS STATUS(&DATA) ;
+STATUS_OLD STATUS_OLD(&DATA) ;
 
 uint16_t BUS_ADDR ;
 
@@ -31,9 +32,6 @@ struct ADDR {
     uint8_t SP ;
     uint16_t PC ;
 } ADDR ;
-
-
-//uint8_t INST ;
 
 
 uint16_t SUCCESS_ADDR = 0 ;
@@ -75,6 +73,12 @@ output<1> X_s, X_e, Y_s, Y_e ;
 ALU ALU ;
 output<4> ALU_op ;
 
+STATUS STATUS ;
+output<1> STATUS_i_in, STATUS_b_in ;
+output<1> STATUS_nz_set, STATUS_v_set, STATUS_i_set, STATUS_c_set ;
+output<1> STATUS_data_enable, STATUS_src_data ;
+output<8> STATUS_data_in ;
+
 reg<8> INST ;
 output<1> INST_s, INST_e ;
 
@@ -108,27 +112,44 @@ void init6502(){
     ALU_op.connect(ALU.op) ;
     ALU.res.connect(ADD.data_in) ;
 
+    ALU.n.connect(STATUS.n_in) ;
+    ALU.v.connect(STATUS.v_in) ;
+    ALU.z.connect(STATUS.z_in) ;
+    ALU.c.connect(STATUS.c_in) ;
+    STATUS_i_in.connect(STATUS.i_in) ;
+    STATUS_b_in.connect(STATUS.b_in) ;
+    STATUS_nz_set.connect(STATUS.nz_set) ;
+    STATUS_v_set.connect(STATUS.v_set) ;
+    STATUS_i_set.connect(STATUS.i_set) ;
+    STATUS_c_set.connect(STATUS.c_set) ;
+    STATUS_data_enable.connect(STATUS.data_enable) ;
+    STATUS_src_data.connect(STATUS.src_data) ;
+    STATUS_data_in.connect(STATUS.data_in) ; 
+
     INST_e.connect(INST.enable) ;
     INST_s.connect(INST.set) ;
 }
 
 void setV(){
-    STATUS.addr.bit(STATUS_ADDR_V)->v(ALU.v ? 1 : 0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_V)->v(ALU.v) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(0) ;
+    STATUS_v_set = 1 ; STATUS_v_set = 0 ; 
 }
 
 void setC(){
-    STATUS.addr.bit(STATUS_ADDR_C)->v(ALU.c ? 1 : 0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(ALU.c ? 1 : 0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
+    STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
 }
 
 void setNZ(){
-    STATUS.addr.bit(STATUS_ADDR_N)->v(ALU.n) ;
-    STATUS.addr.bit(STATUS_ADDR_Z)->v(ALU.z) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_NZ)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_NZ)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_N)->v(ALU.n) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_Z)->v(ALU.z) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_NZ)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_NZ)->v(0) ;
+    STATUS_nz_set = 1 ; STATUS_nz_set = 0 ;  
 }
 
 
@@ -285,7 +306,7 @@ static void putvalue(uint16_t data) {
 
 //instruction handler functions
 static void adc() { // 3 cycles
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ; A = ACC ; 
+    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ; A = ACC ; 
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
@@ -309,19 +330,19 @@ static void asl() { // 4 cycles
 }
 
 static void bcc() { // 1 cycle
-    if (! STATUS.data.bit(STATUS_DATA_C)->v()) {
+    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bcs() { // 1 cycle
-    if (STATUS.data.bit(STATUS_DATA_C)->v()) {
+    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void beq() { // 1 cycle
-    if (STATUS.data.bit(STATUS_DATA_Z)->v()) {
+    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_Z)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
@@ -333,19 +354,19 @@ static void bit() { // 3 cycles
 }
 
 static void bmi() { // 1 cycle
-    if (STATUS.data.bit(STATUS_DATA_N)->v()) {
+    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_N)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bne() { // 1 cycle
-    if (! STATUS.data.bit(STATUS_DATA_Z)->v()) {
+    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_Z)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bpl() { // 1 cycle
-    if (! STATUS.data.bit(STATUS_DATA_N)->v()) {
+    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_N)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
@@ -355,50 +376,51 @@ static void brk() {
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
 
-    STATUS.B.v(1) ; STATUS.enable.v(1) ;
+    STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ; //push CPU status to stack
-    STATUS.enable.v(0) ; STATUS.B.v(0) ;
+    STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
 
-    STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_in = 1 ; 
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    STATUS_i_in = 0 ; 
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
 static void bvc() { // 1 cycle
-    if (! STATUS.data.bit(STATUS_DATA_V)->v()) {
+    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_V)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bvs() { // 1 cycle
-    if (STATUS.data.bit(STATUS_DATA_V)->v()) {
+    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_V)->v()) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void clc() { // 1 cycle
-    STATUS.addr.bit(STATUS_ADDR_C)->v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
 }
 
 static void cld() {
-    //STATUS.addr.bit(STATUS_ADDR_D)->v(0) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
 }
 
 static void cli() { // 1 cycle
-    STATUS.addr.bit(STATUS_ADDR_I)->v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
 }
 
 static void clv() { // 1 cycle
-    STATUS.addr.bit(STATUS_ADDR_V)->v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_V)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_V)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(0) ;
 }
 
 static void cmp() { // 3 cycles
@@ -520,9 +542,9 @@ static void pha() {
 }
 
 static void php() {
-    STATUS.B.v(1) ; STATUS.enable.v(1) ;
+    STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ; //push CPU status to stack
-    STATUS.enable.v(0) ; STATUS.B.v(0) ;
+    STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
 }
 
 static void pla() {
@@ -534,12 +556,12 @@ static void pla() {
 static void plp() {
     uint8_t status = pull8() ;
     DATA.data.v(status) ;
-    STATUS.fromDATA.v(1) ;
-    STATUS.fromDATA.v(0) ;
+    STATUS_OLD.fromDATA.v(1) ;
+    STATUS_OLD.fromDATA.v(0) ;
 }
 
 static void rol() {
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ;
     ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
@@ -549,7 +571,7 @@ static void rol() {
 }
 
 static void ror() {
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ;
+    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ;
     ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
@@ -561,8 +583,8 @@ static void ror() {
 static void rti() {
     uint8_t status = pull8() ;
     DATA.data.v(status) ;
-    STATUS.fromDATA.v(1) ;
-    STATUS.fromDATA.v(0) ;
+    STATUS_OLD.fromDATA.v(1) ;
+    STATUS_OLD.fromDATA.v(0) ;
     ADDR.PC = 0 | pull8() ;                 
     ADDR.PC = ADDR.PC | (pull8() << 8) ; 
 }
@@ -574,27 +596,27 @@ static void rts() {
 }
 
 static void sbc() {
-    CI = STATUS.data.bit(STATUS_DATA_C)->v() ; A = ACC ; 
+    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ; A = ACC ; 
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
 static void sec() {
-    STATUS.addr.bit(STATUS_ADDR_C)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
 }
 
 static void sed() {
-    //STATUS.addr.bit(STATUS_ADDR_D)->v(1) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
-    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
 }
 
 static void sei() {
-    STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_in = 1 ; 
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    STATUS_i_in = 0 ; 
 }
 
 static void sta() {
@@ -712,24 +734,30 @@ void reset6502() {
 void nmi6502() {
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
-    STATUS.enable.v(1) ;
+    STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ;
-    STATUS.enable.v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
+    STATUS_OLD.enable.v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_in = 1 ; 
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    STATUS_i_in = 0 ; 
     ADDR.PC = read6502(0xFFFA) | read6502(0xFFFB) << 8 ;
 }
 
 void irq6502() {
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
-    STATUS.enable.v(1) ;
+    STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ;
-    STATUS.enable.v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_I)->v(0) ;
+    STATUS_OLD.enable.v(0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_in = 1 ; 
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    STATUS_i_in = 0 ; 
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
