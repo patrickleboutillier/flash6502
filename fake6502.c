@@ -377,9 +377,11 @@ static void brk() {
     push8(ADDR.PC & 0xFF) ;
 
     STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
+    STATUS_b_in = 1 ;
     push8(DATA.data.v()) ; //push CPU status to stack
     STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
-
+    STATUS_b_in = 0 ;
+    
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
@@ -402,9 +404,9 @@ static void bvs() { // 1 cycle
 }
 
 static void clc() { // 1 cycle
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(0) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
+    B = 0 ;
+    ALU_op = ALU_PASS ;
+    setC() ;
 }
 
 static void cld() {
@@ -418,9 +420,9 @@ static void cli() { // 1 cycle
 }
 
 static void clv() { // 1 cycle
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_V)->v(0) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(0) ;
+    B = 0 ;
+    ALU_op = ALU_PASS ;
+    setV() ;
 }
 
 static void cmp() { // 3 cycles
@@ -602,6 +604,7 @@ static void sbc() {
 }
 
 static void sec() {
+    // TODO: do this via ALU
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
