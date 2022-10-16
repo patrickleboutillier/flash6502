@@ -128,7 +128,7 @@ void setV(){
 }
 
 void setC(){
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(ALU.c ? 1 : 0) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(ALU.c) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
     STATUS_c_set = 1 ; STATUS_c_set = 0 ; 

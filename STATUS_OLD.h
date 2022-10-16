@@ -76,12 +76,12 @@ class STATUS_OLD : public sensor {
         void always() {
             uint8_t d = 0b00100000 ;
             if (fromDATA.v()){
-                d |= (_DATA->data.v() & 0b11001111) ; // Ignore break
+                d |= (_DATA->data.v() & 0b11000111) ; // Ignore break and decimal
             }
             else {
                 d |= (addr.bit(STATUS_OLD_ADDR_SET_NZ)->v() ? addr.bit(STATUS_OLD_ADDR_N)->v() : addr.bit(STATUS_OLD_ADDR_OLD_N)->v()) << 7 ; // N
                 d |= (addr.bit(STATUS_OLD_ADDR_SET_V)->v()  ? addr.bit(STATUS_OLD_ADDR_V)->v() : addr.bit(STATUS_OLD_ADDR_OLD_V)->v()) << 6 ; // V
-                d |= (addr.bit(STATUS_OLD_ADDR_SET_D)->v()  ? addr.bit(STATUS_OLD_ADDR_D)->v() : addr.bit(STATUS_OLD_ADDR_OLD_D)->v()) << 3 ; // D
+                //d |= (addr.bit(STATUS_OLD_ADDR_SET_D)->v()  ? addr.bit(STATUS_OLD_ADDR_D)->v() : addr.bit(STATUS_OLD_ADDR_OLD_D)->v()) << 3 ; // D
                 d |= (addr.bit(STATUS_OLD_ADDR_SET_I)->v()  ? addr.bit(STATUS_OLD_ADDR_I)->v() : addr.bit(STATUS_OLD_ADDR_OLD_I)->v()) << 2 ; // I
                 d |= (addr.bit(STATUS_OLD_ADDR_SET_NZ)->v() ? addr.bit(STATUS_OLD_ADDR_Z)->v() : addr.bit(STATUS_OLD_ADDR_OLD_Z)->v()) << 1 ; // Z
                 d |= (addr.bit(STATUS_OLD_ADDR_SET_C)->v()  ? addr.bit(STATUS_OLD_ADDR_C)->v() : addr.bit(STATUS_OLD_ADDR_OLD_C)->v()) << 0 ; // C
