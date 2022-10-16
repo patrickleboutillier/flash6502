@@ -4,10 +4,11 @@ build: fake6502.c
 
 asm: 6502_functional_test.a65
 	./6502_65C02_functional_tests/as65/as65 -l -m -w -h0 6502_functional_test.a65
+	@grep ">.*;test passed, no errors" 6502_functional_test.lst | cut -d' ' -f1 > success.addr
 
 
 test: asm build
-	./fake6502
+	./fake6502 `cat success.addr`
 
 
 clean:

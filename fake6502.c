@@ -36,8 +36,11 @@ struct ADDR {
 //uint8_t INST ;
 
 
+uint16_t SUCCESS_ADDR = 0 ;
+
+
 uint8_t read6502(uint16_t address){
-    if (address == 0x336D){
+    if (address == SUCCESS_ADDR){
         printf("SUCCESS!\n") ;
         exit(0) ;
     }
@@ -380,10 +383,10 @@ static void clc() { // 1 cycle
     STATUS.addr.bit(STATUS_ADDR_SET_C)->v(0) ;
 }
 
-static void cld() { // 1 cycle
-    STATUS.addr.bit(STATUS_ADDR_D)->v(0) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
+static void cld() {
+    //STATUS.addr.bit(STATUS_ADDR_D)->v(0) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
 }
 
 static void cli() { // 1 cycle
@@ -583,9 +586,9 @@ static void sec() {
 }
 
 static void sed() {
-    STATUS.addr.bit(STATUS_ADDR_D)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
-    STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
+    //STATUS.addr.bit(STATUS_ADDR_D)->v(1) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(1) ;
+    //STATUS.addr.bit(STATUS_ADDR_SET_D)->v(0) ;
 }
 
 static void sei() {
@@ -747,7 +750,15 @@ void exec6502() {
     }
 }
 
-int main(){
+int main(int argc, char *argv[]){
+    if (argc < 2){
+        printf("Usage: %s SUCCESS_ADDR_IN_HEX\n", argv[0]) ;
+        exit(1) ;
+    }
+
+    SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
+    printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
+
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
     int nb = fread(MEM, 0x10000, 1, file) ;
     fclose(file) ; 

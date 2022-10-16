@@ -6,6 +6,17 @@
 #include "STATUS_ROM.h"
 
 /*
+    Connections:
+        - Data bus (for input and output)
+        - ALU flags (ALU.n, ALU,v, ALU,z, ALU,c)
+
+    Control signals:
+        - nz_set, v_set, d_set, i_set, c_set
+        - d_in, i_in, b_in
+        - src_data, data_enable
+*/
+
+/*
     SR Flags (bit 7 to bit 0)
     N	Negative
     V	Overflow
