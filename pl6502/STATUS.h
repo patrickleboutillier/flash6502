@@ -54,6 +54,7 @@ class STATUS : public component {
             sr_v_set.connect(rom.v_set) ;
             sr_i_set.connect(rom.i_set) ;
             sr_c_set.connect(rom.c_set) ;
+            data_out.drive(false) ;
         } ;
 
         void always(){
