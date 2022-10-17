@@ -8,11 +8,9 @@
 
 #include "DATA.h"
 #include "STATUS.h"
-#include "STATUS_OLD.h"
 
 
 DATA DATA ;
-STATUS_OLD STATUS_OLD(&DATA) ;
 
 uint16_t BUS_ADDR ;
 
@@ -74,22 +72,6 @@ reg<8> INST ;
 output<1> INST_s, INST_e ;
 
 
-bool check_status(const char *msg){
-    STATUS_OLD.enable.v(1) ;
-    STATUS_data_enable = 1 ;
-    uint8_t sold = DATA.data.v() ;
-    uint8_t snew = STATUS.data_out ;
-    STATUS_data_enable = 0 ;
-    STATUS_OLD.enable.v(0) ;
-
-    if (snew != sold){
-        printf("%s -> SOLD:%X, SNEW:%X, diff:%X\n", msg, sold, snew, sold ^ snew) ;
-        return false ;
-    }
-
-    return true ;
-}
-
 void init6502(){
     ACC_e.connect(ACC.enable) ;
     ACC_s.connect(ACC.set) ;
@@ -138,32 +120,18 @@ void init6502(){
 }
 
 void setV(){
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_V)->v(ALU.v) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_V)->v(0) ;
     STATUS_v_set = 1 ; STATUS_v_set = 0 ; 
 }
 
 void setC(){
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(ALU.c) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
     STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
-    //check_status("setC") ;
 }
 
 void setNZ(){
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_N)->v(ALU.n) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_Z)->v(ALU.z) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_NZ)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_NZ)->v(0) ;
     STATUS_nz_set = 1 ; STATUS_nz_set = 0 ;  
 }
 
 void setI(uint8_t i){
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(i) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
     STATUS_i_in = i ; 
     STATUS_i_set = 1 ; STATUS_i_set = 0 ;
     STATUS_i_in = 0 ; 
@@ -560,11 +528,7 @@ static void pla() {
 }
 
 static void plp() {
-    uint8_t status = pull8() ;
-    DATA.data.v(status) ;
-    STATUS_OLD.fromDATA.v(1) ;
-    STATUS_OLD.fromDATA.v(0) ;
-    STATUS_data_in = status ;
+    STATUS_data_in = pull8() ;
     STATUS_src_data = 1 ;
     STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
     STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
@@ -592,11 +556,7 @@ static void ror() {
 }
 
 static void rti() {
-    uint8_t status = pull8() ;
-    DATA.data.v(status) ;
-    STATUS_OLD.fromDATA.v(1) ;
-    STATUS_OLD.fromDATA.v(0) ;
-    STATUS_data_in = status ;
+    STATUS_data_in = pull8() ;
     STATUS_src_data = 1 ;
     STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
     STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;

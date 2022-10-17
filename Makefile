@@ -8,6 +8,7 @@ asm: 6502_functional_test.a65
 
 
 test: asm build
+	@date
 	./fake6502 `cat success.addr`
 
 
