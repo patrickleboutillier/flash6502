@@ -5,3 +5,4 @@ fake6502
 pl6502/pl6502_unittests
 success.addr
 pl6502/STATUS_unittests
+pl6502/ALU_unittests
