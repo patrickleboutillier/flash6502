@@ -10,6 +10,7 @@
 #include "STATUS.h"
 #include "STATUS_OLD.h"
 
+
 DATA DATA ;
 STATUS_OLD STATUS_OLD(&DATA) ;
 
@@ -73,6 +74,22 @@ reg<8> INST ;
 output<1> INST_s, INST_e ;
 
 
+bool check_status(const char *msg){
+    STATUS_OLD.enable.v(1) ;
+    STATUS_data_enable = 1 ;
+    uint8_t sold = DATA.data.v() ;
+    uint8_t snew = STATUS.data_out.get_value() ;
+    STATUS_data_enable = 0 ;
+    STATUS_OLD.enable.v(0) ;
+
+    if (snew != sold){
+        printf("%s -> SOLD:%X, SNEW:%X, diff:%X\n", msg, sold, snew, sold ^ snew) ;
+        return false ;
+    }
+
+    return true ;
+}
+
 void init6502(){
     ACC_e.connect(ACC.enable) ;
     ACC_s.connect(ACC.set) ;
@@ -132,6 +149,7 @@ void setC(){
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
     STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
     STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
+    //check_status("setC") ;
 }
 
 void setNZ(){
@@ -142,6 +160,14 @@ void setNZ(){
     STATUS_nz_set = 1 ; STATUS_nz_set = 0 ;  
 }
 
+void setI(uint8_t i){
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(i) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
+    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
+    STATUS_i_in = i ; 
+    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    STATUS_i_in = 0 ; 
+}
 
 void push8(uint8_t data) {
     MEM[0x0100 | ADDR.SP] = data ;
@@ -372,12 +398,7 @@ static void brk() {
     STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
 
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
-    STATUS_i_in = 1 ; 
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
-    STATUS_i_in = 0 ; 
+    setI(1) ;
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
@@ -403,10 +424,7 @@ static void cld() {
 }
 
 static void cli() { // 1 cycle
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(0) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
+    setI(0) ;
 }
 
 static void clv() { // 1 cycle
@@ -542,9 +560,7 @@ static void php() {
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
     STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
 
-    //if (status != status_old){
-    //    printf("STATUS_OLD:%X != STATUS:%X, diff:%x\n", status_old, status, status_old ^ status) ;
-    //}
+    //check_status("php") ;
 }
 
 static void pla() {
@@ -612,22 +628,18 @@ static void sbc() {
 }
 
 static void sec() {
-    // TODO: do this via ALU
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_C)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_C)->v(0) ;
+    B = 0 ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
+    B = ADD ;
+    ALU_op = ALU_DEC ;
+    setC() ;
 }
 
 static void sed() {
 }
 
 static void sei() {
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
-    STATUS_i_in = 1 ; 
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
-    STATUS_i_in = 0 ; 
+    setI(1) ;
 }
 
 static void sta() {
@@ -748,12 +760,7 @@ void nmi6502() {
     STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ;
     STATUS_OLD.enable.v(0) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
-    STATUS_i_in = 1 ; 
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
-    STATUS_i_in = 0 ; 
+    setI(1) ; 
     ADDR.PC = read6502(0xFFFA) | read6502(0xFFFB) << 8 ;
 }
 
@@ -763,12 +770,7 @@ void irq6502() {
     STATUS_OLD.enable.v(1) ;
     push8(DATA.data.v()) ;
     STATUS_OLD.enable.v(0) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(1) ;
-    STATUS_OLD.addr.bit(STATUS_OLD_ADDR_SET_I)->v(0) ;
-    STATUS_i_in = 1 ; 
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
-    STATUS_i_in = 0 ; 
+    setI(1) ;
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
