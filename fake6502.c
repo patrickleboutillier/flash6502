@@ -78,7 +78,7 @@ bool check_status(const char *msg){
     STATUS_OLD.enable.v(1) ;
     STATUS_data_enable = 1 ;
     uint8_t sold = DATA.data.v() ;
-    uint8_t snew = STATUS.data_out.get_value() ;
+    uint8_t snew = STATUS.data_out ;
     STATUS_data_enable = 0 ;
     STATUS_OLD.enable.v(0) ;
 
@@ -322,7 +322,7 @@ static void putvalue(uint16_t data) {
 
 //instruction handler functions
 static void adc() { // 3 cycles
-    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ; A = ACC ; 
+    CI = STATUS.C ; A = ACC ; 
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
@@ -345,20 +345,20 @@ static void asl() { // 4 cycles
     setC() ; setNZ() ;
 }
 
-static void bcc() { // 1 cycle
-    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v()) {
+static void bcc(){ // 1 cycle
+    if (! STATUS.C){
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bcs() { // 1 cycle
-    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v()) {
+    if (STATUS.C){
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void beq() { // 1 cycle
-    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_Z)->v()) {
+static void beq(){ // 1 cycle
+    if (STATUS.Z){
         ADDR.PC = ADDR.EA ;
     }
 }
@@ -370,19 +370,19 @@ static void bit() { // 3 cycles
 }
 
 static void bmi() { // 1 cycle
-    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_N)->v()) {
+    if (STATUS.N){
         ADDR.PC = ADDR.EA ;
     }
 }
 
-static void bne() { // 1 cycle
-    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_Z)->v()) {
+static void bne(){ // 1 cycle
+    if (! STATUS.Z) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bpl() { // 1 cycle
-    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_N)->v()) {
+    if (! STATUS.N) {
         ADDR.PC = ADDR.EA ;
     }
 }
@@ -391,25 +391,21 @@ static void brk() {
     ADDR.PC++;
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
-
-    STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
     STATUS_b_in = 1 ;  STATUS_data_enable = 1 ;
-    push8(DATA.data.v()) ; //push CPU status to stack
-    STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
+    push8(STATUS.data_out) ; //push CPU status to stack
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
-
     setI(1) ;
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
 
 static void bvc() { // 1 cycle
-    if (! STATUS_OLD.data.bit(STATUS_OLD_DATA_V)->v()) {
+    if (! STATUS.V) {
         ADDR.PC = ADDR.EA ;
     }
 }
 
 static void bvs() { // 1 cycle
-    if (STATUS_OLD.data.bit(STATUS_OLD_DATA_V)->v()) {
+    if (STATUS.V) {
         ADDR.PC = ADDR.EA ;
     }
 }
@@ -552,15 +548,9 @@ static void pha() {
 }
 
 static void php() {
-    STATUS_OLD.B.v(1) ; STATUS_OLD.enable.v(1) ;
     STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
-    uint8_t status_old = DATA.data.v() ;
-    uint8_t status = STATUS.data_out.get_value() ;
-    push8(status_old) ; //push CPU status to stack
+    push8(STATUS.data_out) ; //push CPU status to stack
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
-    STATUS_OLD.enable.v(0) ; STATUS_OLD.B.v(0) ;
-
-    //check_status("php") ;
 }
 
 static void pla() {
@@ -582,7 +572,7 @@ static void plp() {
 }
 
 static void rol() {
-    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ;
+    CI = STATUS.C ;
     ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
@@ -592,7 +582,7 @@ static void rol() {
 }
 
 static void ror() {
-    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ;
+    CI = STATUS.C ;
     ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
@@ -622,7 +612,7 @@ static void rts() {
 }
 
 static void sbc() {
-    CI = STATUS_OLD.data.bit(STATUS_OLD_DATA_C)->v() ; A = ACC ; 
+    CI = STATUS.C ; A = ACC ; 
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
@@ -757,9 +747,9 @@ void reset6502() {
 void nmi6502() {
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
-    STATUS_OLD.enable.v(1) ;
-    push8(DATA.data.v()) ;
-    STATUS_OLD.enable.v(0) ;
+    STATUS_data_enable = 1 ;
+    push8(STATUS.data_out) ;
+    STATUS_data_enable = 0 ;
     setI(1) ; 
     ADDR.PC = read6502(0xFFFA) | read6502(0xFFFB) << 8 ;
 }
@@ -767,9 +757,9 @@ void nmi6502() {
 void irq6502() {
     push8(ADDR.PC >> 8) ;
     push8(ADDR.PC & 0xFF) ;
-    STATUS_OLD.enable.v(1) ;
-    push8(DATA.data.v()) ;
-    STATUS_OLD.enable.v(0) ;
+    STATUS_data_enable = 1 ;
+    push8(STATUS.data_out) ;
+    STATUS_data_enable = 0 ;
     setI(1) ;
     ADDR.PC = read6502(0xFFFE) | read6502(0xFFFF) << 8 ;
 }
