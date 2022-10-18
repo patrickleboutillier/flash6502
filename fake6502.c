@@ -29,15 +29,14 @@ void MEM_write(uint16_t addr, uint8_t data){
 
 struct ADDR {
     uint16_t EA ;
-    uint8_t SP ;
     uint16_t PC ;
 } ADDR ;
 
 
 bus<8> DATA ;
 
-reg<8> EAh, EAl, PCh, PCl, SPh, SPl ;
-output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SPl_s, SPl_e ;
+reg<8> EAh, EAl, PCh, PCl, SPh, SP ;
+output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SP_s, SP_e ;
 
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
@@ -77,8 +76,8 @@ void init6502(){
     SPh_s.connect(SPh.set) ;
     SPh = 0x01 ;
     
-    SPl_e.connect(SPl.enable) ;
-    SPl_s.connect(SPl.set) ;
+    SP_e.connect(SP.enable) ;
+    SP_s.connect(SP.set) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
@@ -160,14 +159,14 @@ void setI(uint8_t i){
 }
 
 void push8(uint8_t data) {
-    MEM[0x0100 | ADDR.SP] = data ;
-    ADDR.SP-- ;
+    MEM[SPh << 8 | SP] = data ;
+    SP = SP - 1 ;
 }
 
 
 uint8_t pull8() {
-    ADDR.SP++ ;
-    return MEM[0x0100 | ADDR.SP] ;
+    SP = SP + 1 ;
+    return MEM[SPh << 8 | SP] ;
 }
 
 
@@ -638,7 +637,7 @@ static void tay() {
 }
 
 static void tsx() {
-    B = ADDR.SP ;
+    B = SP ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ;
     X = ADD ; setNZ() ;
@@ -655,7 +654,7 @@ static void txs() {
     B = X ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.SP = ADD ; 
+    SP = ADD ; 
 }
 
 static void tya() {
@@ -720,7 +719,7 @@ static void (*optable[256])() = {
 
 void reset6502() {
     ADDR.PC = MEM_read(0xFFFC) | MEM_read(0xFFFD) << 8 ;
-    ADDR.SP = 0xFD ;
+    SP = 0xFD ;
 }
 
 void nmi6502() {
