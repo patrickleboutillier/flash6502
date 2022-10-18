@@ -10,6 +10,12 @@
 #include "DATA_OLD.h"
 #include "STATUS.h"
 
+buffer<8> DATA ;
+
+// Temporary register
+reg<8> RAM ;
+output<1> RAM_e, RAM_s ;
+
 DATA_OLD DATA_OLD ;
 
 uint16_t BUS_ADDR ;
@@ -22,8 +28,12 @@ void MEM_write(){
 
 void MEM_read(){
     DATA_OLD.data.v(MEM[BUS_ADDR]) ;
+    RAM = MEM[BUS_ADDR] ;
 }
 
+uint8_t MEM_read(uint16_t addr){
+    return MEM[addr] ;
+}
 
 struct ADDR {
     uint8_t MARH, MARL ;
@@ -51,8 +61,6 @@ uint8_t read6502(uint16_t address){
 }
 
 
-buffer<8> DATA ;
-
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
 reg<8> A, B, ADD ;
@@ -75,28 +83,45 @@ output<1> INST_s, INST_e ;
 
 
 void init6502(){
+    RAM_e.connect(RAM.enable) ;
+    RAM_s.connect(RAM.set) ;
+    RAM.data_out.connect(DATA.a) ;
+
+    DATA.b.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
     ACC_s.connect(ACC.set) ;
-    //ACC.data_out.connect(DATA.data_in) ;
+    ACC.data_out.connect(DATA.a) ;
 
+    DATA.b.connect(A.data_in) ;
     A_e.connect(A.enable) ;
     A_s.connect(A.set) ;
     A_e = 1 ;
+
+    DATA.b.connect(B.data_in) ;
     B_e.connect(B.enable) ;
     B_s.connect(B.set) ;
     B_e = 1 ;   
+
     CI_e.connect(CI.enable) ;
     CI_s.connect(CI.set) ;
     CI_e = 1 ;
+
     ADD_e.connect(ADD.enable) ;
     ADD_s.connect(ADD.set) ;
+    ADD.data_out.connect(DATA.a) ;
+
     CO_e.connect(CO.enable) ;
     CO_s.connect(CO.set) ;
 
+    DATA.b.connect(X.data_in) ;
     X_e.connect(X.enable) ;
     X_s.connect(X.set) ;
+    X.data_out.connect(DATA.a) ;
+
+    DATA.b.connect(Y.data_in) ;
     Y_e.connect(Y.enable) ;
     Y_s.connect(Y.set) ;
+    Y.data_out.connect(DATA.a) ;
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
@@ -117,6 +142,7 @@ void init6502(){
     STATUS_data_enable.connect(STATUS.data_enable) ;
     STATUS_src_data.connect(STATUS.src_data) ;
     STATUS_data_in.connect(STATUS.data_in) ; 
+    STATUS.data_out.connect(DATA.a) ;
 
     INST_e.connect(INST.enable) ;
     INST_s.connect(INST.set) ;
@@ -160,7 +186,7 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
 }
 
 static void zp() { //zero-page, 2 cycles
