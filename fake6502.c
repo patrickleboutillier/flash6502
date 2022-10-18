@@ -186,28 +186,28 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
-    B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
 }
 
 static void zp() { //zero-page, 2 cycles
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA_OLD.data.v() ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    ADDR.EA = read6502(ADDR.PC) ;
+    B = read6502(ADDR.EA) ; ADDR.PC++ ;
 }
 
 static void zpx() { //zero-page,X, 5 cycles
     A = X ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ;
+    B = read6502(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.EA) ; ADDR.PC++ ;
 }
 
 static void zpy() { //zero-page,Y, 5 cycles
     A = Y ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ;
+    B = read6502(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA = ADD ; 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.EA) ; ADDR.PC++ ;
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
