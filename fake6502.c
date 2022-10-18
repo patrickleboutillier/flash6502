@@ -34,7 +34,7 @@ struct ADDR {
 } ADDR ;
 
 
-buffer<8> DATA ;
+bus<8> DATA ;
 
 reg<8> EAh, EAl, PCh, PCl, SPh, SPl ;
 output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SPl_s, SPl_e ;
@@ -80,17 +80,17 @@ void init6502(){
     SPl_e.connect(SPl.enable) ;
     SPl_s.connect(SPl.set) ;
 
-    DATA.b.connect(ACC.data_in) ;
+    DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
     ACC_s.connect(ACC.set) ;
-    ACC.data_out.connect(DATA.a) ;
+    ACC.data_out.connect(DATA.data_in) ;
 
-    DATA.b.connect(A.data_in) ;
+    DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
     A_s.connect(A.set) ;
     A_e = 1 ;
 
-    DATA.b.connect(B.data_in) ;
+    DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
     B_s.connect(B.set) ;
     B_e = 1 ;   
@@ -101,20 +101,20 @@ void init6502(){
 
     ADD_e.connect(ADD.enable) ;
     ADD_s.connect(ADD.set) ;
-    ADD.data_out.connect(DATA.a) ;
+    ADD.data_out.connect(DATA.data_in) ;
 
     CO_e.connect(CO.enable) ;
     CO_s.connect(CO.set) ;
 
-    DATA.b.connect(X.data_in) ;
+    DATA.data_out.connect(X.data_in) ;
     X_e.connect(X.enable) ;
     X_s.connect(X.set) ;
-    X.data_out.connect(DATA.a) ;
+    X.data_out.connect(DATA.data_in) ;
 
-    DATA.b.connect(Y.data_in) ;
+    DATA.data_out.connect(Y.data_in) ;
     Y_e.connect(Y.enable) ;
     Y_s.connect(Y.set) ;
-    Y.data_out.connect(DATA.a) ;
+    Y.data_out.connect(DATA.data_in) ;
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
@@ -135,7 +135,7 @@ void init6502(){
     STATUS_data_enable.connect(STATUS.data_enable) ;
     STATUS_src_data.connect(STATUS.src_data) ;
     STATUS_data_in.connect(STATUS.data_in) ; 
-    STATUS.data_out.connect(DATA.a) ;
+    STATUS.data_out.connect(DATA.data_in) ;
 
     INST_e.connect(INST.enable) ;
     INST_s.connect(INST.set) ;
