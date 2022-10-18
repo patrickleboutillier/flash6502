@@ -22,8 +22,8 @@ uint16_t BUS_ADDR ;
 
 uint8_t MEM[0x10000] ;
 
-void MEM_write(){
-    MEM[BUS_ADDR] = DATA_OLD.data.v() ;
+void MEM_write(uint16_t addr, uint8_t data){
+    MEM[addr] = data ;
 }
 
 void MEM_read(){
@@ -36,7 +36,6 @@ uint8_t MEM_read(uint16_t addr){
 }
 
 struct ADDR {
-    uint8_t MARH, MARL ;
     uint16_t EA ;
     uint8_t SP ;
     uint16_t PC ;
@@ -52,12 +51,7 @@ uint8_t read6502(uint16_t address){
         exit(0) ;
     }
 
-    ADDR.MARH = address >> 8 ;
-    ADDR.MARL = address & 0xFF ;
-
-    uint8_t value = MEM[(ADDR.MARH << 8) | ADDR.MARL] ;
-
-    return value ;
+    return MEM[address] ;
 }
 
 
@@ -211,10 +205,9 @@ static void zpy() { //zero-page,Y, 5 cycles
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA_OLD.data.v() ;
+    ADDR.EA = read6502(ADDR.PC) ; ADDR.PC++ ;
     // TODO: LOGIC
     if (ADDR.EA & 0x80) ADDR.EA |= 0xFF00 ;
-    ADDR.PC++ ;
 
     A = ADDR.EA & 0xFF ;
     B = ADDR.PC & 0xFF ;
@@ -229,39 +222,39 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
 }
 
 static void abso() { //absolute, 3 cycles
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA = DATA_OLD.data.v() ; ADDR.PC++ ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; ADDR.EA |= DATA_OLD.data.v() << 8 ;
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    ADDR.EA = read6502(ADDR.PC) ; ADDR.PC++ ;
+    ADDR.EA |= read6502(ADDR.PC) << 8 ; ADDR.PC++ ;
+    B = read6502(ADDR.EA) ;
 }
 
 static void absx() { //absolute,X, 10 cycles
     A = X ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
 
     A = 0 ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
     ADDR.EA = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ;
+    B = read6502(ADDR.EA) ;
 }
 
 static void absy() { //absolute,Y,  10 cycles
     A = Y ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
 
     A = 0 ;
-    BUS_ADDR = ADDR.PC ; MEM_read() ; B = DATA_OLD.data.v() ; ADDR.PC++ ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
     ADDR.EA = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD << 8 ;
 
-    BUS_ADDR = ADDR.EA ; MEM_read() ; B = DATA_OLD.data.v() ;
+    B = read6502(ADDR.EA) ;
 }
 
 static void ind() { //indirect, 12 cycles
@@ -284,7 +277,7 @@ static void ind() { //indirect, 12 cycles
 }
 
 static void indx() { // (indirect,X), 9 cycles
-    B = read6502(ADDR.PC++) ;
+    B = read6502(ADDR.PC) ; ADDR.PC++ ;
     A = X ; 
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
@@ -311,9 +304,7 @@ static void indy() { // (indirect),Y, 12 cycles
 }
 
 static void putvalue(uint16_t data) {
-    BUS_ADDR = ADDR.EA ;
-    DATA_OLD.data.v(data) ;
-    MEM_write() ;
+    MEM_write(ADDR.EA, data) ;
 }
 
 
