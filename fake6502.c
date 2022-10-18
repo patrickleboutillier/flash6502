@@ -22,6 +22,10 @@ uint8_t MEM_read(uint16_t address, bool check_success = false){
     return MEM[address] ;
 }
 
+uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
+    return MEM_read(addrh << 8 | addrl) ;
+}
+
 void MEM_write(uint16_t addr, uint8_t data){
     MEM[addr] = data ;
 }
@@ -181,24 +185,33 @@ static void imm() { //immediate, 1 cycle
 }
 
 static void zp() { //zero-page, 2 cycles
-    ADDR.EA = MEM_read(ADDR.PC) ;
-    B = MEM_read(ADDR.EA) ; ADDR.PC++ ;
+    EAh = 0 ;
+    EAl = MEM_read(ADDR.PC) ;
+    B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
+
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void zpx() { //zero-page,X, 5 cycles
+    EAh = 0 ;
     A = X ;
     B = MEM_read(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = ADD ; 
-    B = MEM_read(ADDR.EA) ; ADDR.PC++ ;
+    EAl = ADD ; 
+    B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
+
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void zpy() { //zero-page,Y, 5 cycles
+    EAh = 0 ;
     A = Y ;
     B = MEM_read(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = ADD ; 
-    B = MEM_read(ADDR.EA) ; ADDR.PC++ ;
+    EAl = ADD ; 
+    B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
+
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
@@ -220,9 +233,10 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
 }
 
 static void abso() { //absolute, 3 cycles
-    ADDR.EA = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ADDR.EA |= MEM_read(ADDR.PC) << 8 ; ADDR.PC++ ;
-    B = MEM_read(ADDR.EA) ;
+    EAl = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    EAh = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    B = MEM_readhl(EAh, EAl) ;
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void absx() { //absolute,X, 10 cycles
@@ -233,11 +247,13 @@ static void absx() { //absolute,X, 10 cycles
 
     A = 0 ;
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ADDR.EA = ADD ;         // save first result before going on.
+    EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= ADD << 8 ;
+    EAh = ADD ;
 
-    B = MEM_read(ADDR.EA) ;
+    B = MEM_readhl(EAh, EAl) ;
+    
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void absy() { //absolute,Y,  10 cycles
@@ -248,11 +264,13 @@ static void absy() { //absolute,Y,  10 cycles
 
     A = 0 ;
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ADDR.EA = ADD ;         // save first result before going on.
+    EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= ADD << 8 ;
+    EAh = ADD ;
 
-    B = MEM_read(ADDR.EA) ;
+    B = MEM_readhl(EAh, EAl) ;
+
+    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void ind() { //indirect, 12 cycles
