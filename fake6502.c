@@ -4,16 +4,10 @@
 
 #include "circuit.h"
 #include "reg.h"
-//#include "bus.h"
+#include "bus.h"
 
 #include "ALU.h"
 #include "STATUS.h"
-
-buffer<8> DATA ;
-
-// Temporary register
-reg<8> RAM ;
-output<1> RAM_e, RAM_s ;
 
 
 uint8_t MEM[0x10000] ;
@@ -40,6 +34,11 @@ struct ADDR {
 } ADDR ;
 
 
+buffer<8> DATA ;
+
+reg<8> EAh, EAl, PCh, PCl, SPh, SPl ;
+output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SPl_s, SPl_e ;
+
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
 reg<8> A, B, ADD ;
@@ -62,9 +61,24 @@ output<1> INST_s, INST_e ;
 
 
 void init6502(){
-    RAM_e.connect(RAM.enable) ;
-    RAM_s.connect(RAM.set) ;
-    RAM.data_out.connect(DATA.a) ;
+    EAh_e.connect(EAh.enable) ;
+    EAh_s.connect(EAh.set) ;
+
+    EAl_e.connect(EAl.enable) ;
+    EAl_s.connect(EAl.set) ;
+
+    PCh_e.connect(PCh.enable) ;
+    PCh_s.connect(PCh.set) ;
+    
+    PCl_e.connect(PCl.enable) ;
+    PCl_s.connect(PCl.set) ;
+
+    SPh_e.connect(SPh.enable) ;
+    SPh_s.connect(SPh.set) ;
+    SPh = 0x01 ;
+    
+    SPl_e.connect(SPl.enable) ;
+    SPl_s.connect(SPl.set) ;
 
     DATA.b.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
