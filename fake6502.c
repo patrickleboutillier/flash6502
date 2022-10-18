@@ -13,7 +13,7 @@
 uint8_t MEM[0x10000] ;
 uint16_t SUCCESS_ADDR = 0 ;
 
-uint8_t MEM_read(uint16_t address, bool check_success = true){
+uint8_t MEM_read(uint16_t address, bool check_success = false){
     if ((check_success)&&(address == SUCCESS_ADDR)){
         printf("SUCCESS!\n") ;
         exit(0) ;
@@ -163,7 +163,6 @@ void push8(uint8_t data) {
     SP = SP - 1 ;
 }
 
-
 uint8_t pull8() {
     SP = SP + 1 ;
     return MEM[SPh << 8 | SP] ;
@@ -203,20 +202,21 @@ static void zpy() { //zero-page,Y, 5 cycles
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
-    ADDR.EA = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    A = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    ALU_op = ALU_ASL ;
+    CI = ALU.c ;
     // TODO: LOGIC
-    if (ADDR.EA & 0x80) ADDR.EA |= 0xFF00 ;
-
-    A = ADDR.EA & 0xFF ;
+    if (CI)
+        EAh = 0xFF ;
+    else    
+        EAh = 0x00 ;
     B = ADDR.PC & 0xFF ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    CI = ALU.c ; // Ok because ALU_ADD currently in use.
-    A = ADDR.EA >> 8 ;
+    EAl = ADD ; CI = ALU.c ; // Ok because ALU_ADD ignores
+    A = EAh ;
     B = ADDR.PC >> 8 ;
-    ADDR.EA = ADD ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-
-    ADDR.EA |= ADD << 8 ;
+    EAh = ADD ;
 }
 
 static void abso() { //absolute, 3 cycles
@@ -270,8 +270,6 @@ static void ind() { //indirect, 12 cycles
     B = 0 ; // could be eliminated if the ALU had a PASSA instruction.
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.EA |= ADD ;
-
-    B = MEM_read(ADDR.EA) ;
 }
 
 static void indx() { // (indirect,X), 9 cycles
@@ -333,19 +331,19 @@ static void asl() { // 4 cycles
 
 static void bcc(){ // 1 cycle
     if (! STATUS.C){
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
 static void bcs() { // 1 cycle
     if (STATUS.C){
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
 static void beq(){ // 1 cycle
     if (STATUS.Z){
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
@@ -357,19 +355,19 @@ static void bit() { // 3 cycles
 
 static void bmi() { // 1 cycle
     if (STATUS.N){
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
 static void bne(){ // 1 cycle
     if (! STATUS.Z) {
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
 static void bpl() { // 1 cycle
     if (! STATUS.N) {
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
@@ -386,13 +384,13 @@ static void brk() {
 
 static void bvc() { // 1 cycle
     if (! STATUS.V) {
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
 static void bvs() { // 1 cycle
     if (STATUS.V) {
-        ADDR.PC = ADDR.EA ;
+        ADDR.PC = EAh << 8 | EAl ;
     }
 }
 
