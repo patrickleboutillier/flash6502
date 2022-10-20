@@ -32,7 +32,6 @@ void MEM_write(uint16_t addr, uint8_t data){
 
 
 struct ADDR {
-    uint16_t EA ;
     uint16_t PC ;
 } ADDR ;
 
@@ -52,6 +51,7 @@ output<1> X_s, X_e, Y_s, Y_e ;
 
 ALU ALU ;
 output<4> ALU_op ;
+output<1> ALU_ci_set, ALU_ci_C_or_c ;
 
 STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
@@ -121,8 +121,10 @@ void init6502(){
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
-    CI.data_out.connect(ALU.c_in) ;    
+    CI.data_out.connect(ALU.C) ;    
     ALU_op.connect(ALU.op) ;
+    ALU_ci_set.connect(ALU.ci_set) ;
+    ALU_ci_C_or_c.connect(ALU.ci_C_or_c) ;
     ALU.res.connect(ADD.data_in) ;
 
     ALU.n.connect(STATUS.n_in) ;
@@ -184,48 +186,40 @@ static void imm() { //immediate, 1 cycle
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
 }
 
-static void zp() { //zero-page, 2 cycles
+static void zp() { //zero-page, 3 cycles
     EAh = 0 ;
     EAl = MEM_read(ADDR.PC) ;
     B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
-
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
-static void zpx() { //zero-page,X, 5 cycles
+static void zpx() { //zero-page,X, 6 cycles
     EAh = 0 ;
     A = X ;
     B = MEM_read(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     EAl = ADD ; 
     B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
-
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
-static void zpy() { //zero-page,Y, 5 cycles
+static void zpy() { //zero-page,Y, 6 cycles
     EAh = 0 ;
     A = Y ;
     B = MEM_read(ADDR.PC) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     EAl = ADD ; 
     B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
-
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
+    EAh = 0x00 ;
     A = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ALU_op = ALU_ASL ;
-    CI = ALU.c ;
+    ALU_op = ALU_ASL ; CI = ALU.c ;
     // TODO: LOGIC
     if (CI)
         EAh = 0xFF ;
-    else    
-        EAh = 0x00 ;
     B = ADDR.PC & 0xFF ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    EAl = ADD ; CI = ALU.c ; // Ok because ALU_ADD ignores
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; // Ok because ALU_ADD ignores carry
+    EAl = ADD ;
     A = EAh ;
     B = ADDR.PC >> 8 ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
@@ -236,7 +230,6 @@ static void abso() { //absolute, 3 cycles
     EAl = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     EAh = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     B = MEM_readhl(EAh, EAl) ;
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void absx() { //absolute,X, 10 cycles
@@ -244,16 +237,12 @@ static void absx() { //absolute,X, 10 cycles
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
-
-    A = 0 ;
+    A = 0 ; 
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
-
     B = MEM_readhl(EAh, EAl) ;
-    
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
 static void absy() { //absolute,Y,  10 cycles
@@ -261,33 +250,29 @@ static void absy() { //absolute,Y,  10 cycles
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
     CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
-
-    A = 0 ;
+    A = 0 ; 
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
-
     B = MEM_readhl(EAh, EAl) ;
-
-    ADDR.EA = EAh << 8 | EAl ;
 }
 
-static void ind() { //indirect, 12 cycles
+static void ind() { //indirect, 11 cycles
     // Load ADDR_EAl and B at the same time
-    ADDR.EA = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ADDR.EA |= MEM_read(ADDR.PC) << 8 ; ADDR.PC++ ;
+    EAl = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
+    EAh = MEM_read(ADDR.PC) ; ADDR.PC++ ;
 
-    A = MEM_read(ADDR.EA) ;
+    A = MEM_readhl(EAh, EAl) ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= ADD ;
-    B = MEM_read(ADDR.EA) ;
-    // We need to bring A to ADDR.EAl and B to ADDR.EAh
+    EAl = ADD ;
+    B = MEM_readhl(EAh, EAl) ;
+    // We need to bring A to EAl and B to EAh
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = ADD << 8 ;
+    EAh = ADD ;
     B = 0 ; // could be eliminated if the ALU had a PASSA instruction.
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= ADD ;
+    EAl = ADD ;
 }
 
 static void indx() { // (indirect,X), 9 cycles
@@ -296,29 +281,32 @@ static void indx() { // (indirect,X), 9 cycles
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = MEM_read(ADD) << 8 ;
+    // TODO ADD is not on the address bus
+    EAh = MEM_read(ADD) ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA |= MEM_read(ADD) ;
-    B = MEM_read(ADDR.EA) ;
+    EAl = MEM_read(ADD) ;
+    B = MEM_readhl(EAh, EAl) ;
 }
 
 static void indy() { // (indirect),Y, 12 cycles
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    A = Y ; ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = MEM_read(ADD) << 8 ;
+    A = Y ; 
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
+    // TODO ADD is not on the address bus
+    EAh = MEM_read(ADD) ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     B = MEM_read(ADD) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    CI = ALU.c ; ADDR.EA |= ADD ; 
+    CI = ALU.c ; EAl = ADD ; 
     A = 0 ;
-    B = ADDR.EA >> 8 ;
+    B = EAh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.EA = ADD << 8 | ADDR.EA & 0xFF ;
-    B = MEM_read(ADDR.EA) ;
+    EAh = ADD ;
+    B = MEM_readhl(EAh, EAl) ;
 }
 
 static void putvalue(uint16_t data) {
-    MEM_write(ADDR.EA, data) ;
+    MEM_write(EAh << 8 | EAl, data) ;
 }
 
 
@@ -412,7 +400,7 @@ static void bvs() { // 1 cycle
     }
 }
 
-static void clc() { // 1 cycle
+static void clc() { // 3 cycle
     B = 0 ;
     ALU_op = ALU_PASS ;
     setC() ;
@@ -425,7 +413,7 @@ static void cli() { // 1 cycle
     setI(0) ;
 }
 
-static void clv() { // 1 cycle
+static void clv() { // 3 cycle
     B = 0 ;
     ALU_op = ALU_PASS ;
     setV() ;
@@ -490,7 +478,7 @@ static void iny() {
 }
 
 static void jmp() {
-    ADDR.PC = ADDR.EA ;
+    ADDR.PC = EAh << 8 | EAl ;
 }
 
 static void jsr() { // 10 cycles
@@ -503,13 +491,8 @@ static void jsr() { // 10 cycles
     ADDR.PC |= ADD << 8 ;
 
     push8(ADDR.PC >> 8) ;
-    // B = SP
-    // ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
-    // SP = ADD ; B = ADD ;
     push8(ADDR.PC & 0xFF) ;
-    // ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
-    // SP = ADD ; B = ADD ;
-    ADDR.PC = ADDR.EA ; // Should be done in 2 insts through data bus
+    ADDR.PC = EAh << 8 | EAl ; // Should be done in 2 insts through data bus
 }
 
 static void lda() {
