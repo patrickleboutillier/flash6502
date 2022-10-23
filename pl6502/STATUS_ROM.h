@@ -19,20 +19,21 @@
 class STATUS_ROM : public component {
     public:
         input<1> n_in, v_in, i_in, z_in, c_in, b_in ;
-        input<1> nz_set, v_set, i_set, c_set ;
-        output<1> N, V, B, I, Z, C ;
+        input<1> nz_set, v_set, i_set, c_set, alu_c_set ;
+        output<1> N, V, B, I, Z, C, alu_c ;
     private:
-        input<1> n_old, v_old, i_old, z_old, c_old ;
+        input<1> n_old, v_old, i_old, z_old, c_old, alu_c_old ;
 
     public:
         STATUS_ROM() : /* n_in(this),   v_in(this),  i_in(this),  z_in(this),  c_in(this), */ b_in(this),
-                       n_old(this),  v_old(this), i_old(this), z_old(this), c_old(this),
-                       nz_set(this), v_set(this), i_set(this), c_set(this){
+                       n_old(this),  v_old(this), i_old(this), z_old(this), c_old(this), alu_c_old(this),
+                       nz_set(this), v_set(this), i_set(this), c_set(this), alu_c_set(this){
             N.connect(n_old) ;
             V.connect(v_old) ;
             I.connect(i_old) ;
             Z.connect(z_old) ;
             C.connect(c_old) ;
+            alu_c.connect(alu_c_old) ;
         } ;
 
         void always(){
@@ -41,6 +42,7 @@ class STATUS_ROM : public component {
             I = (i_set ? i_in : i_old) ;
             Z = (nz_set ? z_in : z_old) ;
             C = (c_set ? c_in : c_old) ;
+            alu_c = (alu_c_set ? c_in : alu_c_old) ;
             B = b_in ;
         } ;
 } ;

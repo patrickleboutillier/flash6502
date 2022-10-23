@@ -6,20 +6,20 @@
 
 #define ALU_ADC  0
 #define ALU_AND  1
-#define ALU_ASL  2
-#define ALU_BIT  3
-#define ALU_CMP  4
-#define ALU_DEC  5
-#define ALU_EOR  6
-#define ALU_INC  7
-#define ALU_LSR  8
-#define ALU_ORA  9
-#define ALU_ROL  10
-#define ALU_ROR  11
-#define ALU_SBC  12
-#define ALU_PASS 13
-#define ALU_ADD  14
-#define ALU_INTV 15
+#define ALU_BIT  2
+#define ALU_CMP  3
+#define ALU_DEC  4
+#define ALU_EOR  5
+#define ALU_INC  6
+#define ALU_LSR  7
+#define ALU_ORA  8
+#define ALU_ROL  9
+#define ALU_ROR  10
+#define ALU_SBC  11
+#define ALU_PASS 12
+#define ALU_ADD  13
+#define ALU_ADR  14
+#define ALU_ASL  15
 
 
 /*
@@ -50,6 +50,7 @@ class ALUl : public component {
                     s = 0 ;
                     break ;
                 }
+                case ALU_ADR:
                 case ALU_ADD: {
                     uint32_t tmp = a + b ;
                     res = tmp ;
@@ -132,12 +133,6 @@ class ALUl : public component {
                 }
                 case ALU_PASS: {
                     res = b ;
-                    c = 0 ; 
-                    s = 0 ;
-                    break ;
-                }
-                case ALU_INTV: {
-                    res = 0xFE ;
                     c = 0 ; 
                     s = 0 ;
                     break ;

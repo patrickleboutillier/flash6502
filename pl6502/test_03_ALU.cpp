@@ -47,6 +47,19 @@ TEST(test_pl6502, ALU){
         }
     }
 
+    op = ALU_ADR ;
+    for (int i = 0 ; i < 256 ; i++){
+        for (int j = 0 ; j < 256 ; j++){
+            a = i ; b = j ;
+            uint32_t res = i + j ;
+            EXPECT_EQ(alu.res.get_value(), res & 0xFF) ;
+            EXPECT_EQ(alu.c.get_value(), (b & 0b10000000 ? 0 : 1)) ;
+            EXPECT_EQ(alu.n.get_value(), (res & 0b10000000 ? 1 : 0)) ;
+            EXPECT_EQ(alu.z.get_value(), ((res & 0xFF) == 0 ? 1 : 0)) ;
+            EXPECT_EQ(alu.v.get_value(), calc_v(i, j, res)) ;
+        }
+    }
+
     op = ALU_AND ;
     for (int i = 0 ; i < 256 ; i++){
         for (int j = 0 ; j < 256 ; j++){
@@ -58,16 +71,6 @@ TEST(test_pl6502, ALU){
             EXPECT_EQ(alu.z.get_value(), ((res & 0xFF) == 0 ? 1 : 0)) ;
             EXPECT_EQ(alu.v.get_value(), calc_v(i, j, res)) ;
         }
-    }
-
-    op = ALU_ASL ;
-    for (int i = 0 ; i < 256 ; i++){
-        b = i ;
-        uint32_t res = i << 1 ;
-        EXPECT_EQ(alu.res.get_value(), res & 0xFF) ;
-        EXPECT_EQ(alu.c.get_value(), (res >> 8) & 1) ;
-        EXPECT_EQ(alu.n.get_value(), (res & 0b10000000 ? 1 : 0)) ;
-        EXPECT_EQ(alu.z.get_value(), ((res & 0xFF) == 0 ? 1 : 0)) ;
     }
 
     op = ALU_BIT ;

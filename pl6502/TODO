@@ -1,0 +1,3 @@
+- Test ALU_ADR instruction (ADD with 2s complement relative offset)
+- Test rel() with ALU_ADR
+- Remove ALU_ASL

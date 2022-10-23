@@ -41,16 +41,6 @@ TEST(test_pl6502, ALUl){
         }
     }
 
-    op = ALU_ASL ;
-    for (int i = 0 ; i < 16 ; i++){
-        b = i ;
-        uint32_t res = i << 1 ;
-        EXPECT_EQ(alul.res.get_value(), res & 0xF) ;
-        EXPECT_EQ(alul.c.get_value(), (res >> 4) & 1) ;
-        EXPECT_EQ(alul.s.get_value(), 0) ;
-        EXPECT_EQ(alul.z.get_value(), ((res & 0xF) == 0 ? 1 : 0)) ;
-    }
-
     op = ALU_BIT ;
     for (int i = 0 ; i < 16 ; i++){
         for (int j = 0 ; j < 16 ; j++){

@@ -26,11 +26,17 @@ class ALUh : public component {
             uint8_t vb = b ;
 
             switch (op.get_value()){
+                case ALU_ADR:
                 case ALU_ADD:
                 case ALU_ADC: {
                     uint32_t tmp = a + b + c_in ;
                     res = tmp ;
-                    c = tmp >> 4 ; 
+                    if (op.get_value() == ALU_ADR){
+                        c = (b >> 3 ? 0 : 1) ;
+                    }
+                    else {
+                        c = tmp >> 4 ; 
+                    }
                     break ;
                 }
                 case ALU_AND: 
@@ -93,11 +99,6 @@ class ALUh : public component {
                 }
                 case ALU_PASS: {
                     res = b ;
-                    c = 0 ; 
-                    break ;
-                }
-                case ALU_INTV: {
-                    res = 0xFF ;
                     c = 0 ; 
                     break ;
                 }

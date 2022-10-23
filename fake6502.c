@@ -44,18 +44,17 @@ output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, 
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
 reg<8> A, B, ADD ;
-reg<1> CI, CO ;
-output<1> A_s, A_e, B_s, B_e, CI_s, CI_e, ADD_s, ADD_e, CO_s, CO_e ;
+reg<1> CI ;
+output<1> A_s, A_e, B_s, B_e, CI_s, CI_e, ADD_s, ADD_e ;
 reg<8> X, Y ;
 output<1> X_s, X_e, Y_s, Y_e ;
 
 ALU ALU ;
 output<4> ALU_op ;
-output<1> ALU_ci_set, ALU_ci_C_or_c ;
 
 STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
-output<1> STATUS_nz_set, STATUS_v_set, STATUS_i_set, STATUS_c_set ;
+output<1> STATUS_nz_set, STATUS_v_set, STATUS_i_set, STATUS_c_set, STATUS_alu_c_set ;
 output<1> STATUS_data_enable, STATUS_src_data ;
 output<8> STATUS_data_in ;
 
@@ -106,9 +105,6 @@ void init6502(){
     ADD_s.connect(ADD.set) ;
     ADD.data_out.connect(DATA.data_in) ;
 
-    CO_e.connect(CO.enable) ;
-    CO_s.connect(CO.set) ;
-
     DATA.data_out.connect(X.data_in) ;
     X_e.connect(X.enable) ;
     X_s.connect(X.set) ;
@@ -121,10 +117,8 @@ void init6502(){
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
-    CI.data_out.connect(ALU.C) ;    
+    CI.data_out.connect(ALU.c_in) ;    
     ALU_op.connect(ALU.op) ;
-    ALU_ci_set.connect(ALU.ci_set) ;
-    ALU_ci_C_or_c.connect(ALU.ci_C_or_c) ;
     ALU.res.connect(ADD.data_in) ;
 
     ALU.n.connect(STATUS.n_in) ;
@@ -137,6 +131,7 @@ void init6502(){
     STATUS_v_set.connect(STATUS.v_set) ;
     STATUS_i_set.connect(STATUS.i_set) ;
     STATUS_c_set.connect(STATUS.c_set) ;
+    STATUS_alu_c_set.connect(STATUS.alu_c_set) ;
     STATUS_data_enable.connect(STATUS.data_enable) ;
     STATUS_src_data.connect(STATUS.src_data) ;
     STATUS_data_in.connect(STATUS.data_in) ; 
@@ -152,6 +147,10 @@ void setV(){
 
 void setC(){
     STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
+}
+
+void setaluC(){
+    STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
 }
 
 void setNZ(){
@@ -323,10 +322,8 @@ static void and_() { // 3 cycles
     ACC = ADD ; setNZ() ;
 }
 
-// TODO: Use ALU_ASL to bring down to 3 cycles.
 static void asl() { // 4 cycles
-    A = ACC ;
-    B = ACC ;
+    A = ACC ; B = ACC ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
