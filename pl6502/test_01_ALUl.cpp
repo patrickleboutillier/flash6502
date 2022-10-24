@@ -6,13 +6,14 @@
 
 TEST(test_pl6502, ALUl){
     output<4> a, b ;
-    output<1> cy, shr ;
+    output<1> cy, shr, neg ;
     output<4> op ;
     ALUl alul ;
     a.connect(alul.a) ;
     b.connect(alul.b) ;
     cy.connect(alul.c_in) ;
     shr.connect(alul.s_in) ;
+    neg.connect(alul.n_in) ;
     op.connect(alul.op) ;
 
     op = ALU_ADC ;

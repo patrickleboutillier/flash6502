@@ -5,6 +5,7 @@
 #include "circuit.h"
 #include "reg.h"
 #include "bus.h"
+#include "mux2.h"
 
 #include "ALU.h"
 #include "STATUS.h"
@@ -51,6 +52,8 @@ output<1> X_s, X_e, Y_s, Y_e ;
 
 ALU ALU ;
 output<4> ALU_op ;
+
+mux2<1> ci_mux ;
 
 STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
@@ -117,6 +120,7 @@ void init6502(){
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
+    // ci_mux.c.connect(ALU.c_in) ;
     CI.data_out.connect(ALU.c_in) ;    
     ALU_op.connect(ALU.op) ;
     ALU.res.connect(ADD.data_in) ;
@@ -136,6 +140,8 @@ void init6502(){
     STATUS_src_data.connect(STATUS.src_data) ;
     STATUS_data_in.connect(STATUS.data_in) ; 
     STATUS.data_out.connect(DATA.data_in) ;
+    // STATUS.alu_c.connect(ci_mux.a) ;
+    // STATUS.C.connect(ci_mux.b) ;
 
     INST_e.connect(INST.enable) ;
     INST_s.connect(INST.set) ;
@@ -209,13 +215,11 @@ static void zpy() { //zero-page,Y, 6 cycles
     B = MEM_readhl(EAh, EAl) ; ADDR.PC++ ;
 }
 
-static void rel() { //relative for branch ops (8-bit immediate value, sign-extended)
-    EAh = 0x00 ;
+static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 10 cycles
     A = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ALU_op = ALU_ASL ; CI = ALU.c ;
-    // TODO: LOGIC
-    if (CI)
-        EAh = 0xFF ;
+    ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
+    EAh = ADD ;
+
     B = ADDR.PC & 0xFF ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; // Ok because ALU_ADD ignores carry
     EAl = ADD ;

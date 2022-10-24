@@ -18,7 +18,7 @@
 #define ALU_SBC  11
 #define ALU_PASS 12
 #define ALU_ADD  13
-#define ALU_ADR  14
+#define ALU_SXT  14
 #define ALU_ASL  15
 
 
@@ -31,14 +31,14 @@
 */
 class ALUl : public component {
     public:
-        input<1> c_in, s_in ;
+        input<1> c_in, s_in, n_in ;
         input<4> a, b ;
         input<4> op ;
         output<4> res ;
         output<1> z, c, s ;
 
     public:
-        ALUl() : c_in(this), s_in(this), a(this), b(this), op(this) {
+        ALUl() : c_in(this), s_in(this), n_in(this), a(this), b(this), op(this) {
         } ;
 
         void always(){
@@ -50,7 +50,6 @@ class ALUl : public component {
                     s = 0 ;
                     break ;
                 }
-                case ALU_ADR:
                 case ALU_ADD: {
                     uint32_t tmp = a + b ;
                     res = tmp ;
@@ -134,6 +133,12 @@ class ALUl : public component {
                 case ALU_PASS: {
                     res = b ;
                     c = 0 ; 
+                    s = 0 ;
+                    break ;
+                }
+                case ALU_SXT: {
+                    res = (n_in ? 0xF : 0) ;
+                    c = 0 ;
                     s = 0 ;
                     break ;
                 }

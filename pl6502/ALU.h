@@ -17,7 +17,7 @@ class ALU : public component {
         output<1> n, z, c, v ;
     private:
         ALUl alul ;
-        output<1> alul_c_in, alul_s_in ;
+        output<1> alul_c_in, alul_s_in, alul_n_in ;
         output<4> alul_a, alul_b ;
         ALUh aluh ;
         output<1> aluh_c_in, aluh_s_in, aluh_z_in ;
@@ -27,6 +27,7 @@ class ALU : public component {
         ALU() : c_in(this), a(this), b(this), op(this) {
             alul_c_in.connect(alul.c_in) ;
             alul_s_in.connect(alul.s_in) ;
+            alul_n_in.connect(alul.n_in) ;
             alul_a.connect(alul.a) ;
             alul_b.connect(alul.b) ;
             aluh_c_in.connect(aluh.c_in) ;
@@ -48,6 +49,7 @@ class ALU : public component {
             alul_s_in = b >> 4 ;
             aluh_s_in = alul.s ;
             aluh_z_in = alul.z ;
+            alul_n_in = b >> 7 ;
             // ...
             res = aluh.res << 4 | alul.res ;
             n = aluh.n ;
