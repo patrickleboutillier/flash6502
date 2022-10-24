@@ -54,6 +54,7 @@ ALU ALU ;
 output<4> ALU_op ;
 
 mux2<1> ci_mux ;
+output<1> ci_mux_sel ;
 
 STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
@@ -120,8 +121,9 @@ void init6502(){
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
+    ci_mux_sel.connect(ci_mux.sel) ;
     // ci_mux.c.connect(ALU.c_in) ;
-    CI.data_out.connect(ALU.c_in) ;    
+    CI.data_out.connect(ALU.c_in) ;
     ALU_op.connect(ALU.op) ;
     ALU.res.connect(ADD.data_in) ;
 
@@ -138,10 +140,10 @@ void init6502(){
     STATUS_alu_c_set.connect(STATUS.alu_c_set) ;
     STATUS_data_enable.connect(STATUS.data_enable) ;
     STATUS_src_data.connect(STATUS.src_data) ;
-    STATUS_data_in.connect(STATUS.data_in) ; 
+    STATUS_data_in.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
-    // STATUS.alu_c.connect(ci_mux.a) ;
-    // STATUS.C.connect(ci_mux.b) ;
+    STATUS.alu_c.connect(ci_mux.a) ;
+    STATUS.C.connect(ci_mux.b) ;
 
     INST_e.connect(INST.enable) ;
     INST_s.connect(INST.set) ;
@@ -219,9 +221,8 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     A = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
-
     B = ADDR.PC & 0xFF ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; // Ok because ALU_ADD ignores carry
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; setaluC() ; 
     EAl = ADD ;
     A = EAh ;
     B = ADDR.PC >> 8 ;
@@ -235,27 +236,25 @@ static void abso() { //absolute, 3 cycles
     B = MEM_readhl(EAh, EAl) ;
 }
 
-static void absx() { //absolute,X, 10 cycles
+static void absx() { //absolute,X, 9 cycles
     A = X ;
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
-    CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; setaluC() ;
+    EAl = ADD ; 
     A = 0 ; 
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
-static void absy() { //absolute,Y,  10 cycles
+static void absy() { //absolute,Y,  9 cycles
     A = Y ;
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; // first result is stored in ADD
-    CI = ALU.c ; // this is ok since ALU_ADD does not use the CI
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; setaluC() ;
+    EAl = ADD ;
     A = 0 ; 
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
-    EAl = ADD ;         // save first result before going on.
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
@@ -295,12 +294,12 @@ static void indy() { // (indirect),Y, 12 cycles
     B = MEM_read(ADDR.PC) ; ADDR.PC++ ;
     A = Y ; 
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    // TODO ADD is not on the address bus
+    // TODO: ADD not on address bus...
     EAh = MEM_read(ADD) ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     B = MEM_read(ADD) ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    CI = ALU.c ; EAl = ADD ; 
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; setaluC() ;
+    EAl = ADD ;
     A = 0 ;
     B = EAh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
@@ -316,7 +315,7 @@ static void putvalue(uint16_t data) {
 //instruction handler functions
 static void adc() { // 3 cycles
     CI = STATUS.C ; A = ACC ; 
-    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ADC ; ci_mux_sel = 1 ; ADD_s = 1 ; ADD_s = 0 ; ci_mux_sel = 0 ;
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
@@ -485,8 +484,8 @@ static void jmp() {
 static void jsr() { // 10 cycles
     A = ADDR.PC >> 8 ;
     B = ADDR.PC & 0xFF ;
-    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.PC = ADD ; CI = ALU.c ; // ok because ALU_DEC ignores CI
+    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; CI = ALU.c ; setaluC() ; // ok because ALU_DEC ignores CI
+    ADDR.PC = ADD ; 
     B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     ADDR.PC |= ADD << 8 ;
@@ -555,7 +554,7 @@ static void plp() {
 
 static void rol() {
     CI = STATUS.C ;
-    ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ROL ; ci_mux_sel = 1 ; ADD_s = 1 ; ADD_s = 0 ; ci_mux_sel = 0 ; 
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -565,7 +564,7 @@ static void rol() {
 
 static void ror() {
     CI = STATUS.C ;
-    ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_ROR ; ci_mux_sel = 1 ; ADD_s = 1 ; ADD_s = 0 ; ci_mux_sel = 0 ; 
     if ((INST & 0xF) == 0xA)
         ACC = ADD ;
     else
@@ -591,7 +590,7 @@ static void rts() {
 
 static void sbc() {
     CI = STATUS.C ; A = ACC ; 
-    ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
+    ALU_op = ALU_SBC ; ci_mux_sel = 1 ; ADD_s = 1 ; ADD_s = 0 ; ci_mux_sel = 0 ; 
     ACC = ADD ; setC() ; setV() ; setNZ() ;
 }
 
