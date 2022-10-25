@@ -6,14 +6,19 @@
 #include "reg.h"
 #include "bus.h"
 
+#include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
 
 
 bus<8> DATA ;
+bus<16> ADDR ;
 
 reg<8> EAh, EAl, PCh, PCl, SPh, SP ;
 output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SP_s, SP_e ;
+
+RAM RAM ;
+output<1> RAM_s, RAM_e ;
 
 
 uint8_t MEM[0x10000] ;
@@ -31,15 +36,11 @@ void MEM_write(uint8_t data){
 }
 
 
-struct ADDR {
-    uint16_t PC ;
-} ADDR ;
-
 void incPC(){
-    uint16_t pc = ADDR.PC ;
+    uint16_t pc = PCh << 8 | PCl ;
     pc++ ;
-    uint8_t pch = pc >> 8, pcl = pc & 0xFF ;
-    ADDR.PC = pch << 8 | pcl ;
+    PCh = pc >> 8 ;
+    PCl = pc & 0xFF ;
 }
 
 
@@ -64,6 +65,13 @@ output<1> INST_s, INST_e ;
 
 
 void init6502(){
+    DATA.data_out.connect(RAM.data_in) ;
+    ADDR.data_out.connect(RAM.address) ;
+    RAM_e.connect(RAM.enable) ;
+    RAM_s.connect(RAM.set) ;
+    RAM.data_out.connect(DATA.data_in) ;
+
+    //DATA.data_out.connect(EAh.data_in) ;
     EAh_e.connect(EAh.enable) ;
     EAh_s.connect(EAh.set) ;
 
@@ -184,19 +192,24 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
 }
 
 static void zp() { //zero-page, 3 cycles
     EAh = 0 ;
-    EAl = MEM_read(ADDR.PC) ;
+    EAl = MEM_readhl(PCh, PCl) ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
 static void zpx() { //zero-page,X, 6 cycles
     EAh = 0 ;
-    A = X ;
-    B = MEM_read(ADDR.PC) ;
+    A = X ; 
+    /*X_e = 1 ; 
+    //printf("X:%u, DATA:%u, A:%u\n", X._mem, DATA.data_out.get_value(), A._mem) ;
+    A_s = 1 ; A_s = 0 ; 
+    X_e = 0 ;*/
+    
+    B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     EAl = ADD ; 
     B = MEM_readhl(EAh, EAl) ; incPC() ;
@@ -205,38 +218,38 @@ static void zpx() { //zero-page,X, 6 cycles
 static void zpy() { //zero-page,Y, 6 cycles
     EAh = 0 ;
     A = Y ;
-    B = MEM_read(ADDR.PC) ;
+    B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     EAl = ADD ; 
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 10 cycles
-    A = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; incPC() ;
+    A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
-    B = ADDR.PC & 0xFF ;
+    B = PCl ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ; 
     EAl = ADD ;
     A = EAh ;
-    B = ADDR.PC >> 8 ;
+    B = PCh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
 }
 
 static void abso() { //absolute, 3 cycles
-    EAl = MEM_read(ADDR.PC) ; incPC() ;
-    EAh = MEM_read(ADDR.PC) ; incPC() ;
+    EAl = MEM_readhl(PCh, PCl) ; incPC() ;
+    EAh = MEM_readhl(PCh, PCl) ; incPC() ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
 static void absx() { //absolute,X, 9 cycles
     A = X ;
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     EAl = ADD ; 
     A = 0 ; 
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
@@ -244,11 +257,11 @@ static void absx() { //absolute,X, 9 cycles
 
 static void absy() { //absolute,Y,  9 cycles
     A = Y ;
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     EAl = ADD ;
     A = 0 ; 
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
@@ -256,8 +269,8 @@ static void absy() { //absolute,Y,  9 cycles
 
 static void ind() { //indirect, 11 cycles
     // Load ADDR_EAl and B at the same time
-    EAl = MEM_read(ADDR.PC) ; B = MEM_read(ADDR.PC) ; incPC() ;
-    EAh = MEM_read(ADDR.PC) ; incPC() ;
+    EAl = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
+    EAh = MEM_readhl(PCh, PCl) ; incPC() ;
 
     A = MEM_readhl(EAh, EAl) ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
@@ -272,7 +285,7 @@ static void ind() { //indirect, 11 cycles
 }
 
 static void indx() { // (indirect,X), 9 cycles
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     A = X ; 
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
@@ -285,7 +298,7 @@ static void indx() { // (indirect,X), 9 cycles
 }
 
 static void indy() { // (indirect),Y, 12 cycles
-    B = MEM_read(ADDR.PC) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ; incPC() ;
     A = Y ; 
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     // TODO: ADD not on address bus...
@@ -326,19 +339,22 @@ static void asl() { // 4 cycles
 
 static void bcc(){ // 1 cycle
     if (! STATUS.C){
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void bcs() { // 1 cycle
     if (STATUS.C){
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void beq(){ // 1 cycle
     if (STATUS.Z){
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
@@ -349,42 +365,48 @@ static void bit() { // 3 cycles
 
 static void bmi() { // 1 cycle
     if (STATUS.N){
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void bne(){ // 1 cycle
     if (! STATUS.Z) {
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void bpl() { // 1 cycle
     if (! STATUS.N) {
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void brk() {
     incPC();
-    push8(ADDR.PC >> 8) ;
-    push8(ADDR.PC & 0xFF) ;
+    push8(PCh) ;
+    push8(PCl) ;
     STATUS_b_in = 1 ;  STATUS_data_enable = 1 ;
     push8(STATUS.data_out) ; //push CPU status to stack
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
     setI(1) ;
-    ADDR.PC = MEM_read(0xFFFE) | MEM_read(0xFFFF) << 8 ;
+    PCl = MEM_read(0xFFFE) ;
+    PCh = MEM_read(0xFFFF) ;
 }
 
 static void bvc() { // 1 cycle
     if (! STATUS.V) {
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
 static void bvs() { // 1 cycle
     if (STATUS.V) {
-        ADDR.PC = EAh << 8 | EAl ;
+        PCh = EAh ;
+        PCl = EAl ;
     }
 }
 
@@ -461,21 +483,23 @@ static void iny() {
 }
 
 static void jmp() {
-    ADDR.PC = EAh << 8 | EAl ;
+    PCh = EAh ;
+    PCl = EAl ;
 }
 
 static void jsr() { // 10 cycles
-    A = ADDR.PC >> 8 ;
-    B = ADDR.PC & 0xFF ;
+    A = PCh ;
+    B = PCl ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    ADDR.PC = ADD ; 
+    PCl = ADD ; 
     B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADDR.PC |= ADD << 8 ;
+    PCh = ADD ;
 
-    push8(ADDR.PC >> 8) ;
-    push8(ADDR.PC & 0xFF) ;
-    ADDR.PC = EAh << 8 | EAl ; // Should be done in 2 insts through data bus
+    push8(PCh) ;
+    push8(PCl) ;
+    PCh = EAh ;
+    PCl = EAl ;
 }
 
 static void lda() {
@@ -558,13 +582,13 @@ static void rti() {
     STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
     STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
     STATUS_src_data = 0 ;
-    ADDR.PC = 0 | pull8() ;                 
-    ADDR.PC = ADDR.PC | (pull8() << 8) ; 
+    PCl = pull8() ;                 
+    PCh = pull8() ; 
 }
 
 static void rts() {
-    ADDR.PC = 0 | pull8() ;                 
-    ADDR.PC = ADDR.PC | (pull8() << 8) ;
+    PCl = pull8() ;                 
+    PCh = pull8() ; 
     incPC() ;
 }
 
@@ -696,28 +720,31 @@ static void (*optable[256])() = {
 
 
 void reset6502() {
-    ADDR.PC = MEM_read(0xFFFC) | MEM_read(0xFFFD) << 8 ;
+    PCl = MEM_read(0xFFFC) ;
+    PCh = MEM_read(0xFFFD) ;
     SP = 0xFD ;
 }
 
 void nmi6502() {
-    push8(ADDR.PC >> 8) ;
-    push8(ADDR.PC & 0xFF) ;
+    push8(PCh) ;
+    push8(PCl) ;
     STATUS_data_enable = 1 ;
     push8(STATUS.data_out) ;
     STATUS_data_enable = 0 ;
     setI(1) ; 
-    ADDR.PC = MEM_read(0xFFFA) | MEM_read(0xFFFB) << 8 ;
+    PCl = MEM_read(0xFFFA) ;
+    PCh = MEM_read(0xFFFB) ;
 }
 
 void irq6502() {
-    push8(ADDR.PC >> 8) ;
-    push8(ADDR.PC & 0xFF) ;
+    push8(PCh) ;
+    push8(PCl) ;
     STATUS_data_enable = 1 ;
     push8(STATUS.data_out) ;
     STATUS_data_enable = 0 ;
     setI(1) ;
-    ADDR.PC = MEM_read(0xFFFE) | MEM_read(0xFFFF) << 8 ;
+    PCl = MEM_read(0xFFFE) ;
+    PCh = MEM_read(0xFFFF) ;
 }
 
 
@@ -726,11 +753,11 @@ void (*loopexternal)();
 uint16_t SUCCESS_ADDR = 0 ;
 
 void step6502() { 
-    if (ADDR.PC == SUCCESS_ADDR){
+    if ((PCh << 8 | PCl) == SUCCESS_ADDR){
         printf("SUCCESS!\n") ;
         exit(0) ;
     }
-    INST = MEM_read(ADDR.PC) ; incPC() ; // 1 cycle
+    INST = MEM_readhl(PCh, PCl) ; incPC() ; // 1 cycle
 
     (*addrtable[INST])();
     (*optable[INST])();
@@ -757,7 +784,8 @@ int main(int argc, char *argv[]){
 
     init6502() ;
     reset6502() ;
-    ADDR.PC = 0x0400 ;
+    PCh = 0x04 ;
+    PCl = 0x00 ;
 
     exec6502() ;
 }
