@@ -16,6 +16,7 @@ class RAM : public component {
 
     public:
         RAM() : set(this), enable(this) {
+            data_out.drive(false) ;
         } ;
 
         void always(){

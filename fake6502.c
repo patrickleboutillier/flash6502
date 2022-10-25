@@ -71,10 +71,11 @@ void init6502(){
     RAM_s.connect(RAM.set) ;
     RAM.data_out.connect(DATA.data_in) ;
 
-    //DATA.data_out.connect(EAh.data_in) ;
+    DATA.data_out.connect(EAh.data_in) ;
     EAh_e.connect(EAh.enable) ;
     EAh_s.connect(EAh.set) ;
 
+    DATA.data_out.connect(EAl.data_in) ;
     EAl_e.connect(EAl.enable) ;
     EAl_s.connect(EAl.set) ;
 
@@ -202,16 +203,12 @@ static void zp() { //zero-page, 3 cycles
 }
 
 static void zpx() { //zero-page,X, 6 cycles
-    EAh = 0 ;
-    //A = X ; 
-    X_e = 1 ; 
-    //printf("X:%u, DATA:%u, A:%u\n", X._mem, DATA.data_out.get_value(), A._mem) ;
-    A_s = 1 ; A_s = 0 ; 
-    X_e = 0 ;
-    
+    EAh_s = 1 ; EAh_s = 0 ;
+    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ;
+        
     B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    EAl = ADD ; 
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
