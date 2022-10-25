@@ -244,7 +244,7 @@ static void absx() { //absolute,X, 9 cycles
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ; 
-    A = 0 ; 
+    A_s = 1 ; A_s = 0 ; // A = 0 ; 
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
@@ -256,7 +256,7 @@ static void absy() { //absolute,Y,  9 cycles
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    A = 0 ; 
+    A_s = 1 ; A_s = 0 ; // A = 0 ; 
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
@@ -275,7 +275,7 @@ static void ind() { //indirect, 11 cycles
     // We need to bring A to EAl and B to EAh
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
-    B = 0 ; // could be eliminated if the ALU had a PASSA instruction.
+    B_s = 1 ; B_s = 0 ; // B = 0 ; 
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
 }
@@ -303,7 +303,7 @@ static void indy() { // (indirect),Y, 12 cycles
     B = MEM_read(ADD) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    A = 0 ;
+    A_s = 1 ; A_s = 0 ; // A = 0 ;
     B = EAh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
@@ -407,7 +407,7 @@ static void bvs() { // 1 cycle
 }
 
 static void clc() { // 3 cycle
-    B = 0 ;
+    B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_PASS ; setC() ;
 }
 
@@ -419,7 +419,7 @@ static void cli() { // 1 cycle
 }
 
 static void clv() { // 3 cycle
-    B = 0 ;
+    B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_PASS ; setV() ;
 }
 
@@ -488,7 +488,7 @@ static void jsr() { // 10 cycles
     B = PCl ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     PCl = ADD ; 
-    B = 0 ;
+    B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
     PCh = ADD ;
 
@@ -595,7 +595,7 @@ static void sbc() {
 }
 
 static void sec() {
-    B = 0 ;
+    B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
     ALU_op = ALU_DEC ; setC() ;
