@@ -313,24 +313,26 @@ static void indy() { // (indirect),Y, 12 cycles
 
 //instruction handler functions
 static void adc() { // 3 cycles
-    setalucfromC() ; A = ACC ; 
+    setalucfromC() ; ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ; 
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setV() ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void and_() { // 3 cycles
-    A = ACC ;
+    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
     ALU_op = ALU_AND ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void asl() { // 4 cycles
-    A = ACC ; B = ACC ;
+    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; B = ACC ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
-    if ((INST & 0xF) == 0xA)
-        ACC = ADD ;
-    else
+    if ((INST & 0xF) == 0xA){
+        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    }
+    else {
         MEM_write(ADD) ;
+    }
 }
 
 static void bcc(){ // 1 cycle
@@ -355,7 +357,7 @@ static void beq(){ // 1 cycle
 }
 
 static void bit() { // 3 cycles
-    A = ACC ;
+    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
     ALU_op = ALU_BIT ; setV() ; setNZ() ;
 }
 
@@ -424,7 +426,7 @@ static void clv() { // 3 cycle
 }
 
 static void cmp() { // 3 cycles
-    A = ACC ;
+    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
     ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
 }
 
@@ -456,9 +458,9 @@ static void dey() { // 3 cycles
 }
 
 static void eor() {
-    A = ACC ;
+    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
     ALU_op = ALU_EOR ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void inc() {
@@ -500,7 +502,7 @@ static void jsr() { // 10 cycles
 
 static void lda() {
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void ldx() {
@@ -515,19 +517,21 @@ static void ldy() {
 
 static void lsr() {
     ALU_op = ALU_LSR ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
-    if ((INST & 0xF) == 0xA)
-        ACC = ADD ;
-    else
+    if ((INST & 0xF) == 0xA) {
+        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    }
+    else {
         MEM_write(ADD) ;
+    }
 }
 
 static void nop() {
 }
 
 static void ora() {
-    A = ACC ;
+    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
     ALU_op = ALU_ORA ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ;
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
 }
 
 static void pha() {
@@ -543,7 +547,7 @@ static void php() {
 static void pla() {
     B = pull8() ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ;
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
 }
 
 static void plp() {
@@ -557,19 +561,23 @@ static void plp() {
 static void rol() {
     setalucfromC() ; 
     ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ; 
-    if ((INST & 0xF) == 0xA)
-        ACC = ADD ;
-    else
+    if ((INST & 0xF) == 0xA){
+        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    }
+    else {
         MEM_write(ADD) ;
+    }
 }
 
 static void ror() {
     setalucfromC() ; 
     ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
-    if ((INST & 0xF) == 0xA)
-        ACC = ADD ;
-    else
+    if ((INST & 0xF) == 0xA){
+        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    }
+    else {
         MEM_write(ADD) ;
+    }
 }
 
 static void rti() {
@@ -589,9 +597,9 @@ static void rts() {
 }
 
 static void sbc() {
-    setalucfromC() ; A = ACC ; 
+    setalucfromC() ; ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ; 
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setV() ; setNZ() ;
-    ACC = ADD ;
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
 }
 
 static void sec() {
@@ -645,7 +653,7 @@ static void txa() {
     B = X ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void txs() {
@@ -659,7 +667,7 @@ static void tya() {
     B = Y ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ACC = ADD ; 
+    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 
