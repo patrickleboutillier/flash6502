@@ -240,26 +240,26 @@ static void abso() { //absolute, 3 cycles
 }
 
 static void absx() { //absolute,X, 9 cycles
-    A = X ;
+    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    EAl = ADD ; 
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ; 
     A = 0 ; 
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
 static void absy() { //absolute,Y,  9 cycles
-    A = Y ;
+    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    EAl = ADD ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     A = 0 ; 
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
@@ -270,19 +270,19 @@ static void ind() { //indirect, 11 cycles
 
     A = MEM_readhl(EAh, EAl) ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    EAl = ADD ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     B = MEM_readhl(EAh, EAl) ;
     // We need to bring A to EAl and B to EAh
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
     B = 0 ; // could be eliminated if the ALU had a PASSA instruction.
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    EAl = ADD ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
 }
 
 static void indx() { // (indirect,X), 9 cycles
     B = MEM_readhl(PCh, PCl) ; incPC() ;
-    A = X ; 
+    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
     B = ADD ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
@@ -295,18 +295,18 @@ static void indx() { // (indirect,X), 9 cycles
 
 static void indy() { // (indirect),Y, 12 cycles
     B = MEM_readhl(PCh, PCl) ; incPC() ;
-    A = Y ; 
+    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
     // TODO: ADD not on address bus...
     EAh = MEM_read(ADD) ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     B = MEM_read(ADD) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    EAl = ADD ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     A = 0 ;
     B = EAh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
