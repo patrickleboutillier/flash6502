@@ -328,7 +328,7 @@ static void and_() { // 3 cycles
 }
 
 static void asl() { // 4 cycles
-    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; B = ACC ;
+    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
     if ((INST & 0xF) == 0xA){
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
@@ -449,7 +449,7 @@ static void dec() { // 2 cycles
 }
 
 static void dex() { // 3 cycles
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
@@ -472,7 +472,7 @@ static void inc() {
 }
 
 static void inx() {
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ;
 }
@@ -631,14 +631,14 @@ static void sty() {
 }
 
 static void tax() {
-    B = ACC ;
+    ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
 
 static void tay() {
-    B = ACC ;
+    ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ; 
@@ -652,21 +652,21 @@ static void tsx() {
 }
 
 static void txa() {
-    B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
 }
 
 static void txs() {
-    B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ;
-    SP = ADD ; 
+    ADD_e = 1 ; SP_s = 1 ; SP_s = 0 ; ADD_e = 0 ; // SP = ADD ; 
 }
 
 static void tya() {
-    B = Y ;
+    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
