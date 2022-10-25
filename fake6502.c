@@ -223,14 +223,14 @@ static void zpy() { //zero-page,Y, 6 cycles
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 10 cycles
     A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
     B = PCl ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ; 
-    EAl = ADD ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     A = EAh ;
     B = PCh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    EAh = ADD ;
+    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
 }
 
 static void abso() { //absolute, 3 cycles
