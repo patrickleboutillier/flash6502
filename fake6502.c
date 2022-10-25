@@ -79,9 +79,11 @@ void init6502(){
     EAl_e.connect(EAl.enable) ;
     EAl_s.connect(EAl.set) ;
 
+    DATA.data_out.connect(PCh.data_in) ;
     PCh_e.connect(PCh.enable) ;
     PCh_s.connect(PCh.set) ;
-    
+
+    DATA.data_out.connect(PCl.data_in) ;    
     PCl_e.connect(PCl.enable) ;
     PCl_s.connect(PCl.set) ;
 
@@ -89,6 +91,7 @@ void init6502(){
     SPh_s.connect(SPh.set) ;
     SPh = 0x01 ;
     
+    DATA.data_out.connect(SP.data_in) ;
     SP_e.connect(SP.enable) ;
     SP_s.connect(SP.set) ;
 
@@ -448,13 +451,13 @@ static void dec() { // 2 cycles
 static void dex() { // 3 cycles
     X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    X = ADD ; 
+    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
 
 static void dey() { // 3 cycles
     Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    Y = ADD ;
+    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
 }
 
 static void eor() {
@@ -471,13 +474,13 @@ static void inc() {
 static void inx() {
     X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    X = ADD ;
+    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ;
 }
 
 static void iny() {
     Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    Y = ADD ;
+    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
 }
 
 static void jmp() {
@@ -507,12 +510,12 @@ static void lda() {
 
 static void ldx() {
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    X = ADD ; 
+    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
 
 static void ldy() {
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    Y = ADD ;
+    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
 }
 
 static void lsr() {
@@ -632,21 +635,21 @@ static void tax() {
     B = ACC ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    X = ADD ; 
+    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
 
 static void tay() {
     B = ACC ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    Y = ADD ; 
+    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ; 
 }
 
 static void tsx() {
     B = SP ;
     ALU_op = ALU_PASS ;
     ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    X = ADD ; 
+    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
 }
 
 static void txa() {
