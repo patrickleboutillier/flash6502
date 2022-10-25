@@ -203,11 +203,11 @@ static void zp() { //zero-page, 3 cycles
 
 static void zpx() { //zero-page,X, 6 cycles
     EAh = 0 ;
-    A = X ; 
-    /*X_e = 1 ; 
+    //A = X ; 
+    X_e = 1 ; 
     //printf("X:%u, DATA:%u, A:%u\n", X._mem, DATA.data_out.get_value(), A._mem) ;
     A_s = 1 ; A_s = 0 ; 
-    X_e = 0 ;*/
+    X_e = 0 ;
     
     B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
