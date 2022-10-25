@@ -431,12 +431,12 @@ static void cmp() { // 3 cycles
 }
 
 static void cpx() { // 3 cycles
-    A = X ;
+    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
     ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
 }
 
 static void cpy() { // 3 cycles
-    A = Y ;
+    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
     ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
 }
 
@@ -446,13 +446,13 @@ static void dec() { // 2 cycles
 }
 
 static void dex() { // 3 cycles
-    B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     X = ADD ; 
 }
 
 static void dey() { // 3 cycles
-    B = Y ;
+    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     Y = ADD ;
 }
@@ -469,13 +469,13 @@ static void inc() {
 }
 
 static void inx() {
-    B = X ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     X = ADD ;
 }
 
 static void iny() {
-    B = Y ;
+    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     Y = ADD ;
 }
@@ -605,7 +605,7 @@ static void sbc() {
 static void sec() {
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    B = ADD ;
+    ADD_e = 1 ; B_s = 1 ; B_s = 0 ; ADD_e = 0 ; // B = ADD ;
     ALU_op = ALU_DEC ; setC() ;
 }
 
