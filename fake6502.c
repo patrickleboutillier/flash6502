@@ -197,27 +197,26 @@ static void imm() { //immediate, 1 cycle
 }
 
 static void zp() { //zero-page, 3 cycles
-    EAh = 0 ;
+    EAh_s = 1 ; EAh_s = 0 ;
     EAl = MEM_readhl(PCh, PCl) ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
 static void zpx() { //zero-page,X, 6 cycles
     EAh_s = 1 ; EAh_s = 0 ;
-    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ;
-        
+    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
     B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ;
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
 static void zpy() { //zero-page,Y, 6 cycles
-    EAh = 0 ;
-    A = Y ;
+    EAh_s = 1 ; EAh_s = 0 ;
+    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
     B = MEM_readhl(PCh, PCl) ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    EAl = ADD ; 
+    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
