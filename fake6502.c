@@ -492,11 +492,10 @@ static void jsr() { // 10 cycles
     A = PCh ;
     B = PCl ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    PCl = ADD ; 
+    ADD_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; ADD_e = 0 ; // PCl = ADD ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
-    PCh = ADD ;
-
+    ADD_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; ADD_e = 0 ; // PCh = ADD ;
     push8(PCh) ;
     push8(PCl) ;
     PCh = EAh ;
