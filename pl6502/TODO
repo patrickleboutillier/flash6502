@@ -1,6 +1,5 @@
-- Double all MEM writes
-- Do mem reads from RAM
-- remove MEM 
+- can ADD be replaced by ALU_e?
+
 - decompose all instruction through control signals
 
 - introduce steps and clock phases into functions

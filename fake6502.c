@@ -23,8 +23,6 @@ RAM RAM ;
 output<1> RAM_s, RAM_e ;
 
 
-uint8_t MEM[0x10000] ;
-
 uint8_t MEM_read(uint16_t address){
     return RAM._mem[address >> 8][address & 0xFF] ;
 }
@@ -59,6 +57,8 @@ output<1> X_s, X_e, Y_s, Y_e ;
 
 ALU ALU ;
 output<4> ALU_op ;
+tristate<8> ALU2D ;
+output<1> ALU_e ;
 
 STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
@@ -149,11 +149,13 @@ void init6502(){
     STATUS.alu_c.connect(ALU.c_in) ;
     ALU_op.connect(ALU.op) ;
     ALU.res.connect(ADD.data_in) ;
-
+    ALU.res.connect(ALU2D.data_in) ;
+    ALU_e.connect(ALU2D.enable) ;
     ALU.n.connect(STATUS.n_in) ;
     ALU.v.connect(STATUS.v_in) ;
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
+    
     STATUS_i_in.connect(STATUS.i_in) ;
     STATUS_b_in.connect(STATUS.b_in) ;
     STATUS_nz_set.connect(STATUS.nz_set) ;
@@ -199,16 +201,9 @@ void setI(uint8_t i){
     STATUS_i_in = 0 ; 
 }
 
-/*
-void push8(uint8_t data) {
-    MEM[SPh << 8 | SP] = data ;
-    SP = SP - 1 ;
-}
-*/
-
 uint8_t pull8() {
     SP = SP + 1 ;
-    return MEM[SPh << 8 | SP] ;
+    return RAM._mem[SPh][SP] ;
 }
 
 
@@ -323,20 +318,17 @@ static void indx() { // (indirect,X), 9 cycles
     B = MEM_readhl(EAh, EAl) ;
 }
 
-static void indy() { // (indirect),Y, 12 cycles
+static void indy() { // (indirect),Y, 11 cycles
     B = MEM_readhl(PCh, PCl) ; incPC() ;
     Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    // TODO: ADD not on address bus...
-    EAh = MEM_read(ADD) ;
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    B = MEM_read(ADD) ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
+    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ;
+    EAh = MEM_readhl(0, EAl) ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ;
+    B = MEM_readhl(0, EAl) ;
+    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ; setaluc() ; // EAl = ADD ;
     A_s = 1 ; A_s = 0 ; // A = 0 ;
     B = EAh ;
-    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
+    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; ADD_s = 0 ; // EAh = ADD ;
     B = MEM_readhl(EAh, EAl) ;
 }
 
@@ -524,11 +516,9 @@ static void jsr() { // 12 cycles
     ADD_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; ADD_e = 0 ; // PCl = ADD ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
-    MEM[SPh << 8 | SP] = ADD ;
     SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ADD)
     B = PCl ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    MEM[SPh << 8 | SP] = ADD ;
     SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ADD)
     EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
@@ -569,13 +559,11 @@ static void ora() {
 }
 
 static void pha() {
-    MEM[SPh << 8 | SP] = ACC ;
     SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
 }
 
 static void php() {
     STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
-    MEM[SPh << 8 | SP] = STATUS.data_out ;
     SPh_e = 1 ; SP_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
 }
