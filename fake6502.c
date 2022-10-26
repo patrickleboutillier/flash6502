@@ -26,7 +26,12 @@ output<1> RAM_s, RAM_e ;
 uint8_t MEM[0x10000] ;
 
 uint8_t MEM_read(uint16_t address){
-    return MEM[address] ;
+    uint16_t mem = MEM[address], ram = RAM._mem[address >> 8][address & 0xFF] ;
+    if (mem != ram){
+        printf("MEM:%u, RAM:%u\n", mem, ram) ;
+        assert(mem == ram) ;
+    }
+    return mem ;
 }
 
 uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
@@ -171,8 +176,10 @@ void init6502(){
     STATUS_data_in.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
-    INST_e.connect(INST.enable) ;
+    DATA.data_out.connect(INST.data_in) ;
     INST_s.connect(INST.set) ;
+    INST_e.connect(INST.enable) ;
+    INST_e = 1 ;
 }
 
 void setV(){
@@ -201,10 +208,12 @@ void setI(uint8_t i){
     STATUS_i_in = 0 ; 
 }
 
+/*
 void push8(uint8_t data) {
     MEM[SPh << 8 | SP] = data ;
     SP = SP - 1 ;
 }
+*/
 
 uint8_t pull8() {
     SP = SP + 1 ;
@@ -579,8 +588,8 @@ static void pha() {
 
 static void php() {
     STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
-    push8(STATUS.data_out) ; //push CPU status to stack
-    SPh_e = 1 ; SP_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; SP_e = 0 ; SPh_e = 0 ;
+    MEM[SPh << 8 | SP] = STATUS.data_out ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
 }
 
@@ -830,6 +839,9 @@ int main(int argc, char *argv[]){
 
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
     int nb = fread(MEM, 0x10000, 1, file) ;
+    for (int i = 0 ; i < 0x10000 ; i++){
+        RAM._mem[i >> 8][i & 0xFF] = MEM[i] ;
+    }
     fclose(file) ; 
 
     init6502() ;
