@@ -246,11 +246,11 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
     A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
     ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
-    B = PCl ;
+    PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ; 
     ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    A = EAh ;
-    B = PCh ;
+    EAh_e = 1 ; Ah2D_e = 1 ; A_s = 1 ; A_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ; // A = EAh ;
+    PCh_e = 1 ; Ah2D_e = 1 ; B_s = 1 ; B_s = 0 ; Ah2D_e = 0 ; PCh_e = 0 ; // B = PCh ;
     ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
     ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
 }
