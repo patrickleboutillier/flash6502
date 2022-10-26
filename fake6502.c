@@ -5,14 +5,16 @@
 #include "circuit.h"
 #include "reg.h"
 #include "bus.h"
+#include "tristate.h"
 
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
 
 
-bus<8> DATA ;
-bus<16> ADDR ;
+bus<8> DATA, ADDRh, ADDRl ;
+tristate<8> Ah2D, Al2D ;
+output<1> Ah2D_e, Al2D_e ;
 
 reg<8> EAh, EAl, PCh, PCl, SPh, SP ;
 output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SP_s, SP_e ;
@@ -33,6 +35,7 @@ uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
 
 void MEM_write(uint8_t data){
     MEM[EAh << 8 | EAl] = data ;
+    //EAh_e = 1 ; EAl_e = 1 ; DATA.data_out = data ; RAM_s = 1 ; RAM_s = 0 ; 
 }
 
 
@@ -65,8 +68,14 @@ output<1> INST_s, INST_e ;
 
 
 void init6502(){
+    Ah2D.data_out.connect(DATA.data_in) ;
+    Ah2D_e.connect(Ah2D.enable) ;
+    Al2D.data_out.connect(DATA.data_in) ;    
+    Al2D_e.connect(Al2D.enable) ;
+
     DATA.data_out.connect(RAM.data_in) ;
-    ADDR.data_out.connect(RAM.address) ;
+    ADDRh.data_out.connect(RAM.addrh) ;
+    ADDRl.data_out.connect(RAM.addrl) ;
     RAM_e.connect(RAM.enable) ;
     RAM_s.connect(RAM.set) ;
     RAM.data_out.connect(DATA.data_in) ;
@@ -74,26 +83,32 @@ void init6502(){
     DATA.data_out.connect(EAh.data_in) ;
     EAh_e.connect(EAh.enable) ;
     EAh_s.connect(EAh.set) ;
+    EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
     EAl_e.connect(EAl.enable) ;
     EAl_s.connect(EAl.set) ;
+    EAl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
     PCh_e.connect(PCh.enable) ;
     PCh_s.connect(PCh.set) ;
+    PCh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(PCl.data_in) ;    
     PCl_e.connect(PCl.enable) ;
     PCl_s.connect(PCl.set) ;
+    PCl.data_out.connect(ADDRl.data_in) ;
 
     SPh_e.connect(SPh.enable) ;
     SPh_s.connect(SPh.set) ;
     SPh = 0x01 ;
-    
+    SPh.data_out.connect(ADDRh.data_in) ;
+
     DATA.data_out.connect(SP.data_in) ;
     SP_e.connect(SP.enable) ;
     SP_s.connect(SP.set) ;
+    SP.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
@@ -196,6 +211,7 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
+    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ;
     B = MEM_readhl(PCh, PCl) ; incPC() ;
 }
 
@@ -335,6 +351,7 @@ static void asl() { // 4 cycles
     }
     else {
         MEM_write(ADD) ;
+        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
