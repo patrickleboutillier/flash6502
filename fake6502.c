@@ -34,8 +34,7 @@ uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
 }
 
 void MEM_write(uint8_t data){
-    MEM[EAh << 8 | EAl] = data ;
-    //EAh_e = 1 ; EAl_e = 1 ; DATA.data_out = data ; RAM_s = 1 ; RAM_s = 0 ; 
+    MEM[EAh << 8 | EAl] = data ; 
 }
 
 
@@ -211,8 +210,10 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
-    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ;
-    B = MEM_readhl(PCh, PCl) ; incPC() ;
+    B = MEM_readhl(PCh, PCl) ;
+    // PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
+    incPC() ;
+    
 }
 
 static void zp() { //zero-page, 3 cycles
@@ -463,6 +464,7 @@ static void cpy() { // 3 cycles
 static void dec() { // 2 cycles
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     MEM_write(ADD) ; 
+    EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void dex() { // 3 cycles
@@ -486,6 +488,7 @@ static void eor() {
 static void inc() {
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
     MEM_write(ADD) ; 
+    EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void inx() {
@@ -502,10 +505,11 @@ static void iny() {
 
 static void jmp() {
     PCh = EAh ;
+    // Ah2D_e = 1 ; EAh_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; EAh_e = 0 ; Ah2D_e = 1 
     PCl = EAl ;
 }
 
-static void jsr() { // 10 cycles
+static void jsr() { // 11 cycles
     A = PCh ;
     B = PCl ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
@@ -541,6 +545,7 @@ static void lsr() {
     }
     else {
         MEM_write(ADD) ;
+        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
@@ -555,11 +560,13 @@ static void ora() {
 
 static void pha() {
     push8(ACC) ;
+    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
 }
 
 static void php() {
     STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
     push8(STATUS.data_out) ; //push CPU status to stack
+    SPh_e = 1 ; SP_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; SP_e = 0 ; SPh_e = 0 ;
     STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
 }
 
@@ -585,6 +592,7 @@ static void rol() {
     }
     else {
         MEM_write(ADD) ;
+        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
@@ -596,6 +604,7 @@ static void ror() {
     }
     else {
         MEM_write(ADD) ;
+        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
@@ -637,14 +646,17 @@ static void sei() {
 
 static void sta() {
     MEM_write(ACC) ;
+    EAh_e = 1 ; EAl_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void stx() {
     MEM_write(X) ;
+    EAh_e = 1 ; EAl_e = 1 ; X_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; X_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void sty() {
     MEM_write(Y) ;
+    EAh_e = 1 ; EAl_e = 1 ; Y_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; Y_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void tax() {
@@ -748,6 +760,7 @@ void reset6502() {
     SP = 0xFD ;
 }
 
+/*
 void nmi6502() {
     push8(PCh) ;
     push8(PCl) ;
@@ -769,7 +782,7 @@ void irq6502() {
     PCl = MEM_read(0xFFFE) ;
     PCh = MEM_read(0xFFFF) ;
 }
-
+*/
 
 uint8_t callexternal = 0;
 void (*loopexternal)();
