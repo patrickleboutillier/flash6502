@@ -151,6 +151,7 @@ void init6502(){
     ALU.res.connect(ADD.data_in) ;
     ALU.res.connect(ALU2D.data_in) ;
     ALU_e.connect(ALU2D.enable) ;
+    ALU2D.data_out.connect(DATA.data_in) ;
     ALU.n.connect(STATUS.n_in) ;
     ALU.v.connect(STATUS.v_in) ;
     ALU.z.connect(STATUS.z_in) ;
@@ -221,16 +222,15 @@ static void imm() { //immediate, 1 cycle
 static void zp() { //zero-page, 3 cycles
     EAh_s = 1 ; EAh_s = 0 ;
     PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // EAl = MEM_readhl(PCh, PCl) ;
-    B = MEM_readhl(EAh, EAl) ; incPC() ;
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void zpx() { //zero-page,X, 6 cycles
     EAh_s = 1 ; EAh_s = 0 ;
     X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    B = MEM_readhl(EAh, EAl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
+    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void zpy() { //zero-page,Y, 6 cycles
