@@ -67,10 +67,12 @@ output<1> INST_s, INST_e ;
 
 
 void init6502(){
-    Ah2D.data_out.connect(DATA.data_in) ;
+    ADDRh.data_out.connect(Ah2D.data_in) ;
     Ah2D_e.connect(Ah2D.enable) ;
-    Al2D.data_out.connect(DATA.data_in) ;    
+    Ah2D.data_out.connect(DATA.data_in) ;
+    ADDRl.data_out.connect(Al2D.data_in) ;    
     Al2D_e.connect(Al2D.enable) ;
+    Al2D.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
@@ -504,9 +506,8 @@ static void iny() {
 }
 
 static void jmp() {
-    PCh = EAh ;
-    // Ah2D_e = 1 ; EAh_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; EAh_e = 0 ; Ah2D_e = 1 
-    PCl = EAl ;
+    EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+    EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
 
 static void jsr() { // 11 cycles
@@ -519,8 +520,8 @@ static void jsr() { // 11 cycles
     ADD_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; ADD_e = 0 ; // PCh = ADD ;
     push8(PCh) ;
     push8(PCl) ;
-    PCh = EAh ;
-    PCl = EAl ;
+    EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+    EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
 
 static void lda() {
