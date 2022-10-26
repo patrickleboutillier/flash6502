@@ -527,16 +527,12 @@ static void jsr() { // 12 cycles
     ADD_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; ADD_e = 0 ; // PCl = ADD ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
-    //push8(ADD) ;
     MEM[SPh << 8 | SP] = ADD ;
-    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
-    //SP = SP - 1 ;
+    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ADD)
     B = PCl ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    //push8(ADD) ;
-    MEM[SPh << 8 | SP] = data ;
-    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
-    //SP = SP - 1 ;
+    MEM[SPh << 8 | SP] = ADD ;
+    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ADD)
     EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
@@ -577,8 +573,8 @@ static void ora() {
 }
 
 static void pha() {
-    push8(ACC) ;
-    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
+    MEM[SPh << 8 | SP] = ACC ;
+    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
 }
 
 static void php() {
