@@ -252,7 +252,7 @@ static void rel() { //relative for branch ops (8-bit immediate value, sign-exten
 }
 
 static void abso() { //absolute, 3 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ;// EAl = MEM_readhl(PCh, PCl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAl = MEM_readhl(PCh, PCl) ; incPC() ;
     PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAh = MEM_readhl(PCh, PCl) ; incPC() ;
     EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
 }
@@ -277,21 +277,17 @@ static void absy() { //absolute,Y, 7 cycles
     EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
 }
 
-static void ind() { //indirect, 11 cycles
+static void ind() { //indirect, 8 cycles
     // Load ADDR_EAl and B at the same time
-    EAl = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
-    EAh = MEM_readhl(PCh, PCl) ; incPC() ;
-
-    A = MEM_readhl(EAh, EAl) ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    B = MEM_readhl(EAh, EAl) ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; B_s = 1 ; B_s = 0 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAl = MEM_readhl(PCh, PCl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAh = MEM_readhl(PCh, PCl) ; incPC() ;
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; A_s = 1 ; A_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
     // We need to bring A to EAl and B to EAh
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
     B_s = 1 ; B_s = 0 ; // B = 0 ; 
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
+    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
 }
 
 static void indx() { // (indirect,X), 9 cycles
