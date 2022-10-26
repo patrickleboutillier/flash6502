@@ -220,7 +220,7 @@ static void imm() { //immediate, 1 cycle
 
 static void zp() { //zero-page, 3 cycles
     EAh_s = 1 ; EAh_s = 0 ;
-    EAl = MEM_readhl(PCh, PCl) ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // EAl = MEM_readhl(PCh, PCl) ;
     B = MEM_readhl(EAh, EAl) ; incPC() ;
 }
 
