@@ -26,20 +26,11 @@ output<1> RAM_s, RAM_e ;
 uint8_t MEM[0x10000] ;
 
 uint8_t MEM_read(uint16_t address){
-    uint16_t mem = MEM[address], ram = RAM._mem[address >> 8][address & 0xFF] ;
-    if (mem != ram){
-        printf("MEM:%u, RAM:%u\n", mem, ram) ;
-        assert(mem == ram) ;
-    }
-    return mem ;
+    return RAM._mem[address >> 8][address & 0xFF] ;
 }
 
 uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
     return MEM_read(addrh << 8 | addrl) ;
-}
-
-void MEM_write(uint8_t data){
-    MEM[EAh << 8 | EAl] = data ; 
 }
 
 
@@ -370,7 +361,6 @@ static void asl() { // 4 cycles
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
     }
     else {
-        MEM_write(ADD) ;
         EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
@@ -484,7 +474,6 @@ static void cpy() { // 3 cycles
 
 static void dec() { // 2 cycles
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    MEM_write(ADD) ; 
     EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
@@ -508,7 +497,6 @@ static void eor() {
 
 static void inc() {
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    MEM_write(ADD) ; 
     EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
@@ -567,7 +555,6 @@ static void lsr() {
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
     }
     else {
-        MEM_write(ADD) ;
         EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
@@ -614,7 +601,6 @@ static void rol() {
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
     }
     else {
-        MEM_write(ADD) ;
         EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
@@ -626,7 +612,6 @@ static void ror() {
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
     }
     else {
-        MEM_write(ADD) ;
         EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
@@ -668,17 +653,14 @@ static void sei() {
 }
 
 static void sta() {
-    MEM_write(ACC) ;
     EAh_e = 1 ; EAl_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void stx() {
-    MEM_write(X) ;
     EAh_e = 1 ; EAl_e = 1 ; X_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; X_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void sty() {
-    MEM_write(Y) ;
     EAh_e = 1 ; EAl_e = 1 ; Y_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; Y_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
@@ -838,11 +820,12 @@ int main(int argc, char *argv[]){
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
 
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
-    int nb = fread(MEM, 0x10000, 1, file) ;
+    uint8_t mem[0x10000] ;
+    int nb = fread(mem, 0x10000, 1, file) ;
     for (int i = 0 ; i < 0x10000 ; i++){
-        RAM._mem[i >> 8][i & 0xFF] = MEM[i] ;
+        RAM._mem[i >> 8][i & 0xFF] = mem[i] ;
     }
-    fclose(file) ; 
+    fclose(file) ;
 
     init6502() ;
     reset6502() ;
