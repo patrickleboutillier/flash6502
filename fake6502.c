@@ -360,22 +360,22 @@ static void asl() { // 4 cycles
 
 static void bcc(){ // 1 cycle
     if (! STATUS.C){
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void bcs() { // 1 cycle
     if (STATUS.C){
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void beq(){ // 1 cycle
     if (STATUS.Z){
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
@@ -386,26 +386,27 @@ static void bit() { // 3 cycles
 
 static void bmi() { // 1 cycle
     if (STATUS.N){
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void bne(){ // 1 cycle
     if (! STATUS.Z) {
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void bpl() { // 1 cycle
     if (! STATUS.N) {
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void brk() {
+    /*
     incPC();
     push8(PCh) ;
     push8(PCl) ;
@@ -415,19 +416,20 @@ static void brk() {
     setI(1) ;
     PCl = MEM_read(0xFFFE) ;
     PCh = MEM_read(0xFFFF) ;
+    */
 }
 
 static void bvc() { // 1 cycle
     if (! STATUS.V) {
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
 static void bvs() { // 1 cycle
     if (STATUS.V) {
-        PCh = EAh ;
-        PCl = EAl ;
+        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
+        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
@@ -440,7 +442,7 @@ static void cld() {
 }
 
 static void cli() { // 1 cycle
-    setI(0) ;
+    //setI(0) ;
 }
 
 static void clv() { // 3 cycle
@@ -642,7 +644,7 @@ static void sed() {
 }
 
 static void sei() {
-    setI(1) ;
+    //setI(1) ;
 }
 
 static void sta() {
