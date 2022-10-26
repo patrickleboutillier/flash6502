@@ -225,7 +225,7 @@ static void zp() { //zero-page, 3 cycles
     EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
-static void zpx() { //zero-page,X, 6 cycles
+static void zpx() { //zero-page,X, 5 cycles
     EAh_s = 1 ; EAh_s = 0 ;
     X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
     PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
@@ -233,26 +233,22 @@ static void zpx() { //zero-page,X, 6 cycles
     EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
-static void zpy() { //zero-page,Y, 6 cycles
+static void zpy() { //zero-page,Y, 5 cycles
     EAh_s = 1 ; EAh_s = 0 ;
     Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
-    B = MEM_readhl(EAh, EAl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
+    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
-static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 10 cycles
-    A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl) ; incPC() ;
-    ALU_op = ALU_SXT ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
+static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 7 cycles
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl)
+    ALU_op = ALU_SXT ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
     PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ; 
-    ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; // EAl = ADD ;
+    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
     EAh_e = 1 ; Ah2D_e = 1 ; A_s = 1 ; A_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ; // A = EAh ;
     PCh_e = 1 ; Ah2D_e = 1 ; B_s = 1 ; B_s = 0 ; Ah2D_e = 0 ; PCh_e = 0 ; // B = PCh ;
-    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ADD_e = 0 ; // EAh = ADD ;
+    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
 }
 
 static void abso() { //absolute, 3 cycles
