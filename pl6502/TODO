@@ -1,3 +1,6 @@
-- Test ALU_ADR instruction (ADD with 2s complement relative offset)
-- Test rel() with ALU_ADR
-- Remove ALU_ASL
+- Double all MEM writes
+- Do mem reads from RAM
+- remove MEM 
+- decompose all instruction through control signals
+
+- introduce steps and clock phases into functions
