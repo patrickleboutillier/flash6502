@@ -155,7 +155,7 @@ void init6502(){
     ALU.v.connect(STATUS.v_in) ;
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
-    
+
     STATUS_i_in.connect(STATUS.i_in) ;
     STATUS_b_in.connect(STATUS.b_in) ;
     STATUS_nz_set.connect(STATUS.nz_set) ;
@@ -215,10 +215,7 @@ static void acc() { //accumulator
 }
 
 static void imm() { //immediate, 1 cycle
-    B = MEM_readhl(PCh, PCl) ;
-    // PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
-    incPC() ;
-    
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
 }
 
 static void zp() { //zero-page, 3 cycles
