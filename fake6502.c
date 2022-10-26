@@ -45,6 +45,14 @@ void incPC(){
     PCl = pc & 0xFF ;
 }
 
+void incSP(){
+    SP = SP + 1 ;
+}
+
+void decSP(){
+    SP = SP - 1 ;
+}
+
 
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
@@ -512,16 +520,23 @@ static void jmp() {
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
 
-static void jsr() { // 11 cycles
+static void jsr() { // 12 cycles
     A = PCh ;
     B = PCl ;
     ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
     ADD_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; ADD_e = 0 ; // PCl = ADD ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; ADD_e = 0 ; // PCh = ADD ;
-    push8(PCh) ;
-    push8(PCl) ;
+    //push8(ADD) ;
+    MEM[SPh << 8 | SP] = ADD ;
+    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
+    //SP = SP - 1 ;
+    B = PCl ;
+    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
+    //push8(ADD) ;
+    MEM[SPh << 8 | SP] = data ;
+    SPh_e = 1 ; SP_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
+    //SP = SP - 1 ;
     EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
