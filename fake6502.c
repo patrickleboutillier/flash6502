@@ -187,19 +187,20 @@ void setNZ(){
 }
 
 /*
-void setI(uint8_t i){
-    STATUS_i_in = i ; 
-    STATUS_i_set = 1 ; STATUS_i_set = 0 ;
-    STATUS_i_in = 0 ; 
-}
-*/
-
-/*
 uint8_t pull8() {
     SP = SP + 1 ;
     return RAM._mem[SPh][SP] ;
 }
 */
+
+static void fetch() {
+    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
+    //    INST_s = 1 ; INST_s = 0 ; 
+    //        RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
+    //            incPC() ; // 
+                
+    INST = MEM_readhl(PCh, PCl) ; incPC() ; // 1 cycle
+}
 
 //addressing mode functions, calculates effective addresses
 static void imp() { //implied
@@ -878,13 +879,6 @@ static void (*optable[256])() = {
 /* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
 };
 
-/*
-void reset6502() {
-    PCl = MEM_read(0xFFFC) ;
-    PCh = MEM_read(0xFFFD) ;
-    SP = 0x00 ;
-}
-*/
 
 /*
 void nmi6502() {
@@ -910,20 +904,6 @@ void irq6502() {
 }
 */
 
-
-void step6502() { 
-    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
-    //    INST_s = 1 ; INST_s = 0 ; 
-    //        RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
-    //            incPC() ; // 
-                
-    INST = MEM_readhl(PCh, PCl) ; incPC() ; // 1 cycle
-
-    (*addrtable[INST])();
-    (*optable[INST])();
-}
-
-
 int main(int argc, char *argv[]){
     if (argc < 2){
         printf("Usage: %s SUCCESS_ADDR_IN_HEX\n", argv[0]) ;
@@ -944,7 +924,7 @@ int main(int argc, char *argv[]){
     init6502() ;
     // PCl = MEM_read(0xFFFC) ;
     // PCh = MEM_read(0xFFFD) ;
-    PCh = 0x04 ;
+    PCh = 0x00 ;
     PCl = 0x00 ;
     SP = 0xFD ;
 
@@ -954,6 +934,8 @@ int main(int argc, char *argv[]){
             exit(0) ;
         }
         
-        step6502() ;
+        fetch() ;
+        (*addrtable[INST])();
+        (*optable[INST])();
     }
 }

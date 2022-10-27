@@ -616,7 +616,8 @@ test_num = test_num + 1
     endif
 ;        org zero_page
          org 0               ;edited to provide binaries loading from 0
-         ds  zero_page
+         jmp $400
+         ds  zero_page-3
 ;break test interrupt save
 irq_a   ds  1               ;a register
 irq_x   ds  1               ;x register
