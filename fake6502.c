@@ -567,27 +567,33 @@ static void jsr() { // 9 cycles
 }
 
 static void lda() {
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 static void ldx() {
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        X_s = 1 ; X_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ; 
 }
 
 static void ldy() {
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // Y = ALU ;
 }
 
 static void lsr() {
-    ALU_op = ALU_LSR ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
     if ((INST & 0xF) == 0xA) {
-        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+        ALU_op = ALU_LSR ; ALU_e = 1 ; 
+            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; // ACC = ALU ;
     }
     else {
-        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+        ALU_op = ALU_LSR ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
