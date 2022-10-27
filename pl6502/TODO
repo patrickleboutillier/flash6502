@@ -1,4 +1,4 @@
-- can ADD be replaced by ALU_e?
+- Reintroduce incSP()?
 
 - decompose all instruction through control signals
 

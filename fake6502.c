@@ -50,8 +50,8 @@ void decSP(){
 
 reg<8> ACC ;
 output<1> ACC_s, ACC_e ;
-reg<8> A, B, ADD ;
-output<1> A_s, A_e, B_s, B_e, ADD_s, ADD_e ;
+reg<8> A, B ;
+output<1> A_s, A_e, B_s, B_e ;
 reg<8> X, Y ;
 output<1> X_s, X_e, Y_s, Y_e ;
 
@@ -129,10 +129,6 @@ void init6502(){
     B_s.connect(B.set) ;
     B_e = 1 ;   
 
-    ADD_e.connect(ADD.enable) ;
-    ADD_s.connect(ADD.set) ;
-    ADD.data_out.connect(DATA.data_in) ;
-
     DATA.data_out.connect(X.data_in) ;
     X_e.connect(X.enable) ;
     X_s.connect(X.set) ;
@@ -147,7 +143,6 @@ void init6502(){
     B.data_out.connect(ALU.b) ;
     STATUS.alu_c.connect(ALU.c_in) ;
     ALU_op.connect(ALU.op) ;
-    ALU.res.connect(ADD.data_in) ;
     ALU.res.connect(ALU2D.data_in) ;
     ALU_e.connect(ALU2D.enable) ;
     ALU2D.data_out.connect(DATA.data_in) ;
@@ -659,13 +654,18 @@ static void rol() {
 }
 
 static void ror() {
-    STATUS_alu_c_from_C = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; STATUS_alu_c_from_C = 0 ; 
-    ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
+    STATUS_alu_c_from_C = 1 ; 
+        STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
+            STATUS_alu_c_from_C = 0 ; 
     if ((INST & 0xF) == 0xA){
-        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+        ALU_op = ALU_ROR ; ALU_e = 1 ; 
+            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; // ACC = ALU ;
     }
     else {
-        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+        ALU_op = ALU_ROR ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
