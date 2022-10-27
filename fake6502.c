@@ -494,17 +494,14 @@ static void jmp() {
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
 
-static void jsr() { // 12 cycles
+static void jsr() { // 9 cycles
     PCh_e = 1 ; Ah2D_e = 1 ; A_s = 1 ; A_s = 0 ; Ah2D_e = 0 ; PCh_e = 0 ; // A = PCh ;
     PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
- 
-    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setaluc() ;
-    ADD_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; ADD_e = 0 ; // PCl = ADD ; 
+    ALU_op = ALU_DEC ; ALU_e = 1 ; PCl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; PCl_s = 0 ; ALU_e = 0 ; // PCl = ALU ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
     ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ALU)
-    B = PCl ;
+    PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
     ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ALU)
- 
     EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
     EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
 }
