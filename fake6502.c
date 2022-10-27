@@ -183,10 +183,6 @@ void setC(){
     STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
 }
 
-void setaluc(){
-    STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
-}
-
 void setalucfromC(){
     STATUS_alu_c_from_C = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; STATUS_alu_c_from_C = 0 ;  
 }
@@ -638,6 +634,7 @@ static void pla() { // 4 cycles
 }
 
 static void plp() {
+    // TODO: Figure out why we can't go through the ALU here!!!
     SP = SP + 1 ;
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
@@ -646,18 +643,23 @@ static void plp() {
 }
 
 static void rol() {
-    setalucfromC() ; 
-    ALU_op = ALU_ROL ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ; 
+    STATUS_alu_c_from_C = 1 ; 
+        STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
+            STATUS_alu_c_from_C = 0 ; 
     if ((INST & 0xF) == 0xA){
-        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+        ALU_op = ALU_ROL ; ALU_e = 1 ; 
+            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; // ACC = ALU ;
     }
     else {
-        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+        ALU_op = ALU_ROL ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
 static void ror() {
-    setalucfromC() ; 
+    STATUS_alu_c_from_C = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; STATUS_alu_c_from_C = 0 ; 
     ALU_op = ALU_ROR ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
     if ((INST & 0xF) == 0xA){
         ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
@@ -710,15 +712,21 @@ static void sei() {
 }
 
 static void sta() {
-    EAh_e = 1 ; EAl_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    EAh_e = 1 ; EAl_e = 1 ; ACC_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            ACC_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void stx() {
-    EAh_e = 1 ; EAl_e = 1 ; X_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; X_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    EAh_e = 1 ; EAl_e = 1 ; X_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            X_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void sty() {
-    EAh_e = 1 ; EAl_e = 1 ; Y_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; Y_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    EAh_e = 1 ; EAl_e = 1 ; Y_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; Y_e = 0 ; 
+            EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void tax() {
@@ -743,24 +751,30 @@ static void tsx() {
 }
 
 static void txa() {
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+    X_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            X_e = 0 ; // B = X ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 static void txs() {
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; SP_s = 1 ; SP_s = 0 ; ADD_e = 0 ; // SP = ADD ; 
+    X_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            X_e = 0 ; // B = X ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ; 
+            ALU_e = 0 ; // SP = ALU ; 
 }
 
 static void tya() {
-    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+    Y_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Y_e = 0 ; // B = Y ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 
