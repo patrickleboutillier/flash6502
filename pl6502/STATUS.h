@@ -11,8 +11,8 @@
         - ALU flags (ALU.n, ALU.v, ALU.z, ALU.c)
 
     Control signals:
-        - nz_set, v_set, i_set, c_set, alu_c_set
-        - i_in, b_in
+        - nz_set, v_set, c_set, alu_c_set
+        - b_in
         - src_data, data_enable
 */
 
@@ -30,29 +30,27 @@
 
 class STATUS : public component {
     public:
-        input<1> n_in, v_in, i_in, z_in, c_in, b_in ;
-        input<1> nz_set, v_set, i_set, c_set, alu_c_set, alu_c_from_C, src_data ;
+        input<1> n_in, v_in, z_in, c_in, b_in ;
+        input<1> nz_set, v_set, c_set, alu_c_set, alu_c_from_C, src_data ;
         input<8> data_in ;
         input<1> data_enable ;
-        output<1> N, V, B, I, Z, C, alu_c ;
+        output<1> N, V, B, Z, C, alu_c ;
         output<8> data_out ;
     private:
         STATUS_ROM rom ;
-        output<1> sr_n_in, sr_v_in, sr_i_in, sr_z_in, sr_c_in, sr_b_in ;
-        output<1> sr_nz_set, sr_v_set, sr_i_set, sr_c_set, sr_alu_c_set, sr_alu_c_from_C ;
+        output<1> sr_n_in, sr_v_in, sr_z_in, sr_c_in, sr_b_in ;
+        output<1> sr_nz_set, sr_v_set, sr_c_set, sr_alu_c_set, sr_alu_c_from_C ;
     public:
-        STATUS() : n_in(this),   v_in(this),  i_in(this),  z_in(this), c_in(this), b_in(this),
-                   nz_set(this), v_set(this), i_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
+        STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
+                   nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
                    src_data(this), data_in(), data_enable(this) {
             sr_n_in.connect(rom.n_in) ;
             sr_v_in.connect(rom.v_in) ;
-            sr_i_in.connect(rom.i_in) ;
             sr_z_in.connect(rom.z_in) ;
             sr_c_in.connect(rom.c_in) ;
             sr_b_in.connect(rom.b_in) ;
             sr_nz_set.connect(rom.nz_set) ;
             sr_v_set.connect(rom.v_set) ;
-            sr_i_set.connect(rom.i_set) ;
             sr_c_set.connect(rom.c_set) ;
             sr_alu_c_set.connect(rom.alu_c_set) ;
             sr_alu_c_from_C.connect(rom.alu_c_from_C) ;
@@ -62,7 +60,6 @@ class STATUS : public component {
         void always(){
             sr_nz_set = nz_set ;
             sr_v_set = v_set ;
-            sr_i_set = i_set ;
             sr_c_set = c_set ;
             sr_alu_c_set = alu_c_set ;
             sr_alu_c_from_C = alu_c_from_C ;
@@ -73,7 +70,6 @@ class STATUS : public component {
                 sr_n_in = data_in >> 7 ;
                 sr_v_in = data_in >> 6 ;
                 sr_b_in = data_in >> 4 ;
-                sr_i_in = data_in >> 2 ;
                 sr_z_in = data_in >> 1 ;
                 sr_c_in = data_in ;
             }
@@ -82,7 +78,6 @@ class STATUS : public component {
                 sr_n_in = n_in ;
                 sr_v_in = v_in ;
                 sr_b_in = b_in ;
-                sr_i_in = i_in ;
                 sr_z_in = z_in ;
                 sr_c_in = c_in ;
             }
@@ -90,7 +85,6 @@ class STATUS : public component {
             N = rom.N ;
             V = rom.V ;
             B = rom.B ;
-            I = rom.I ;
             Z = rom.Z ;
             C = rom.C ;
             alu_c = rom.alu_c ;
@@ -98,7 +92,7 @@ class STATUS : public component {
             if (data_enable){
                 // This can be implemented with a 373 with the set always on 
                 data_out.drive(true) ;
-                uint8_t P = N << 7 | V << 6 | 1 << 5 | B << 4 | I << 2 | Z << 1 | C ;
+                uint8_t P = N << 7 | V << 6 | 1 << 5 | B << 4 | Z << 1 | C ;
                 data_out.set_value(P) ;
             }
             else {

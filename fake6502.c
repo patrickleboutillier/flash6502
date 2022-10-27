@@ -14,13 +14,14 @@
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
-output<1> Ah2D_e, Al2D_e ;
+output<1> Ah2D_e("0"), Al2D_e("1") ;
 
 reg<8> EAh, EAl, PCh, PCl, SPh, SP ;
-output<1> EAh_s, EAh_e, EAl_s, EAl_e, PCh_s, PCh_e, PCl_s, PCl_e, SPh_s, SPh_e, SP_s, SP_e ;
+output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
+    SPh_s, SPh_e("10"), SP_s("11"), SP_e("12") ;
 
 RAM RAM ;
-output<1> RAM_s, RAM_e ;
+output<1> RAM_s("13"), RAM_e("14") ;
 
 
 uint8_t MEM_read(uint16_t address){
@@ -49,24 +50,24 @@ void decSP(){
 
 
 reg<8> ACC ;
-output<1> ACC_s, ACC_e ;
+output<1> ACC_s("15"), ACC_e("16") ;
 reg<8> A, B ;
-output<1> A_s, A_e, B_s, B_e ;
+output<1> A_s("17"), A_e("18"), B_s("19"), B_e("20") ;
 reg<8> X, Y ;
-output<1> X_s, X_e, Y_s, Y_e ;
+output<1> X_s("21"), X_e("22"), Y_s("23"), Y_e("24") ;
 
 ALU ALU ;
-output<4> ALU_op ;
+output<4> ALU_op("25,26,27,28") ;
 tristate<8> ALU2D ;
-output<1> ALU_e ;
+output<1> ALU_e("29") ;
 
 STATUS STATUS ;
-output<1> STATUS_i_in, STATUS_b_in ;
-output<1> STATUS_nz_set, STATUS_v_set, STATUS_i_set, STATUS_c_set, STATUS_alu_c_set, STATUS_alu_c_from_C ;
-output<1> STATUS_data_enable, STATUS_src_data ;
+output<1> STATUS_b_in("30") ;
+output<1> STATUS_nz_set("31"), STATUS_v_set("32"), STATUS_c_set("33"), STATUS_alu_c_set("34"), STATUS_alu_c_from_C("35") ;
+output<1> STATUS_data_enable("36"), STATUS_src_data("37") ;
 
 reg<8> INST ;
-output<1> INST_s, INST_e ;
+output<1> INST_s("38"), INST_e("39") ;
 
 
 void init6502(){
@@ -151,11 +152,9 @@ void init6502(){
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
 
-    STATUS_i_in.connect(STATUS.i_in) ;
     STATUS_b_in.connect(STATUS.b_in) ;
     STATUS_nz_set.connect(STATUS.nz_set) ;
     STATUS_v_set.connect(STATUS.v_set) ;
-    STATUS_i_set.connect(STATUS.i_set) ;
     STATUS_c_set.connect(STATUS.c_set) ;
     STATUS_alu_c_set.connect(STATUS.alu_c_set) ;
     STATUS_alu_c_from_C.connect(STATUS.alu_c_from_C) ;
@@ -194,11 +193,12 @@ void setI(uint8_t i){
 }
 */
 
+/*
 uint8_t pull8() {
     SP = SP + 1 ;
     return RAM._mem[SPh][SP] ;
 }
-
+*/
 
 //addressing mode functions, calculates effective addresses
 static void imp() { //implied
@@ -431,7 +431,6 @@ static void cld() {
 }
 
 static void cli() { // 1 cycle
-    //setI(0) ;
 }
 
 static void clv() { // 2 cycle
@@ -632,8 +631,8 @@ static void plp() {
     // TODO: Figure out why we can't go through the ALU here!!!
     SP = SP + 1 ;
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
-        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
-        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
+        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ;
+        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; 
             STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
 }
 
@@ -677,8 +676,8 @@ static void rti() {
         SP_s = 1 ; SP_s = 0 ;
             ALU_e = 0 ;  
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
-        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
-        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
+        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ;
+        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; 
             STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
 
     SP_e = 1 ; Al2D_e = 1 ; 
@@ -689,8 +688,7 @@ static void rti() {
             ALU_e = 0 ;
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
         PCl_s = 1 ; PCl_s = 0 ; 
-            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;            
-    //PCl = pull8() ;                 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;                       
     SP_e = 1 ; Al2D_e = 1 ; 
         B_s = 1 ; B_s = 0 ; 
             Al2D_e = 0 ; SP_e = 0 ;
@@ -700,7 +698,6 @@ static void rti() {
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
         PCh_s = 1 ; PCh_s = 0 ; 
             RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
-    //PCh = pull8() ; 
 }
 
 static void rts() {
