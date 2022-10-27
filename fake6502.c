@@ -692,23 +692,27 @@ static void rts() {
 }
 
 static void sbc() {
-    setalucfromC() ; ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ; 
-    ALU_op = ALU_SBC ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setV() ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    STATUS_alu_c_from_C = 1 ; ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
+            STATUS_alu_c_from_C = 0 ; ACC_e = 0 ; // A = ACC 
+    ALU_op = ALU_SBC ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setC() ; setV() ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 static void sec() {
     B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    ADD_e = 1 ; B_s = 1 ; B_s = 0 ; ADD_e = 0 ; // B = ADD ;
-    ALU_op = ALU_DEC ; setC() ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            ALU_e = 0 ; // B = ALU ;
+    ALU_op = ALU_DEC ; 
+        setC() ;
 }
 
 static void sed() {
 }
 
 static void sei() {
-    //setI(1) ;
 }
 
 static void sta() {
