@@ -196,11 +196,13 @@ void setNZ(){
     STATUS_nz_set = 1 ; STATUS_nz_set = 0 ;  
 }
 
+/*
 void setI(uint8_t i){
     STATUS_i_in = i ; 
     STATUS_i_set = 1 ; STATUS_i_set = 0 ;
     STATUS_i_in = 0 ; 
 }
+*/
 
 uint8_t pull8() {
     SP = SP + 1 ;
@@ -319,10 +321,13 @@ static void indy() { // (indirect),Y, 11 cycles
 
 
 //instruction handler functions
-static void adc() { // 3 cycles
-    setalucfromC() ; ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ; 
-    ALU_op = ALU_ADC ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setV() ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+static void adc() { // 2 cycles
+    STATUS_alu_c_from_C = 1 ; ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
+            STATUS_alu_c_from_C = 0 ; ACC_e = 0 ; // A = ACC 
+    ALU_op = ALU_ADC ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setC() ; setV() ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 static void and_() { // 3 cycles
@@ -335,10 +340,14 @@ static void asl() { // 4 cycles
     ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
     if ((INST & 0xF) == 0xA){
-        ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+        ALU_e = 1 ; 
+            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
+                ALU_e = 0 ; // ACC = ALU ;
     }
     else {
-        EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+        EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+            RAM_s = 1 ; RAM_s = 0 ; 
+                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
     }
 }
 
