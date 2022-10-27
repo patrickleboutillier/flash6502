@@ -499,43 +499,71 @@ static void dey() { // 2 cycles
 }
 
 static void eor() {
-    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_EOR ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+    ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            ACC_e = 0 ; // A = ACC ;
+    ALU_op = ALU_EOR ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ; 
 }
 
 static void inc() {
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    ALU_op = ALU_INC ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
 }
 
 static void inx() {
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ;
+    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        X_s = 1 ; X_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ;
 }
 
 static void iny() {
     Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // Y = ALU ;
 }
 
 static void jmp() {
-    EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-    EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
+    EAh_e = 1 ; Ah2D_e = 1 ; 
+        PCh_s = 1 ; PCh_s = 0 ; 
+            Ah2D_e = 0 ; EAh_e = 0 ;
+    EAl_e = 1 ; Al2D_e = 1 ; 
+        PCl_s = 1 ; PCl_s = 0 ; 
+            Al2D_e = 0 ; EAl_e = 0 ;
 }
 
 static void jsr() { // 9 cycles
-    PCh_e = 1 ; Ah2D_e = 1 ; A_s = 1 ; A_s = 0 ; Ah2D_e = 0 ; PCh_e = 0 ; // A = PCh ;
-    PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
-    ALU_op = ALU_DEC ; ALU_e = 1 ; PCl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; PCl_s = 0 ; ALU_e = 0 ; // PCl = ALU ; 
+    PCh_e = 1 ; Ah2D_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            Ah2D_e = 0 ; PCh_e = 0 ; // A = PCh ;
+    PCl_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
+    ALU_op = ALU_DEC ; ALU_e = 1 ; 
+        PCl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; PCl_s = 0 ; 
+            ALU_e = 0 ; // PCl = ALU ; 
     B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ALU)
-    PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
-    ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; // push(ALU)
-    EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-    EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
+    ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
+                decSP() ; // push(ALU)
+    PCl_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
+    ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
+                decSP() ; // push(ALU)
+    EAh_e = 1 ; Ah2D_e = 1 ; 
+        PCh_s = 1 ; PCh_s = 0 ; 
+            Ah2D_e = 0 ; EAh_e = 0 ;
+    EAl_e = 1 ; Al2D_e = 1 ; 
+        PCl_s = 1 ; PCl_s = 0 ; 
+            Al2D_e = 0 ; EAl_e = 0 ;
 }
 
 static void lda() {
