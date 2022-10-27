@@ -680,15 +680,49 @@ static void rti() {
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
         STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
             STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
-            
-    PCl = pull8() ;                 
-    PCh = pull8() ; 
+
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
+        PCl_s = 1 ; PCl_s = 0 ; 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;            
+    //PCl = pull8() ;                 
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
+        PCh_s = 1 ; PCh_s = 0 ; 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
+    //PCh = pull8() ; 
 }
 
 static void rts() {
-    PCl = pull8() ;                 
-    PCh = pull8() ; 
-    incPC() ;
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
+        PCl_s = 1 ; PCl_s = 0 ; 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
+        PCh_s = 1 ; PCh_s = 0 ; 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ;
+                incPC() ;
 }
 
 static void sbc() {
@@ -734,24 +768,30 @@ static void sty() {
 }
 
 static void tax() {
-    ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
+    ACC_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            ACC_e = 0 ; // B = ACC ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        X_s = 1 ; X_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ; 
 }
 
 static void tay() {
-    ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ; 
+    ACC_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            ACC_e = 0 ; // B = ACC ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ; 
 }
 
 static void tsx() {
-    B = SP ;
-    ALU_op = ALU_PASS ;
-    ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; 
+        X_s = 1 ; X_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ;
 }
 
 static void txa() {
