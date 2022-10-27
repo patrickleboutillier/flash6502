@@ -297,21 +297,20 @@ static void indx() { // (indirect,X), 10 cycles
     EAl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;    
     ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
     EAl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // EAh = MEM_read(0, EAl) ;
-
     ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-    B = MEM_readhl(0, EAl) ;
+    EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // B = MEM_readhl(0, EAl) ;
     ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-
     EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void indy() { // (indirect),Y, 11 cycles
-    B = MEM_readhl(PCh, PCl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
     Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_INC ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ;
-    EAh = MEM_readhl(0, EAl) ;
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ;
-    B = MEM_readhl(0, EAl) ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
+    EAl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // EAh = MEM_read(0, EAl) ;
+    ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
+    EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // B = MEM_readhl(0, EAl) ;
+
     ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ADD_e = 0 ; ADD_s = 0 ; setaluc() ; // EAl = ADD ;
     A_s = 1 ; A_s = 0 ; // A = 0 ;
     B = EAh ;
