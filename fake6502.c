@@ -291,16 +291,18 @@ static void ind() { //indirect, 8 cycles
 }
 
 static void indx() { // (indirect,X), 9 cycles
-    B = MEM_readhl(PCh, PCl) ; incPC() ;
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
     X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ;
-    B = ADD ;
+
+    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
+    EAl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;    
+
     ALU_op = ALU_INC ; ADD_s = 1 ; ADD_s = 0 ;
-    // TODO ADD is not on the address bus
     EAh = MEM_read(ADD) ;
     ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ;
     EAl = MEM_read(ADD) ;
-    B = MEM_readhl(EAh, EAl) ;
+
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void indy() { // (indirect),Y, 11 cycles
