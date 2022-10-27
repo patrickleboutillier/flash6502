@@ -193,13 +193,11 @@ uint8_t pull8() {
 }
 */
 
-static void fetch() {
-    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
-    //    INST_s = 1 ; INST_s = 0 ; 
-    //        RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
-    //            incPC() ; // 
-                
-    INST = MEM_readhl(PCh, PCl) ; incPC() ; // 1 cycle
+static void fetch() { // 1 cycle
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
+        INST_s = 1 ; INST_s = 0 ; 
+            RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
+                incPC() ; // INST = MEM_readhl(PCh, PCl) ; incPC() ;
 }
 
 //addressing mode functions, calculates effective addresses
