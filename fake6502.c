@@ -339,62 +339,64 @@ static void and_() { // 3 cycles
             ALU_e = 0 ; // ACC = ADD ; 
 }
 
-static void asl() { // 4 cycles
-    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; ACC_e = 1 ; B_s = 1 ; B_s = 0 ; ACC_e = 0 ; // B = ACC ;
-    ALU_op = ALU_ADD ; ADD_s = 1 ; ADD_s = 0 ; setC() ; setNZ() ;
+static void asl() { // 2 cycles
+    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; B = ACC ;
     if ((INST & 0xF) == 0xA){
-        ALU_e = 1 ; 
+        ALU_op = ALU_ADD ; ALU_e = 1 ; 
             ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
                 ALU_e = 0 ; // ACC = ALU ;
     }
     else {
-        EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-            RAM_s = 1 ; RAM_s = 0 ; 
-                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+        ALU_op = ALU_ADD ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ;
+                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // RAM[EA] = ALU
     }
 }
 
-static void bcc(){ // 1 cycle
+static void bcc(){ // 2 cycle
     if (! STATUS.C){
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void bcs() { // 1 cycle
+static void bcs() { // 2 cycle
     if (STATUS.C){
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void beq(){ // 1 cycle
+static void beq(){ // 2 cycle
     if (STATUS.Z){
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void bit() { // 3 cycles
-    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_BIT ; setV() ; setNZ() ;
+static void bit() { // 2 cycles
+    ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            ACC_e = 0 ; // A = ACC ;
+    ALU_op = ALU_BIT ; 
+        setV() ; setNZ() ;
 }
 
-static void bmi() { // 1 cycle
+static void bmi() { // 2 cycle
     if (STATUS.N){
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void bne(){ // 1 cycle
+static void bne(){ // 2 cycle
     if (! STATUS.Z) {
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void bpl() { // 1 cycle
+static void bpl() { // 2 cycle
     if (! STATUS.N) {
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
@@ -415,23 +417,24 @@ static void brk() {
     */
 }
 
-static void bvc() { // 1 cycle
+static void bvc() { // 2 cycle
     if (! STATUS.V) {
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void bvs() { // 1 cycle
+static void bvs() { // 2 cycle
     if (STATUS.V) {
         EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
         EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
     }
 }
 
-static void clc() { // 3 cycle
+static void clc() { // 2 cycle
     B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_PASS ; setC() ;
+    ALU_op = ALU_PASS ; 
+        setC() ;
 }
 
 static void cld() {
@@ -441,41 +444,58 @@ static void cli() { // 1 cycle
     //setI(0) ;
 }
 
-static void clv() { // 3 cycle
+static void clv() { // 2 cycle
     B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_PASS ; setV() ;
+    ALU_op = ALU_PASS ; 
+        setV() ;
 }
 
-static void cmp() { // 3 cycles
-    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
+static void cmp() { // 2 cycles
+    ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            ACC_e = 0 ; // A = ACC ;
+    ALU_op = ALU_CMP ; 
+        setC() ; setNZ() ; // don't save results
 }
 
-static void cpx() { // 3 cycles
-    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
+static void cpx() { // 2 cycles
+    X_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            X_e = 0 ; // A = X ;
+    ALU_op = ALU_CMP ; 
+        setC() ; setNZ() ; // don't save results
 }
 
-static void cpy() { // 3 cycles
-    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_CMP ; setC() ; setNZ() ; // don't save results
+static void cpy() { // 2 cycles
+    Y_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            Y_e = 0 ; // A = Y ;
+    ALU_op = ALU_CMP ; 
+        setC() ; setNZ() ; // don't save results
 }
 
-static void dec() { // 2 cycles
-    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    EAh_e = 1 ; EAl_e = 1 ; ADD_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ADD_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+static void dec() { // 1 cycles
+    ALU_op = ALU_DEC ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // RAM[EA] = ALU
 }
 
-static void dex() { // 3 cycles
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
-    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; X_s = 1 ; X_s = 0 ; ADD_e = 0 ; // X = ADD ; 
+static void dex() { // 2 cycles
+    X_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            X_e = 0 ; // B = X ;
+    ALU_op = ALU_DEC ; ALU_e = 1 ; 
+        X_s = 1 ; X_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // X = ALU ; 
 }
 
-static void dey() { // 3 cycles
-    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_DEC ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; Y_s = 1 ; Y_s = 0 ; ADD_e = 0 ; // Y = ADD ;
+static void dey() { // 2 cycles
+    Y_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Y_e = 0 ; // B = Y ;
+    ALU_op = ALU_DEC ; ALU_e = 1 ; 
+        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // Y = ALU ;
 }
 
 static void eor() {
