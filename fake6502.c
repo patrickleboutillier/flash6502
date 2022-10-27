@@ -64,7 +64,6 @@ STATUS STATUS ;
 output<1> STATUS_i_in, STATUS_b_in ;
 output<1> STATUS_nz_set, STATUS_v_set, STATUS_i_set, STATUS_c_set, STATUS_alu_c_set, STATUS_alu_c_from_C ;
 output<1> STATUS_data_enable, STATUS_src_data ;
-output<8> STATUS_data_in ;
 
 reg<8> INST ;
 output<1> INST_s, INST_e ;
@@ -167,7 +166,7 @@ void init6502(){
     STATUS_alu_c_from_C.connect(STATUS.alu_c_from_C) ;
     STATUS_data_enable.connect(STATUS.data_enable) ;
     STATUS_src_data.connect(STATUS.src_data) ;
-    STATUS_data_in.connect(STATUS.data_in) ;
+    DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
@@ -639,13 +638,12 @@ static void pla() { // 4 cycles
 }
 
 static void plp() {
-    // SP = SP + 1 ;
-    // return RAM._mem[SPh][SP] ;    
-    STATUS_data_in = pull8() ;
-    STATUS_src_data = 1 ; 
+    SP = SP + 1 ;
+    // return RAM._mem[SPh][SP] ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
         STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
-            STATUS_src_data = 0 ;
+            STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
 }
 
 static void rol() {
@@ -671,11 +669,13 @@ static void ror() {
 }
 
 static void rti() {
-    STATUS_data_in = pull8() ;
-    STATUS_src_data = 1 ;
-    STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
-    STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
-    STATUS_src_data = 0 ;
+    SP = SP + 1 ;
+    // return RAM._mem[SPh][SP] ;
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
+        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
+        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
+            STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
+            
     PCl = pull8() ;                 
     PCh = pull8() ; 
 }
