@@ -639,7 +639,6 @@ static void pla() { // 4 cycles
 
 static void plp() {
     SP = SP + 1 ;
-    // return RAM._mem[SPh][SP] ;
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
         STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
@@ -669,8 +668,12 @@ static void ror() {
 }
 
 static void rti() {
-    SP = SP + 1 ;
-    // return RAM._mem[SPh][SP] ;
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;  
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
         STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
