@@ -331,9 +331,12 @@ static void adc() { // 2 cycles
 }
 
 static void and_() { // 3 cycles
-    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_AND ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ; 
+    ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            ACC_e = 0 ; // A = ACC ;
+    ALU_op = ALU_AND ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ADD ; 
 }
 
 static void asl() { // 4 cycles
