@@ -52,22 +52,23 @@ void decSP(){
 reg<8> ACC ;
 output<1> ACC_s("15"), ACC_e("16") ;
 reg<8> A, B ;
-output<1> A_s("17"), A_e("18"), B_s("19"), B_e("20") ;
+output<1> A_s("17"), A_e, B_s("18"), B_e ;
 reg<8> X, Y ;
-output<1> X_s("21"), X_e("22"), Y_s("23"), Y_e("24") ;
+output<1> X_s("19"), X_e("20"), Y_s("21"), Y_e("22") ;
 
 ALU ALU ;
-output<4> ALU_op("25,26,27,28") ;
+output<4> ALU_op("23,24,25,26") ;
 tristate<8> ALU2D ;
-output<1> ALU_e("29") ;
+output<1> ALU_e("27") ;
 
 STATUS STATUS ;
-output<1> STATUS_b_in("30") ;
-output<1> STATUS_nz_set("31"), STATUS_v_set("32"), STATUS_c_set("33"), STATUS_alu_c_set("34"), STATUS_alu_c_from_C("35") ;
-output<1> STATUS_data_enable("36"), STATUS_src_data("37") ;
+output<1> STATUS_b_in("28") ;
+output<1> STATUS_nz_set("29"), STATUS_v_set("30"), STATUS_c_set("31"), STATUS_alu_c_set("32"), STATUS_alu_c_from_C("33") ;
+output<1> STATUS_data_enable("34"), STATUS_src_data("35") ;
 
 reg<8> INST ;
-output<1> INST_s("38"), INST_e("39") ;
+output<1> INST_s("36"), INST_e ;
+// PC++, SP--
 
 
 void init6502(){
@@ -205,6 +206,9 @@ static void imp() { //implied
 }
 
 static void acc() { //accumulator
+    ACC_e = 1 ;
+        B_s = 1 ; B_s = 0 ;
+            ACC_e = 0 ;
 }
 
 static void imm() { //immediate, 1 cycle
@@ -628,8 +632,12 @@ static void pla() { // 4 cycles
 }
 
 static void plp() {
-    // TODO: Figure out why we can't go through the ALU here!!!
-    SP = SP + 1 ;
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ; 
     SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
         STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ;
         STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; 
