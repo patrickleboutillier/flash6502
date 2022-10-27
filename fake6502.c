@@ -924,7 +924,7 @@ int main(int argc, char *argv[]){
     // PCh = MEM_read(0xFFFD) ;
     PCh = 0x00 ;
     PCl = 0x00 ;
-    SP = 0xFD ;
+    SP = 0x00 ;
 
     while (1) {
         if ((PCh << 8 | PCl) == SUCCESS_ADDR){
