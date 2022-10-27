@@ -601,33 +601,46 @@ static void nop() {
 }
 
 static void ora() {
-    ACC_e = 1 ; A_s = 1 ; A_s = 0 ; ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_ORA ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    ACC_e = 1 ; 
+        A_s = 1 ; A_s = 0 ; 
+            ACC_e = 0 ; // A = ACC ;
+    ALU_op = ALU_ORA ; ALU_e = 1 ; 
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ;
 }
 
 static void pha() {
-    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
+    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
+                decSP() ;
 }
 
 static void php() {
-    STATUS_b_in = 1 ; STATUS_data_enable = 1 ;
-    SPh_e = 1 ; SP_e = 1 ; RAM_s = 1 ; RAM_s = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ;
-    STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
+    STATUS_b_in = 1 ; STATUS_data_enable = 1 ; SPh_e = 1 ; SP_e = 1 ; 
+        RAM_s = 1 ; RAM_s = 0 ; 
+            SP_e = 0 ; SPh_e = 0 ; STATUS_data_enable = 0 ; STATUS_b_in = 0 ; 
+                decSP() ;
 }
 
 static void pla() {
+    // SP = SP + 1 ;
+    // return RAM._mem[SPh][SP] ;
     B = pull8() ;
-    ALU_op = ALU_PASS ; ADD_s = 1 ; ADD_s = 0 ; setNZ() ;
-    ADD_e = 1 ; ACC_s = 1 ; ACC_s = 0 ; ADD_e = 0 ; // ACC = ADD ;
+    // SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
+    ALU_op = ALU_PASS ; ALU_e = 1 ;
+        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
+            ALU_e = 0 ; // ACC = ALU ;
 }
 
 static void plp() {
+    // SP = SP + 1 ;
+    // return RAM._mem[SPh][SP] ;    
     STATUS_data_in = pull8() ;
-    STATUS_src_data = 1 ;
-    STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
-    STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ;
-    STATUS_src_data = 0 ;
+    STATUS_src_data = 1 ; 
+        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_i_set = 1 ; STATUS_c_set = 1 ;
+        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_i_set = 0 ; STATUS_c_set = 0 ; 
+            STATUS_src_data = 0 ;
 }
 
 static void rol() {
