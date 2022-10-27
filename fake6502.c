@@ -878,12 +878,13 @@ static void (*optable[256])() = {
 /* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
 };
 
-
+/*
 void reset6502() {
     PCl = MEM_read(0xFFFC) ;
     PCh = MEM_read(0xFFFD) ;
-    SP = 0xFD ;
+    SP = 0x00 ;
 }
+*/
 
 /*
 void nmi6502() {
@@ -909,26 +910,19 @@ void irq6502() {
 }
 */
 
-uint8_t callexternal = 0;
-void (*loopexternal)();
-uint16_t SUCCESS_ADDR = 0 ;
 
 void step6502() { 
-    if ((PCh << 8 | PCl) == SUCCESS_ADDR){
-        printf("SUCCESS!\n") ;
-        exit(0) ;
-    }
+    //PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
+    //    INST_s = 1 ; INST_s = 0 ; 
+    //        RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
+    //            incPC() ; // 
+                
     INST = MEM_readhl(PCh, PCl) ; incPC() ; // 1 cycle
 
     (*addrtable[INST])();
     (*optable[INST])();
 }
 
-void exec6502() {
-    while (1) {
-        step6502() ;
-    }
-}
 
 int main(int argc, char *argv[]){
     if (argc < 2){
@@ -936,7 +930,7 @@ int main(int argc, char *argv[]){
         exit(1) ;
     }
 
-    SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
+    uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
 
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
@@ -948,9 +942,18 @@ int main(int argc, char *argv[]){
     fclose(file) ;
 
     init6502() ;
-    reset6502() ;
+    // PCl = MEM_read(0xFFFC) ;
+    // PCh = MEM_read(0xFFFD) ;
     PCh = 0x04 ;
     PCl = 0x00 ;
+    SP = 0xFD ;
 
-    exec6502() ;
+    while (1) {
+        if ((PCh << 8 | PCl) == SUCCESS_ADDR){
+            printf("SUCCESS!\n") ;
+            exit(0) ;
+        }
+        
+        step6502() ;
+    }
 }
