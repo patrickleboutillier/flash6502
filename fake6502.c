@@ -623,11 +623,16 @@ static void php() {
                 decSP() ;
 }
 
-static void pla() {
-    // SP = SP + 1 ;
-    // return RAM._mem[SPh][SP] ;
-    B = pull8() ;
-    // SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
+static void pla() { // 4 cycles
+    SP_e = 1 ; Al2D_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            Al2D_e = 0 ; SP_e = 0 ;
+    ALU_op = ALU_INC ; ALU_e = 1 ; 
+        SP_s = 1 ; SP_s = 0 ;
+            ALU_e = 0 ;  
+    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
+        B_s = 1 ; B_s = 0 ; 
+            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
     ALU_op = ALU_PASS ; ALU_e = 1 ;
         ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
             ALU_e = 0 ; // ACC = ALU ;
