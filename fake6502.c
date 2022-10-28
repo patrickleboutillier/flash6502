@@ -257,21 +257,19 @@ static void bvs() { // 2 cycle
 }
 
 static void clc() { // 2 cycle
-    B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_PASS ; 
-        setC() ;
+    tick(clc) ;
 }
 
 static void cld() {
+    tick(cld) ;
 }
 
 static void cli() { // 1 cycle
+    tick(cli) ;
 }
 
 static void clv() { // 2 cycle
-    B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_PASS ; 
-        setV() ;
+    tick(clv) ;
 }
 
 static void cmp() { // 2 cycles

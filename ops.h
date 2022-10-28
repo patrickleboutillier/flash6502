@@ -272,8 +272,6 @@ uint8_t bvs(uint8_t tick){
 }
 
 
-#if 0 
-
 uint8_t clc(uint8_t tick) {
     switch (tick) { 
         case 0x00:  break ;
@@ -491,16 +489,17 @@ uint8_t jmp(uint8_t tick) {
         case 0x02:  PCh_s = 0 ; break ;
         case 0x03:  Ah2D_e = 0 ; EAh_e = 0 ; break ;
         
-        case 0x00:  EAl_e = 1 ; Al2D_e = 1 ; break ;
-        case 0x01:  PCl_s = 1 ; break ;
-        case 0x02:  PCl_s = 0 ; break ;
-        case 0x03:  Al2D_e = 0 ; EAl_e = 0 ; break ;
+        case 0x10:  EAl_e = 1 ; Al2D_e = 1 ; break ;
+        case 0x11:  PCl_s = 1 ; break ;
+        case 0x12:  PCl_s = 0 ; break ;
+        case 0x13:  Al2D_e = 0 ; EAl_e = 0 ; break ;
         default:    return 0 ;
     }
     return 1 ;
 }
 
 
+#if 0
 uint8_t jsr(uint8_t tick) {
     switch (tick) { 
         case 0x00:  PCh_e = 1 ; Ah2D_e = 1 ; break ;
