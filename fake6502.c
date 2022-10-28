@@ -226,117 +226,75 @@ static void imm() { //immediate, 1 cycle
 }
 
 static void zp() { //zero-page, 3 cycles
-    //
-    EAh_s = 1 ; 
-    EAh_s = 0 ;
-    //
-
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
-    EAl_s = 1 ; 
-    EAl_s = 0 ; 
-    RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // EAl = MEM_readhl(PCh, PCl) ;
-
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; 
-    B_s = 1 ; 
-    B_s = 0 ; 
-    RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            zp(s << 4 | c) ;
+        }
+    }
 }
 
 static void zpx() { //zero-page,X, 5 cycles
-    //
-    EAh_s = 1 ; 
-    EAh_s = 0 ;
-    //
-
-    X_e = 1 ; 
-    A_s = 1 ; 
-    A_s = 0 ; 
-    X_e = 0 ; // A = X ;
-    
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
-    B_s = 1 ; 
-    B_s = 0 ; 
-    RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
-    
-    ALU_op = ALU_ADD ; ALU_e = 1 ; 
-    EAl_s = 1 ; 
-    EAl_s = 0 ; 
-    ALU_e = 0 ; // EAl = ALU ;
-    
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; 
-    B_s = 1 ; 
-    B_s = 0 ; 
-    RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            zpx(s << 4 | c) ;
+        }
+    }
 }
 
 static void zpy() { //zero-page,Y, 5 cycles
-    EAh_s = 1 ; EAh_s = 0 ;
-    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            zpy(s << 4 | c) ;
+        }
+    }
 }
 
 static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 7 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // A = MEM_readhl(PCh, PCl) ; B = MEM_readhl(PCh, PCl)
-    ALU_op = ALU_SXT ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
-    PCl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; PCl_e = 0 ; // B = PCl ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
-    EAh_e = 1 ; Ah2D_e = 1 ; A_s = 1 ; A_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ; // A = EAh ;
-    PCh_e = 1 ; Ah2D_e = 1 ; B_s = 1 ; B_s = 0 ; Ah2D_e = 0 ; PCh_e = 0 ; // B = PCh ;
-    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            rel(s << 4 | c) ;
+        }
+    } 
 }
 
 static void abso() { //absolute, 3 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAl = MEM_readhl(PCh, PCl) ; incPC() ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAh = MEM_readhl(PCh, PCl) ; incPC() ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            abso(s << 4 | c) ;
+        }
+    } 
 }
 
 static void absx() { //absolute,X, 7 cycles
-    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ; 
-    A_s = 1 ; A_s = 0 ; // A = 0 ; 
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            absx(s << 4 | c) ;
+        }
+    } 
 }
 
 static void absy() { //absolute,Y, 7 cycles
-    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ; 
-    A_s = 1 ; A_s = 0 ; // A = 0 ; 
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            absy(s << 4 | c) ;
+        }
+    } 
 }
 
 static void ind() { //indirect, 8 cycles
-    // Load ADDR_EAl and B at the same time
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; B_s = 1 ; B_s = 0 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAl = MEM_readhl(PCh, PCl) ; incPC() ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // EAh = MEM_readhl(PCh, PCl) ; incPC() ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; A_s = 1 ; A_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
-    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
-    // We need to bring A to EAl and B to EAh
-    ALU_op = ALU_PASS ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ALU ;
-    B_s = 1 ; B_s = 0 ; // B = 0 ; 
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            ind(s << 4 | c) ;
+        }
+    }
 }
 
 static void indx() { // (indirect,X), 10 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
-    EAl_e = 1 ; Al2D_e = 1 ; B_s = 1 ; B_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;    
-    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
-    EAl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // EAh = MEM_read(0, EAl) ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-    EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // B = MEM_readhl(0, EAl) ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            indx(s << 4 | c) ;
+        }
+    }
 }
 
 static void indy() { // (indirect),Y, 11 cycles
