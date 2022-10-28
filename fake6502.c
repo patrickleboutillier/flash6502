@@ -16,9 +16,11 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 output<1> Ah2D_e("0"), Al2D_e("1") ;
 
-reg<8> EAh, EAl, PCh, PCl, SPh, SP ;
+reg<8> EAh, EAl, PCh, PCl, SP ;
+tristate<8> SPh ;
+output<8> SPh_v ;
 output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
-    SPh_s, SPh_e("10"), SP_s("11"), SP_e("12") ;
+    SPh_e("10"), SP_s("11"), SP_e("12") ;
 
 RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
@@ -106,9 +108,9 @@ void init6502(){
     PCl_s.connect(PCl.set) ;
     PCl.data_out.connect(ADDRl.data_in) ;
 
+    SPh_v.connect(SPh.data_in) ;
+    SPh_v = 0x01 ;
     SPh_e.connect(SPh.enable) ;
-    SPh_s.connect(SPh.set) ;
-    SPh = 0x01 ;
     SPh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
@@ -195,117 +197,6 @@ uint8_t pull8() {
 
 
 #include "addrmodes.h"
-
-
-/*
-static void fetch() {
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            fetch(s << 4 | c) ;
-        }
-    }
-}
-
-//addressing mode functions, calculates effective addresses
-static void imp() { //implied
-}
-
-static void acc() { //accumulator
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            acc(s << 4 | c) ;
-        }
-    }
-}
-
-static void imm() { //immediate, 1 cycle
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            imm(s << 4 | c) ;
-        }
-    }
-}
-
-static void zp() { //zero-page, 3 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            zp(s << 4 | c) ;
-        }
-    }
-}
-
-static void zpx() { //zero-page,X, 5 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            zpx(s << 4 | c) ;
-        }
-    }
-}
-
-static void zpy() { //zero-page,Y, 5 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            zpy(s << 4 | c) ;
-        }
-    }
-}
-
-static void rel() { //relative for branch ops (8-bit immediate value, sign-extended), 7 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            rel(s << 4 | c) ;
-        }
-    } 
-}
-
-static void abso() { //absolute, 3 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            abso(s << 4 | c) ;
-        }
-    } 
-}
-
-static void absx() { //absolute,X, 7 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            absx(s << 4 | c) ;
-        }
-    } 
-}
-
-static void absy() { //absolute,Y, 7 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            absy(s << 4 | c) ;
-        }
-    } 
-}
-
-static void ind() { //indirect, 8 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            ind(s << 4 | c) ;
-        }
-    }
-}
-
-static void indx() { // (indirect,X), 10 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            indx(s << 4 | c) ;
-        }
-    }
-}
-
-static void indy() { // (indirect),Y, 11 cycles
-    for (int s = 0 ; s < 16 ; s++){
-        for (int c = 0 ; c < 4 ; c++){
-            indy(s << 4 | c) ;
-        }
-    }
-}
-*/
 
 
 //instruction handler functions
