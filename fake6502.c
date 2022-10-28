@@ -197,117 +197,63 @@ uint8_t pull8() {
 
 
 #include "addrmodes.h"
+#include "ops.h"
+
+
+#define tick(op)     for (int s = 0 ; s < 16 ; s++){ for (int c = 0 ; c < 4 ; c++){ if (! op(s << 4 | c)){ return ; } ; } }
 
 
 //instruction handler functions
 static void adc() { // 2 cycles
-    STATUS_alu_c_from_C = 1 ; ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
-            STATUS_alu_c_from_C = 0 ; ACC_e = 0 ; // A = ACC 
-    ALU_op = ALU_ADC ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setC() ; setV() ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ; 
+    tick(adc) ;
 }
 
 static void and_() { // 3 cycles
-    ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_AND ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ADD ; 
+    tick(and_) ;
 }
 
 static void asl() { // 2 cycles
-    ACC_e = 1 ; A_s = 1 ; B_s = 1 ; A_s = 0 ; B_s = 0 ; ACC_e = 0 ; // A = ACC ; B = ACC ;
-    if ((INST & 0xF) == 0xA){
-        ALU_op = ALU_ADD ; ALU_e = 1 ; 
-            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; // ACC = ALU ;
-    }
-    else {
-        ALU_op = ALU_ADD ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ;
-                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // RAM[EA] = ALU
-    }
+    tick(asl) ;
 }
 
 static void bcc(){ // 2 cycle
-    if (! STATUS.C){
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bcc) ;
 }
 
 static void bcs() { // 2 cycle
-    if (STATUS.C){
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bcs) ;
 }
 
 static void beq(){ // 2 cycle
-    if (STATUS.Z){
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(beq) ;
 }
 
 static void bit() { // 2 cycles
-    ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_BIT ; 
-        setV() ; setNZ() ;
+    tick(bit) ;
 }
 
 static void bmi() { // 2 cycle
-    if (STATUS.N){
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bmi) ;
 }
 
 static void bne(){ // 2 cycle
-    if (! STATUS.Z) {
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bne) ;
 }
 
 static void bpl() { // 2 cycle
-    if (! STATUS.N) {
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bpl) ;
 }
 
 static void brk() {
-    /*
-    incPC();
-    push8(PCh) ;
-    push8(PCl) ;
-    STATUS_b_in = 1 ;  STATUS_data_enable = 1 ;
-    push8(STATUS.data_out) ; //push CPU status to stack
-    STATUS_data_enable = 0 ; STATUS_b_in = 0 ;
-    setI(1) ;
-    PCl = MEM_read(0xFFFE) ;
-    PCh = MEM_read(0xFFFF) ;
-    */
+    tick(brk) ;
 }
 
 static void bvc() { // 2 cycle
-    if (! STATUS.V) {
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bvc) ;
 }
 
 static void bvs() { // 2 cycle
-    if (STATUS.V) {
-        EAh_e = 1 ; Ah2D_e = 1 ; PCh_s = 1 ; PCh_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ;
-        EAl_e = 1 ; Al2D_e = 1 ; PCl_s = 1 ; PCl_s = 0 ; Al2D_e = 0 ; EAl_e = 0 ;
-    }
+    tick(bvs) ;
 }
 
 static void clc() { // 2 cycle

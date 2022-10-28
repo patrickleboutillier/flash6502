@@ -1,5 +1,5 @@
+- Pass all ops to ticks
+
 - Reintroduce incSP()?
 
-- decompose all instruction through control signals
-
-- introduce steps and clock phases into functions
+- make counter<W>
