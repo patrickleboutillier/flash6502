@@ -193,11 +193,16 @@ uint8_t pull8() {
 }
 */
 
-static void fetch() { // 1 cycle
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
-        INST_s = 1 ; INST_s = 0 ; 
-            RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; 
-                incPC() ; // INST = MEM_readhl(PCh, PCl) ; incPC() ;
+
+#include "addrmodes.h"
+
+
+static void fetch() {
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            fetch(s << 4 | c) ;
+        }
+    }
 }
 
 //addressing mode functions, calculates effective addresses
@@ -205,27 +210,63 @@ static void imp() { //implied
 }
 
 static void acc() { //accumulator
-    ACC_e = 1 ;
-        B_s = 1 ; B_s = 0 ;
-            ACC_e = 0 ;
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            acc(s << 4 | c) ;
+        }
+    }
 }
 
 static void imm() { //immediate, 1 cycle
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            imm(s << 4 | c) ;
+        }
+    }
 }
 
 static void zp() { //zero-page, 3 cycles
-    EAh_s = 1 ; EAh_s = 0 ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // EAl = MEM_readhl(PCh, PCl) ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
+    //
+    EAh_s = 1 ; 
+    EAh_s = 0 ;
+    //
+
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
+    EAl_s = 1 ; 
+    EAl_s = 0 ; 
+    RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // EAl = MEM_readhl(PCh, PCl) ;
+
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; 
+    B_s = 1 ; 
+    B_s = 0 ; 
+    RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void zpx() { //zero-page,X, 5 cycles
-    EAh_s = 1 ; EAh_s = 0 ;
-    X_e = 1 ; A_s = 1 ; A_s = 0 ; X_e = 0 ; // A = X ;
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ALU ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
+    //
+    EAh_s = 1 ; 
+    EAh_s = 0 ;
+    //
+
+    X_e = 1 ; 
+    A_s = 1 ; 
+    A_s = 0 ; 
+    X_e = 0 ; // A = X ;
+    
+    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; 
+    B_s = 1 ; 
+    B_s = 0 ; 
+    RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; // B = MEM_readhl(PCh, PCl) ;
+    
+    ALU_op = ALU_ADD ; ALU_e = 1 ; 
+    EAl_s = 1 ; 
+    EAl_s = 0 ; 
+    ALU_e = 0 ; // EAl = ALU ;
+    
+    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; 
+    B_s = 1 ; 
+    B_s = 0 ; 
+    RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; // B = MEM_readhl(EAh, EAl) 
 }
 
 static void zpy() { //zero-page,Y, 5 cycles
