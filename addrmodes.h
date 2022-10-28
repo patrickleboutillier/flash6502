@@ -10,6 +10,14 @@ uint8_t fetch(uint8_t tick) { // 1 cycle
 }
 
 
+uint8_t imp(uint8_t tick) { //implied
+    switch (tick){
+        default:    return 0 ;
+    }
+    return 1 ;
+}
+
+
 uint8_t acc(uint8_t tick) { // 1 cycle
     switch (tick){
         case 0x00:  ACC_e = 1 ; break ;

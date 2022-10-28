@@ -197,6 +197,7 @@ uint8_t pull8() {
 #include "addrmodes.h"
 
 
+/*
 static void fetch() {
     for (int s = 0 ; s < 16 ; s++){
         for (int c = 0 ; c < 4 ; c++){
@@ -304,6 +305,7 @@ static void indy() { // (indirect),Y, 11 cycles
         }
     }
 }
+*/
 
 
 //instruction handler functions
@@ -830,7 +832,7 @@ static void tya() {
 #define rra nop
 
 
-static void (*addrtable[256])() = {
+static uint8_t (*addrtable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
 /* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
 /* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
@@ -895,6 +897,36 @@ void irq6502() {
 }
 */
 
+
+void do_inst(){
+    uint8_t addr_start = 0, op_start = 0 ;
+    bool fetch_done = false, addr_done = false, op_done = false ;
+    for (int step = 0 ; step < 16 ; step++){
+        for (int phase = 0 ; phase < 4 ; phase++){
+            uint8_t tick = step << 4 | phase ;
+            if (! fetch_done){
+                if (fetch(tick)){
+                    continue ;
+                }    
+                fetch_done = true ;
+                addr_start = step << 4 ;
+            }
+            if (! addr_done){
+                if ((*addrtable[INST])(tick - addr_start)){
+                    continue ;
+                }
+                addr_done = true ;
+                op_start = step << 4 ;
+            }
+            if (! op_done){
+                (*optable[INST])() ;
+                return ;
+            }
+        }
+    }
+}
+
+
 int main(int argc, char *argv[]){
     if (argc < 2){
         printf("Usage: %s SUCCESS_ADDR_IN_HEX\n", argv[0]) ;
@@ -924,9 +956,7 @@ int main(int argc, char *argv[]){
             printf("SUCCESS!\n") ;
             exit(0) ;
         }
-        
-        fetch() ;
-        (*addrtable[INST])();
-        (*optable[INST])();
+
+        do_inst() ;
     }
 }
