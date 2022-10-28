@@ -298,17 +298,11 @@ static void indx() { // (indirect,X), 10 cycles
 }
 
 static void indy() { // (indirect),Y, 11 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
-    EAl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // EAh = MEM_read(0, EAl) ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-    EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // B = MEM_readhl(0, EAl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ADD ;
-    A_s = 1 ; A_s = 0 ; // A = 0 ;
-    EAh_e = 1 ; Ah2D_e = 1 ; B_s = 1 ; B_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ; 
-    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ADD ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+    for (int s = 0 ; s < 16 ; s++){
+        for (int c = 0 ; c < 4 ; c++){
+            indy(s << 4 | c) ;
+        }
+    }
 }
 
 

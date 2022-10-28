@@ -381,24 +381,64 @@ uint8_t indx(uint8_t tick) { // 10 cycles
 }
 
 
-#if 0
-static void indy() { // (indirect),Y, 11 cycles
-    PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; // B = MEM_readhl(PCh, PCl) ;
-    Y_e = 1 ; A_s = 1 ; A_s = 0 ; Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ;
-    EAl_e = 1 ; RAM_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // EAh = MEM_read(0, EAl) ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; EAl_s = 1 ; EAl_s = 0 ; ALU_e = 0 ; 
-    EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; // B = MEM_readhl(0, EAl) ;
-    ALU_op = ALU_ADD ; ALU_e = 1 ; EAl_s = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; EAl_s = 0 ; ALU_e = 0 ; // EAl = ADD ;
-    A_s = 1 ; A_s = 0 ; // A = 0 ;
-    EAh_e = 1 ; Ah2D_e = 1 ; B_s = 1 ; B_s = 0 ; Ah2D_e = 0 ; EAh_e = 0 ; 
-    ALU_op = ALU_ADC ; ALU_e = 1 ; EAh_s = 1 ; EAh_s = 0 ; ALU_e = 0 ; // EAh = ADD ;
-    EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; B_s = 1 ; B_s = 0 ; RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // B = MEM_readhl(EAh, EAl) 
+uint8_t indy(uint8_t tick) { // 10 cycles
+    switch(tick) {
+        case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
+        case 0x01:  B_s = 1 ; break ;
+        case 0x02:  B_s = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        
+        case 0x10:  Y_e = 1 ; break ;
+        case 0x11:  A_s = 1 ; break ;
+        case 0x12:  A_s = 0 ; break ;
+        case 0x13:  Y_e = 0 ; break ;
+
+        case 0x20:  ALU_op = ALU_INC ; ALU_e = 1 ; break ;
+        case 0x21:  EAl_s = 1 ; break ;
+        case 0x22:  EAl_s = 0 ; break ;
+        case 0x23:  ALU_e = 0 ; break ;
+
+        case 0x30:  EAl_e = 1 ; RAM_e = 1 ; break ;
+        case 0x31:  EAh_s = 1 ; break ;
+        case 0x32:  EAh_s = 0 ; break ;
+        case 0x33:  RAM_e = 0 ; EAl_e = 0 ; break ;
+
+        case 0x40:  ALU_op = ALU_PASS ; ALU_e = 1 ; break ;
+        case 0x41:  EAl_s = 1 ; break ;
+        case 0x42:  EAl_s = 0 ; break ;
+        case 0x43:  ALU_e = 0 ; break ; 
+        
+        case 0x50:  EAl_e = 1 ; RAM_e = 1 ; break ;
+        case 0x51:  B_s = 1 ; break ;
+        case 0x52:  B_s = 0 ; break ;
+        case 0x53:  RAM_e = 0 ; EAl_e = 0 ; break ;
+        
+        case 0x60:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
+        case 0x61:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x62:  STATUS_alu_c_set = 0 ; EAl_s = 0 ; break ;
+        case 0x63:  ALU_e = 0 ; break ;
+        
+        case 0x70:  break ;
+        case 0x71:  A_s = 1 ; break ;
+        case 0x72:  A_s = 0 ; break ;
+        case 0x73:  break ;
+        
+        case 0x80:  EAh_e = 1 ; Ah2D_e = 1 ; break ;
+        case 0x81:  B_s = 1 ; break ;
+        case 0x82:  B_s = 0 ; break ;
+        case 0x83:  Ah2D_e = 0 ; EAh_e = 0 ; break ;
+
+        case 0x90:  ALU_op = ALU_ADC ; ALU_e = 1 ; break ;
+        case 0x91:  EAh_s = 1 ; break ;
+        case 0x92:  EAh_s = 0 ; break ;
+        case 0x93:  ALU_e = 0 ; break ;
+
+        case 0xA0:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ;
+        case 0xA1:  B_s = 1 ; break ;
+        case 0xA2:  B_s = 0 ; break ;
+        case 0xA3:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; break ;
 
         default:    return 0 ;
     } 
     return 1 ;
 }
-
-
-#endif
