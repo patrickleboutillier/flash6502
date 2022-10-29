@@ -1,5 +1,3 @@
-- Pass all ops to ticks
+- make counter<W>
 
 - Reintroduce incSP()?
-
-- make counter<W>

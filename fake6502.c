@@ -6,6 +6,7 @@
 #include "reg.h"
 #include "bus.h"
 #include "tristate.h"
+#include "counter.h"
 
 #include "RAM.h"
 #include "ALU.h"
@@ -16,16 +17,19 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 output<1> Ah2D_e("0"), Al2D_e("1") ;
 
-reg<8> EAh, EAl, PCh, PCl, SP ;
-tristate<8> SPh ;
+reg<8> EAh, EAl, PCh, PCl, SPreg ;
+counter<8> SP ;
+tristate<8> SPh, SPl ;
 output<8> SPh_v ;
 output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
     SPh_e("10"), SP_s("11"), SP_e("12") ;
+output<1> SP_dec("37"), SP_inc, PC_inc("38") ;
 
 RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
 
 
+/*
 uint8_t MEM_read(uint16_t address){
     return RAM._mem[address >> 8][address & 0xFF] ;
 }
@@ -33,7 +37,7 @@ uint8_t MEM_read(uint16_t address){
 uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
     return MEM_read(addrh << 8 | addrl) ;
 }
-
+*/
 
 void incPC(){
     uint16_t pc = PCh << 8 | PCl ;
@@ -43,11 +47,13 @@ void incPC(){
 }
 
 void incSP(){
-    SP = SP + 1 ;
+    SPreg = SPreg + 1 ;
+    SP_inc = 1 ;
 }
 
 void decSP(){
-    SP = SP - 1 ;
+    SPreg = SPreg - 1 ;
+    SP_dec = 1 ;
 }
 
 
@@ -70,7 +76,8 @@ output<1> STATUS_data_enable("34"), STATUS_src_data("35") ;
 
 reg<8> INST ;
 output<1> INST_s("36"), INST_e ;
-// PC++, SP--
+
+
 
 
 void init6502(){
@@ -113,10 +120,18 @@ void init6502(){
     SPh_e.connect(SPh.enable) ;
     SPh.data_out.connect(ADDRh.data_in) ;
 
+    DATA.data_out.connect(SPreg.data_in) ;
+    SP_e.connect(SPreg.enable) ;
+    SP_s.connect(SPreg.set) ;
+    SPreg.data_out.connect(ADDRl.data_in) ;
+
     DATA.data_out.connect(SP.data_in) ;
-    SP_e.connect(SP.enable) ;
     SP_s.connect(SP.set) ;
-    SP.data_out.connect(ADDRl.data_in) ;
+    SP_inc.connect(SP.inc) ;
+    SP_dec.connect(SP.dec) ;
+    SP.data_out.connect(SPl.data_in) ;
+    SP_e.connect(SPl.enable) ;
+    // SPl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
@@ -172,262 +187,9 @@ void init6502(){
     INST_e = 1 ;
 }
 
-void setV(){
-    STATUS_v_set = 1 ; STATUS_v_set = 0 ; 
-}
-
-void setC(){
-    STATUS_c_set = 1 ; STATUS_c_set = 0 ; 
-}
-
-void setalucfromC(){
-    STATUS_alu_c_from_C = 1 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; STATUS_alu_c_from_C = 0 ;  
-}
-
-void setNZ(){
-    STATUS_nz_set = 1 ; STATUS_nz_set = 0 ;  
-}
-
-/*
-uint8_t pull8() {
-    SP = SP + 1 ;
-    return RAM._mem[SPh][SP] ;
-}
-*/
-
 
 #include "addrmodes.h"
 #include "ops.h"
-
-
-#define tick(op)     for (int s = 0 ; s < 16 ; s++){ for (int c = 0 ; c < 4 ; c++){ if (! op(s << 4 | c)){ return ; } ; } }
-
-
-//instruction handler functions
-static void adc() { // 2 cycles
-    tick(adc) ;
-}
-
-static void and_() { // 3 cycles
-    tick(and_) ;
-}
-
-static void asl() { // 2 cycles
-    tick(asl) ;
-}
-
-static void bcc(){ // 2 cycle
-    tick(bcc) ;
-}
-
-static void bcs() { // 2 cycle
-    tick(bcs) ;
-}
-
-static void beq(){ // 2 cycle
-    tick(beq) ;
-}
-
-static void bit() { // 2 cycles
-    tick(bit) ;
-}
-
-static void bmi() { // 2 cycle
-    tick(bmi) ;
-}
-
-static void bne(){ // 2 cycle
-    tick(bne) ;
-}
-
-static void bpl() { // 2 cycle
-    tick(bpl) ;
-}
-
-static void brk() {
-    tick(brk) ;
-}
-
-static void bvc() { // 2 cycle
-    tick(bvc) ;
-}
-
-static void bvs() { // 2 cycle
-    tick(bvs) ;
-}
-
-static void clc() { // 2 cycle
-    tick(clc) ;
-}
-
-static void cld() {
-    tick(cld) ;
-}
-
-static void cli() { // 1 cycle
-    tick(cli) ;
-}
-
-static void clv() { // 2 cycle
-    tick(clv) ;
-}
-
-static void cmp() { // 2 cycles
-    tick(cmp) ;
-}
-
-static void cpx() { // 2 cycles
-    tick(cpx) ;
-}
-
-static void cpy() { // 2 cycles
-    tick(cpy) ;
-}
-
-static void dec() { // 1 cycles
-    tick(dec) ;
-}
-
-static void dex() { // 2 cycles
-    tick(dex) ;
-}
-
-static void dey() { // 2 cycles
-    tick(dey) ;
-}
-
-static void eor() {
-    tick(eor) ;
-}
-
-static void inc() {
-    tick(inc) ;
-}
-
-static void inx() {
-    tick(inx) ;
-}
-
-static void iny() {
-    tick(iny) ;
-}
-
-static void jmp() {
-    tick(jmp) ;
-}
-
-static void jsr() { // 9 cycles
-    tick(jsr) ;
-}
-
-static void lda() {
-    tick(lda) ; 
-}
-
-static void ldx() {
-    tick(ldx) ; 
-}
-
-static void ldy() {
-    tick(ldy) ;
-}
-
-static void lsr() {
-    tick(lsr) ;
-}
-
-static void nop() {
-    tick(nop) ;
-}
-
-static void ora() {
-    tick(ora) ;
-}
-
-static void pha() {
-    tick(pha) ;
-}
-
-static void php() {
-    tick(php) ;
-}
-
-static void pla() { // 4 cycles
-    tick(pla) ;
-}
-
-static void plp() {
-    tick(plp) ;
-}
-
-static void rol() {
-    tick(rol) ;
-}
-
-static void ror() {
-    tick(ror) ;
-}
-
-
-static void rti() {
-    tick(rti) ;
-}
-
-static void rts() {
-    tick(rts) ;
-}
-
-static void sbc() {
-    tick(sbc) ;
-}
-
-static void sec() {
-    tick(sec) ;
-}
-
-static void sed() {
-    tick(sed) ;
-}
-
-static void sei() {
-    tick(sei) ;
-}
-
-static void sta() {
-    tick(sta) ;
-}
-
-static void stx() {
-    tick(stx) ;
-}
-
-static void sty() {
-    tick(sty) ;
-}
-
-static void tax() {
-    tick(tax) ;
-}
-
-static void tay() {
-    tick(tay) ;
-}
-
-static void tsx() {
-    tick(tsx) ;
-}
-
-static void txa() {
-    tick(txa) ;
-}
-
-static void txs() {
-    tick(txs) ;
-}
-
-static void tya() {
-    tick(tya) ;
-}
 
 
 //undocumented instructions
@@ -461,7 +223,7 @@ static uint8_t (*addrtable[256])(uint8_t tick) = {
 /* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
 };
 
-static void (*optable[256])() = {
+static uint8_t (*optable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
 /* 0 */      brk,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
 /* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
@@ -482,41 +244,21 @@ static void (*optable[256])() = {
 };
 
 
-/*
-void nmi6502() {
-    push8(PCh) ;
-    push8(PCl) ;
-    STATUS_data_enable = 1 ;
-    push8(STATUS.data_out) ;
-    STATUS_data_enable = 0 ;
-    setI(1) ; 
-    PCl = MEM_read(0xFFFA) ;
-    PCh = MEM_read(0xFFFB) ;
-}
-
-void irq6502() {
-    push8(PCh) ;
-    push8(PCl) ;
-    STATUS_data_enable = 1 ;
-    push8(STATUS.data_out) ;
-    STATUS_data_enable = 0 ;
-    setI(1) ;
-    PCl = MEM_read(0xFFFE) ;
-    PCh = MEM_read(0xFFFF) ;
-}
-*/
-
-
 void do_inst(){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
     for (int step = 0 ; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
+            // TODO: lower counter signals before each phase. This will happen automatically
+            // as the new control word is loaded.
+            SP_dec = 0 ;
+            PC_inc = 0 ; 
+
             uint8_t tick = step << 4 | phase ;
             if (! fetch_done){
                 if (fetch(tick)){
                     continue ;
-                }    
+                } 
                 fetch_done = true ;
                 addr_start = step << 4 ;
             }
@@ -528,7 +270,10 @@ void do_inst(){
                 op_start = step << 4 ;
             }
             if (! op_done){
-                (*optable[INST])() ;
+                //(*optable[INST])() ;
+                if ((*optable[INST])(tick - op_start)){
+                    continue ;
+                }
                 return ;
             }
         }
@@ -558,7 +303,7 @@ int main(int argc, char *argv[]){
     // PCh = MEM_read(0xFFFD) ;
     PCh = 0x00 ;
     PCl = 0x00 ;
-    SP = 0x00 ;
+    SPreg = 0x00 ;
 
     while (1) {
         if ((PCh << 8 | PCl) == SUCCESS_ADDR){
