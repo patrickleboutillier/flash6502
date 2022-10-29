@@ -2,8 +2,8 @@ uint8_t fetch(uint8_t tick) { // 1 cycle
     switch (tick){
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  INST_s = 1 ; break ;
-        case 0x02:  INST_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x02:  INST_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         default:    return 0 ;
     }
     return 1 ;
@@ -34,8 +34,8 @@ uint8_t imm(uint8_t tick) { // 1 cycle
     switch (tick){
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  B_s = 1 ; break ;
-        case 0x02:  B_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ;  break ;
+        case 0x02:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ;  break ;
         default:    return 0 ;
     }
     return 1 ;
@@ -56,8 +56,8 @@ uint8_t zp(uint8_t tick) { // 3 cycles
 
         case 0x20:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ;
         case 0x21:  B_s = 1 ; break ;
-        case 0x22:  B_s = 0 ; break ;
-        case 0x23:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; break ;
+        case 0x22:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x23:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; PC_up = 1 ; break ;
 
         default:    return 0 ;
     } 

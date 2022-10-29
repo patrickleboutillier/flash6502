@@ -40,16 +40,6 @@ void incPC(){
     //printf("PCreg:%u, PCcnt:%u\n", PChreg << 8 | PClreg, PCh << 8 | PCl) ;
 }
 
-/*
-void incSP(){
-    SP_up = 0 ;
-}
-
-void decSP(){
-    SP_down = 0 ;
-}
-*/
-
 
 reg<8> ACC ;
 output<1> ACC_s("15"), ACC_e("16") ;
@@ -100,12 +90,12 @@ void init6502(){
     DATA.data_out.connect(PChreg.data_in) ;
     PCh_e.connect(PChreg.enable) ;
     PCh_s.connect(PChreg.set) ;
-    PChreg.data_out.connect(ADDRh.data_in) ;
+    //PChreg.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(PClreg.data_in) ;    
     PCl_e.connect(PClreg.enable) ;
     PCl_s.connect(PClreg.set) ;
-    PClreg.data_out.connect(ADDRl.data_in) ;
+    //PClreg.data_out.connect(ADDRl.data_in) ;
 
     PC_up = 1 ;
     PC_down = 1 ;
@@ -115,7 +105,7 @@ void init6502(){
     PC_down.connect(PCl.down) ;
     PCl.data_out.connect(PClt.data_in) ;
     PCl_e.connect(PClt.enable) ;
-    //PClt.data_out.connect(ADDRl.data_in) ;
+    PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
     PCh_s.connect(PCh.load) ;
@@ -123,12 +113,7 @@ void init6502(){
     PCl.bo.connect(PCh.down) ;
     PCh.data_out.connect(PCht.data_in) ;
     PCh_e.connect(PCht.enable) ;
-    //PCht.data_out.connect(ADDRh.data_in) ;
-
-    SPh_v.connect(SPht.data_in) ;
-    SPh_v = 0x01 ;
-    SPh_e.connect(SPht.enable) ;
-    SPht.data_out.connect(ADDRh.data_in) ;
+    PCht.data_out.connect(ADDRh.data_in) ;
 
     SP_up = 1 ;
     SP_down = 1 ;
@@ -139,6 +124,11 @@ void init6502(){
     SP.data_out.connect(SPlt.data_in) ;
     SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
+    
+    SPh_v.connect(SPht.data_in) ;
+    SPh_v = 0x01 ;
+    SPh_e.connect(SPht.enable) ;
+    SPht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
