@@ -17,7 +17,7 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 output<1> Ah2D_e("0"), Al2D_e("1") ;
 
-reg<8> EAh, EAl, PCh, PCl, SPreg ;
+reg<8> EAh, EAl, PCh, PCl ;
 counter<8> SP ;
 tristate<8> SPh, SPl ;
 output<8> SPh_v ;
@@ -37,12 +37,10 @@ void incPC(){
 }
 
 void incSP(){
-    SPreg = SPreg + 1 ;
     SP_inc = 1 ;
 }
 
 void decSP(){
-    SPreg = SPreg - 1 ;
     SP_dec = 1 ;
 }
 
@@ -109,11 +107,6 @@ void init6502(){
     SPh_v = 0x01 ;
     SPh_e.connect(SPh.enable) ;
     SPh.data_out.connect(ADDRh.data_in) ;
-
-    DATA.data_out.connect(SPreg.data_in) ;
-    SP_e.connect(SPreg.enable) ;
-    SP_s.connect(SPreg.set) ;
-    // SPreg.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
     SP_s.connect(SP.set) ;
@@ -289,11 +282,9 @@ int main(int argc, char *argv[]){
     fclose(file) ;
 
     init6502() ;
-    // PCl = MEM_read(0xFFFC) ;
-    // PCh = MEM_read(0xFFFD) ;
     PCh = 0x00 ;
     PCl = 0x00 ;
-    SPreg = 0x00 ;
+    // SPreg = 0x00 ;
 
     while (1) {
         if ((PCh << 8 | PCl) == SUCCESS_ADDR){
