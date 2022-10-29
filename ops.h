@@ -512,88 +512,99 @@ uint8_t jmp(uint8_t tick) {
 }
 
 
-#if 0
 uint8_t jsr(uint8_t tick) {
     switch (tick) { 
         case 0x00:  PCh_e = 1 ; Ah2D_e = 1 ; break ;
-        case 0x00:  A_s = 1 ; break ;
-        case 0x00:  A_s = 0 ; break ;
-        case 0x00:  Ah2D_e = 0 ; PCh_e = 0 ; break ;
+        case 0x01:  A_s = 1 ; break ;
+        case 0x02:  A_s = 0 ; break ;
+        case 0x03:  Ah2D_e = 0 ; PCh_e = 0 ; break ;
         
-        case 0x00:  PCl_e = 1 ; Al2D_e = 1 ; break ;
-        case 0x00:  B_s = 1 ; break ;
-        case 0x00:  B_s = 0 ; break ;
-        case 0x00:  Al2D_e = 0 ; PCl_e = 0 ; break ;
+        case 0x10:  PCl_e = 1 ; Al2D_e = 1 ; break ;
+        case 0x11:  B_s = 1 ; break ;
+        case 0x12:  B_s = 0 ; break ;
+        case 0x13:  Al2D_e = 0 ; PCl_e = 0 ; break ;
         
-        case 0x00:  ALU_op = ALU_DEC ; ALU_e = 1 ; break ;
-        case 0x00:  PCl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
-        case 0x00:  STATUS_alu_c_set = 0 ; PCl_s = 0 ; break ;
-        case 0x00:  ALU_e = 0 ; break ;
+        case 0x20:  ALU_op = ALU_DEC ; ALU_e = 1 ; break ;
+        case 0x21:  PCl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x22:  STATUS_alu_c_set = 0 ; PCl_s = 0 ; break ;
+        case 0x23:  ALU_e = 0 ; break ;
         
-        case 0x00:  B_s = 1 ; B_s = 0 ; break ;
+        case 0x30:  break ;
+        case 0x31:  B_s = 1 ; break ; 
+        case 0x32:  B_s = 0 ; break ;
+        case 0x33:  break ;  
+
+        case 0x40:  ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
+        case 0x41:  RAM_s = 1 ; break ;
+        case 0x42:  RAM_s = 0 ; break ;
+        case 0x43:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
         
-        case 0x00:  ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
-        case 0x00:  RAM_s = 1 ; break ;
-        case 0x00:  RAM_s = 0 ; break ;
-        case 0x00:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
+        case 0x50:  PCl_e = 1 ; Al2D_e = 1 ; break ;
+        case 0x51:  B_s = 1 ; break ;
+        case 0x52:  B_s = 0 ; break ;
+        case 0x53:  Al2D_e = 0 ; PCl_e = 0 ; break ;
         
-        case 0x00:  PCl_e = 1 ; Al2D_e = 1 ; break ;
-        case 0x00:  B_s = 1 ; break ;
-        case 0x00:  B_s = 0 ; break ;
-        case 0x00:  Al2D_e = 0 ; PCl_e = 0 ; break ;
+        case 0x60:  ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
+        case 0x61:  RAM_s = 1 ; break ;
+        case 0x62:  RAM_s = 0 ; break ;
+        case 0x63:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
         
-        case 0x00:  ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
-        case 0x00:  RAM_s = 1 ; break ;
-        case 0x00:  RAM_s = 0 ; break ;
-        case 0x00:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
+        case 0x70:  EAh_e = 1 ; Ah2D_e = 1 ; break ;
+        case 0x71:  PCh_s = 1 ; break ;
+        case 0x72:  PCh_s = 0 ; break ;
+        case 0x73:  Ah2D_e = 0 ; EAh_e = 0 ; break ;
         
-        case 0x00:  EAh_e = 1 ; Ah2D_e = 1 ; break ;
-        case 0x00:  PCh_s = 1 ; break ;
-        case 0x00:  PCh_s = 0 ; break ;
-        case 0x00:  Ah2D_e = 0 ; EAh_e = 0 ; break ;
+        case 0x80:  EAl_e = 1 ; Al2D_e = 1 ; break ;
+        case 0x81:  PCl_s = 1 ; break ;
+        case 0x82:  PCl_s = 0 ; break ;
+        case 0x83:  Al2D_e = 0 ; EAl_e = 0 ; break ;
         
-        case 0x00:  EAl_e = 1 ; Al2D_e = 1 ; break ;
-        case 0x00:  PCl_s = 1 ; break ;
-        case 0x00:  PCl_s = 0 ; break ;
-        case 0x00:  Al2D_e = 0 ; EAl_e = 0 ; break ;
         default:    return 0 ;
     }
     return 1 ;
 }
+
 
 uint8_t lda(uint8_t tick) {
     switch (tick) {
         case 0x00:  ALU_op = ALU_PASS ; ALU_e = 1 ; break ;
-        case 0x00:  ACC_s = 1 ; STATUS_nz_set = 1 ; break ;
-                    ACC_s = 0 ; STATUS_nz_set = 0 ; break ;
-        case 0x00:  ALU_e = 0 ; break ;
+        case 0x01:  ACC_s = 1 ; STATUS_nz_set = 1 ; break ;
+        case 0x02:  ACC_s = 0 ; STATUS_nz_set = 0 ; break ;
+        case 0x03:  ALU_e = 0 ; break ;
+
         default:    return 0 ;
     }
     return 1 ;
 }
+
 
 uint8_t ldx(uint8_t tick) {
     switch (tick) {
         case 0x00:  ALU_op = ALU_PASS ; ALU_e = 1 ; break ;
-        case 0x00:  X_s = 1 ; STATUS_nz_set = 1 ; break ;
-                    X_s = 0 ; STATUS_nz_set = 0 ; break ;
-        case 0x00:  ALU_e = 0 ; break ;
+        case 0x01:  X_s = 1 ; STATUS_nz_set = 1 ; break ;
+        case 0x02:  X_s = 0 ; STATUS_nz_set = 0 ; break ;
+        case 0x03:  ALU_e = 0 ; break ;
+
         default:    return 0 ;
     }
     return 1 ;
 }
+
 
 uint8_t ldy(uint8_t tick) {
     switch (tick) {
         case 0x00:  ALU_op = ALU_PASS ; ALU_e = 1 ; break ;
-        case 0x00:  Y_s = 1 ; STATUS_nz_set = 1 ; break ;
-                    Y_s = 0 ; STATUS_nz_set = 0 ; ; break ;
-        case 0x00:  ALU_e = 0 ; break ;
+        case 0x01:  Y_s = 1 ; STATUS_nz_set = 1 ; break ;
+        case 0x02:  Y_s = 0 ; STATUS_nz_set = 0 ; ; break ;
+        case 0x03:  ALU_e = 0 ; break ;
+
         default:    return 0 ;
     }
     return 1 ;
 }
 
+
+#if 0
 uint8_t lsr(uint8_t tick) {
     switch (tick) {
         case 0x00:  if ((INST & 0xF) == 0xA) {
