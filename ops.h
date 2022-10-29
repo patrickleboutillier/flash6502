@@ -871,8 +871,8 @@ uint8_t rts(uint8_t tick) {
         
         case 0x50:  SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; break ;
         case 0x51:  PCh_s = 1 ; break ;
-        case 0x52:  PCh_s = 0 ; break ;
-        case 0x53:  RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; incPC() ; break ;
+        case 0x52:  PCh_s = 0 ; PC_up = 0 ; break ;
+        case 0x53:  RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; PC_up = 1 ; break ;
         
         default:    return 0 ;
     }
