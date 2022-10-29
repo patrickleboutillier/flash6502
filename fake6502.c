@@ -29,16 +29,6 @@ RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
 
 
-/*
-uint8_t MEM_read(uint16_t address){
-    return RAM._mem[address >> 8][address & 0xFF] ;
-}
-
-uint8_t MEM_readhl(uint8_t addrh, uint8_t addrl){
-    return MEM_read(addrh << 8 | addrl) ;
-}
-*/
-
 void incPC(){
     uint16_t pc = PCh << 8 | PCl ;
     pc++ ;
@@ -123,7 +113,7 @@ void init6502(){
     DATA.data_out.connect(SPreg.data_in) ;
     SP_e.connect(SPreg.enable) ;
     SP_s.connect(SPreg.set) ;
-    SPreg.data_out.connect(ADDRl.data_in) ;
+    // SPreg.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
     SP_s.connect(SP.set) ;
@@ -131,7 +121,7 @@ void init6502(){
     SP_dec.connect(SP.dec) ;
     SP.data_out.connect(SPl.data_in) ;
     SP_e.connect(SPl.enable) ;
-    // SPl.data_out.connect(ADDRl.data_in) ;
+    SPl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
