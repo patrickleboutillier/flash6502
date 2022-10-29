@@ -333,19 +333,11 @@ static void ldy() {
 }
 
 static void lsr() {
-    if ((INST & 0xF) == 0xA) {
-        ALU_op = ALU_LSR ; ALU_e = 1 ; 
-            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; // ACC = ALU ;
-    }
-    else {
-        ALU_op = ALU_LSR ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
-    }
+    tick(lsr) ;
 }
 
 static void nop() {
+    tick(nop) ;
 }
 
 static void ora() {
