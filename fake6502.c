@@ -273,27 +273,15 @@ static void clv() { // 2 cycle
 }
 
 static void cmp() { // 2 cycles
-    ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_CMP ; 
-        setC() ; setNZ() ; // don't save results
+    tick(cmp) ;
 }
 
 static void cpx() { // 2 cycles
-    X_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            X_e = 0 ; // A = X ;
-    ALU_op = ALU_CMP ; 
-        setC() ; setNZ() ; // don't save results
+    tick(cpx) ;
 }
 
 static void cpy() { // 2 cycles
-    Y_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            Y_e = 0 ; // A = Y ;
-    ALU_op = ALU_CMP ; 
-        setC() ; setNZ() ; // don't save results
+    tick(cpy) ;
 }
 
 static void dec() { // 1 cycles
