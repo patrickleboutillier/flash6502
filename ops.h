@@ -525,8 +525,8 @@ uint8_t jsr(uint8_t tick) {
 
         case 0x40:  ALU_op = ALU_SBC ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
         case 0x41:  RAM_s = 1 ; break ;
-        case 0x42:  RAM_s = 0 ; break ;
-        case 0x43:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
+        case 0x42:  RAM_s = 0 ; SP_down = 0 ; break ;
+        case 0x43:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; SP_down = 1 ; break ;
         
         case 0x50:  PCl_e = 1 ; Al2D_e = 1 ; break ;
         case 0x51:  B_s = 1 ; break ;
@@ -535,8 +535,8 @@ uint8_t jsr(uint8_t tick) {
         
         case 0x60:  ALU_op = ALU_PASS ; SPh_e = 1 ; SP_e = 1 ; ALU_e = 1 ; break ;
         case 0x61:  RAM_s = 1 ; break ;
-        case 0x62:  RAM_s = 0 ; break ;
-        case 0x63:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
+        case 0x62:  RAM_s = 0 ; SP_down = 0 ; break ;
+        case 0x63:  ALU_e = 0 ; SP_e = 0 ; SPh_e = 0 ; SP_down = 1 ; break ;
         
         case 0x70:  EAh_e = 1 ; Ah2D_e = 1 ; break ;
         case 0x71:  PCh_s = 1 ; break ;
@@ -648,8 +648,8 @@ uint8_t pha(uint8_t tick) {
     switch (tick) {
         case 0x00:  SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; break ;
         case 0x01:  RAM_s = 1 ; break ;
-        case 0x02:  RAM_s = 0 ; break ;
-        case 0x03:  ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; decSP() ; break ;
+        case 0x02:  RAM_s = 0 ; SP_down = 0 ; break ;
+        case 0x03:  ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }
@@ -661,8 +661,8 @@ uint8_t php(uint8_t tick) {
     switch (tick) {
         case 0x00:  STATUS_b_in = 1 ; STATUS_data_enable = 1 ; SPh_e = 1 ; SP_e = 1 ; break ;
         case 0x01:  RAM_s = 1 ; break ;
-        case 0x02:  RAM_s = 0 ; break ;
-        case 0x03:  SP_e = 0 ; SPh_e = 0 ; STATUS_data_enable = 0 ; STATUS_b_in = 0 ; decSP() ; break ;
+        case 0x02:  RAM_s = 0 ; SP_down = 0 ; break ;
+        case 0x03:  SP_e = 0 ; SPh_e = 0 ; STATUS_data_enable = 0 ; STATUS_b_in = 0 ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }

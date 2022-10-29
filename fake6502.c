@@ -23,7 +23,7 @@ tristate<8> SPh, SPl ;
 output<8> SPh_v ;
 output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
     SPh_e("10"), SP_s("11"), SP_e("12") ;
-output<1> SP_dec("37"), SP_inc, PC_inc("38") ;
+output<1> SP_down("37"), SP_up, PC_up("38") ;
 
 RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
@@ -36,13 +36,15 @@ void incPC(){
     PCl = pc & 0xFF ;
 }
 
+/*
 void incSP(){
-    SP_inc = 1 ;
+    SP_up = 0 ;
 }
 
 void decSP(){
-    SP_dec = 1 ;
+    SP_down = 0 ;
 }
+*/
 
 
 reg<8> ACC ;
@@ -64,8 +66,6 @@ output<1> STATUS_data_enable("34"), STATUS_src_data("35") ;
 
 reg<8> INST ;
 output<1> INST_s("36"), INST_e ;
-
-
 
 
 void init6502(){
@@ -108,10 +108,12 @@ void init6502(){
     SPh_e.connect(SPh.enable) ;
     SPh.data_out.connect(ADDRh.data_in) ;
 
+    SP_up = 1 ;
+    SP_down = 1 ;
     DATA.data_out.connect(SP.data_in) ;
-    SP_s.connect(SP.set) ;
-    SP_inc.connect(SP.inc) ;
-    SP_dec.connect(SP.dec) ;
+    SP_s.connect(SP.load) ;
+    SP_up.connect(SP.up) ;
+    SP_down.connect(SP.down) ;
     SP.data_out.connect(SPl.data_in) ;
     SP_e.connect(SPl.enable) ;
     SPl.data_out.connect(ADDRl.data_in) ;
@@ -232,11 +234,6 @@ void do_inst(){
     bool fetch_done = false, addr_done = false, op_done = false ;
     for (int step = 0 ; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            // TODO: lower counter signals before each phase. This will happen automatically
-            // as the new control word is loaded.
-            SP_dec = 0 ;
-            PC_inc = 0 ; 
-
             uint8_t tick = step << 4 | phase ;
             if (! fetch_done){
                 if (fetch(tick)){
@@ -282,8 +279,8 @@ int main(int argc, char *argv[]){
     fclose(file) ;
 
     init6502() ;
-    PCh = 0x00 ;
-    PCl = 0x00 ;
+    // PCh = 0x00 ;
+    // PCl = 0x00 ;
     // SPreg = 0x00 ;
 
     while (1) {
