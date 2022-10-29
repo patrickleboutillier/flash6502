@@ -17,23 +17,27 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 output<1> Ah2D_e("0"), Al2D_e("1") ;
 
-reg<8> EAh, EAl, PCh, PCl ;
-counter<8> SP ;
-tristate<8> SPh, SPl ;
+reg<8> EAh, EAl, PChreg, PClreg ;
+counter<8> SP, PCh, PCl ;
+tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
 output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
     SPh_e("10"), SP_s("11"), SP_e("12") ;
-output<1> SP_down("37"), SP_up, PC_up("38") ;
+output<1> SP_down("37"), SP_up, PC_up("38"), PC_down ;
 
 RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
 
 
 void incPC(){
-    uint16_t pc = PCh << 8 | PCl ;
+    uint16_t pc = PChreg << 8 | PClreg ;
     pc++ ;
-    PCh = pc >> 8 ;
-    PCl = pc & 0xFF ;
+    PChreg = pc >> 8 ;
+    PClreg = pc & 0xFF ;
+
+    PC_up = 0 ; PC_up = 1 ;
+
+    //printf("PCreg:%u, PCcnt:%u\n", PChreg << 8 | PClreg, PCh << 8 | PCl) ;
 }
 
 /*
@@ -93,20 +97,38 @@ void init6502(){
     EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
+    DATA.data_out.connect(PChreg.data_in) ;
+    PCh_e.connect(PChreg.enable) ;
+    PCh_s.connect(PChreg.set) ;
+    PChreg.data_out.connect(ADDRh.data_in) ;
+
+    DATA.data_out.connect(PClreg.data_in) ;    
+    PCl_e.connect(PClreg.enable) ;
+    PCl_s.connect(PClreg.set) ;
+    PClreg.data_out.connect(ADDRl.data_in) ;
+
+    PC_up = 1 ;
+    PC_down = 1 ;
+    DATA.data_out.connect(PCl.data_in) ;
+    PCl_s.connect(PCl.load) ;
+    PC_up.connect(PCl.up) ;
+    PC_down.connect(PCl.down) ;
+    PCl.data_out.connect(PClt.data_in) ;
+    PCl_e.connect(PClt.enable) ;
+    //PClt.data_out.connect(ADDRl.data_in) ;
+
     DATA.data_out.connect(PCh.data_in) ;
-    PCh_e.connect(PCh.enable) ;
-    PCh_s.connect(PCh.set) ;
-    PCh.data_out.connect(ADDRh.data_in) ;
+    PCh_s.connect(PCh.load) ;
+    PCl.co.connect(PCh.up) ;
+    PCl.bo.connect(PCh.down) ;
+    PCh.data_out.connect(PCht.data_in) ;
+    PCh_e.connect(PCht.enable) ;
+    //PCht.data_out.connect(ADDRh.data_in) ;
 
-    DATA.data_out.connect(PCl.data_in) ;    
-    PCl_e.connect(PCl.enable) ;
-    PCl_s.connect(PCl.set) ;
-    PCl.data_out.connect(ADDRl.data_in) ;
-
-    SPh_v.connect(SPh.data_in) ;
+    SPh_v.connect(SPht.data_in) ;
     SPh_v = 0x01 ;
-    SPh_e.connect(SPh.enable) ;
-    SPh.data_out.connect(ADDRh.data_in) ;
+    SPh_e.connect(SPht.enable) ;
+    SPht.data_out.connect(ADDRh.data_in) ;
 
     SP_up = 1 ;
     SP_down = 1 ;
@@ -114,9 +136,9 @@ void init6502(){
     SP_s.connect(SP.load) ;
     SP_up.connect(SP.up) ;
     SP_down.connect(SP.down) ;
-    SP.data_out.connect(SPl.data_in) ;
-    SP_e.connect(SPl.enable) ;
-    SPl.data_out.connect(ADDRl.data_in) ;
+    SP.data_out.connect(SPlt.data_in) ;
+    SP_e.connect(SPlt.enable) ;
+    SPlt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
     ACC_e.connect(ACC.enable) ;
@@ -284,7 +306,7 @@ int main(int argc, char *argv[]){
     // SPreg = 0x00 ;
 
     while (1) {
-        if ((PCh << 8 | PCl) == SUCCESS_ADDR){
+        if ((PChreg << 8 | PClreg) == SUCCESS_ADDR){
             printf("SUCCESS!\n") ;
             exit(0) ;
         }
