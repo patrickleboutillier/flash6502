@@ -285,42 +285,23 @@ static void cpy() { // 2 cycles
 }
 
 static void dec() { // 1 cycles
-    ALU_op = ALU_DEC ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; // RAM[EA] = ALU
+    tick(dec) ;
 }
 
 static void dex() { // 2 cycles
-    X_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            X_e = 0 ; // B = X ;
-    ALU_op = ALU_DEC ; ALU_e = 1 ; 
-        X_s = 1 ; X_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // X = ALU ; 
+    tick(dex) ;
 }
 
 static void dey() { // 2 cycles
-    Y_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_DEC ; ALU_e = 1 ; 
-        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // Y = ALU ;
+    tick(dey) ;
 }
 
 static void eor() {
-    ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_EOR ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ; 
+    tick(eor) ;
 }
 
 static void inc() {
-    ALU_op = ALU_INC ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    tick(inc) ;
 }
 
 static void inx() {
