@@ -32,49 +32,38 @@ uint8_t and_(uint8_t tick) {
 }
 
 
-uint8_t asl_acc(uint8_t tick) {
-    switch (tick) { 
-        case 0x00:  ACC_e = 1 ; break ;
-        case 0x01:  A_s = 1 ; B_s = 1 ; break ;
-        case 0x02:  A_s = 0 ; B_s = 0 ; break ;
-        case 0x03:  ACC_e = 0 ; break ;
-
-        case 0x10:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
-        case 0x11:  ACC_s = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
-        case 0x12:  ACC_s = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
-        case 0x13:  ALU_e = 0 ; break ;
-
-        default:    return 0 ;
-    }
-    return 1 ;
-}
-
-
-uint8_t asl_ram(uint8_t tick) {
-    switch (tick) { 
-        case 0x00:  ACC_e = 1 ; break ;
-        case 0x01:  A_s = 1 ; B_s = 1 ; break ;
-        case 0x02:  A_s = 0 ; B_s = 0 ; break ;
-        case 0x03:  ACC_e = 0 ; break ;
-
-        case 0x10:  ALU_op = ALU_ADD ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; break ;
-        case 0x11:  RAM_s = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
-        case 0x12:  RAM_s = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
-        case 0x13:  ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; break ;
-
-        default:    return 0 ;
-    }
-    return 1 ;
-}
-
-
 uint8_t asl(uint8_t tick) {
     if ((INST & 0xF) == 0xA){
-        return asl_acc(tick) ;
+        switch (tick) { 
+            case 0x00:  ACC_e = 1 ; break ;
+            case 0x01:  A_s = 1 ; B_s = 1 ; break ;
+            case 0x02:  A_s = 0 ; B_s = 0 ; break ;
+            case 0x03:  ACC_e = 0 ; break ;
+
+            case 0x10:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
+            case 0x11:  ACC_s = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
+            case 0x12:  ACC_s = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
+            case 0x13:  ALU_e = 0 ; break ;
+
+            default:    return 0 ;
+        }
     }
     else {
-        return asl_ram(tick) ;
+        switch (tick) { 
+            case 0x00:  ACC_e = 1 ; break ;
+            case 0x01:  A_s = 1 ; B_s = 1 ; break ;
+            case 0x02:  A_s = 0 ; B_s = 0 ; break ;
+            case 0x03:  ACC_e = 0 ; break ;
+
+            case 0x10:  ALU_op = ALU_ADD ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; break ;
+            case 0x11:  RAM_s = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
+            case 0x12:  RAM_s = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
+            case 0x13:  ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; break ;
+
+            default:    return 0 ;
+        }
     }
+    return 1 ;
 }
 
 
@@ -773,7 +762,7 @@ uint8_t ror(uint8_t tick) {
             case 0x02:  STATUS_alu_c_set = 0 ; break ;
             case 0x03:  STATUS_alu_c_from_C = 0 ; break ;
 
-            case 0x10:  ALU_op = ALU_ROL ; ALU_e = 1 ; break ;
+            case 0x10:  ALU_op = ALU_ROR ; ALU_e = 1 ; break ;
             case 0x11:  ACC_s = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
             case 0x12:  ACC_s = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
             case 0x13:  ALU_e = 0 ; break ;

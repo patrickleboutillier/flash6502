@@ -361,35 +361,11 @@ static void plp() {
 }
 
 static void rol() {
-    STATUS_alu_c_from_C = 1 ; 
-        STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
-            STATUS_alu_c_from_C = 0 ; 
-    if ((INST & 0xF) == 0xA){
-        ALU_op = ALU_ROL ; ALU_e = 1 ; 
-            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; // ACC = ALU ;
-    }
-    else {
-        ALU_op = ALU_ROL ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
-    }
+    tick(rol) ;
 }
 
 static void ror() {
-    STATUS_alu_c_from_C = 1 ; 
-        STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
-            STATUS_alu_c_from_C = 0 ; 
-    if ((INST & 0xF) == 0xA){
-        ALU_op = ALU_ROR ; ALU_e = 1 ; 
-            ACC_s = 1 ; ACC_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; // ACC = ALU ;
-    }
-    else {
-        ALU_op = ALU_ROR ; EAh_e = 1 ; EAl_e = 1 ; ALU_e = 1 ; 
-            RAM_s = 1 ; RAM_s = 0 ; setC() ; setNZ() ; 
-                ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
-    }
+    tick(ror) ;
 }
 
 static void rti() {
