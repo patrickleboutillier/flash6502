@@ -309,19 +309,11 @@ static void inx() {
 }
 
 static void iny() {
-    Y_e = 1 ; B_s = 1 ; B_s = 0 ; Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; 
-        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // Y = ALU ;
+    tick(iny) ;
 }
 
 static void jmp() {
-    EAh_e = 1 ; Ah2D_e = 1 ; 
-        PCh_s = 1 ; PCh_s = 0 ; 
-            Ah2D_e = 0 ; EAh_e = 0 ;
-    EAl_e = 1 ; Al2D_e = 1 ; 
-        PCl_s = 1 ; PCl_s = 0 ; 
-            Al2D_e = 0 ; EAl_e = 0 ;
+    tick(jmp) ;
 }
 
 static void jsr() { // 9 cycles
