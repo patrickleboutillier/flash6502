@@ -341,54 +341,23 @@ static void nop() {
 }
 
 static void ora() {
-    ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; 
-            ACC_e = 0 ; // A = ACC ;
-    ALU_op = ALU_ORA ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ;
+    tick(ora) ;
 }
 
 static void pha() {
-    SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; 
-            ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
-                decSP() ;
+    tick(pha) ;
 }
 
 static void php() {
-    STATUS_b_in = 1 ; STATUS_data_enable = 1 ; SPh_e = 1 ; SP_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; 
-            SP_e = 0 ; SPh_e = 0 ; STATUS_data_enable = 0 ; STATUS_b_in = 0 ; 
-                decSP() ;
+    tick(php) ;
 }
 
 static void pla() { // 4 cycles
-    SP_e = 1 ; Al2D_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            Al2D_e = 0 ; SP_e = 0 ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; 
-        SP_s = 1 ; SP_s = 0 ;
-            ALU_e = 0 ;  
-    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; 
-    ALU_op = ALU_PASS ; ALU_e = 1 ;
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ;
+    tick(pla) ;
 }
 
 static void plp() {
-    SP_e = 1 ; Al2D_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            Al2D_e = 0 ; SP_e = 0 ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; 
-        SP_s = 1 ; SP_s = 0 ;
-            ALU_e = 0 ; 
-    SPh_e = 1 ; SP_e = 1 ; RAM_e = 1 ; STATUS_src_data = 1 ; 
-        STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ;
-        STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; 
-            STATUS_src_data = 0 ; SPh_e = 0 ; SP_e = 0 ; RAM_e = 0 ; 
+    tick(plp) ;
 }
 
 static void rol() {
@@ -478,99 +447,55 @@ static void rts() {
 }
 
 static void sbc() {
-    STATUS_alu_c_from_C = 1 ; ACC_e = 1 ; 
-        A_s = 1 ; A_s = 0 ; STATUS_alu_c_set = 1 ; STATUS_alu_c_set = 0 ; 
-            STATUS_alu_c_from_C = 0 ; ACC_e = 0 ; // A = ACC 
-    ALU_op = ALU_SBC ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setC() ; setV() ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ; 
+    tick(sbc) ;
 }
 
 static void sec() {
-    B_s = 1 ; B_s = 0 ; // B = 0 ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            ALU_e = 0 ; // B = ALU ;
-    ALU_op = ALU_DEC ; 
-        setC() ;
+    tick(sec) ;
 }
 
 static void sed() {
+    tick(sed) ;
 }
 
 static void sei() {
+    tick(sei) ;
 }
 
 static void sta() {
-    EAh_e = 1 ; EAl_e = 1 ; ACC_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; 
-            ACC_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    tick(sta) ;
 }
 
 static void stx() {
-    EAh_e = 1 ; EAl_e = 1 ; X_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; 
-            X_e = 0 ; EAl_e = 0 ; EAh_e = 0 ;
+    tick(stx) ;
 }
 
 static void sty() {
-    EAh_e = 1 ; EAl_e = 1 ; Y_e = 1 ; 
-        RAM_s = 1 ; RAM_s = 0 ; Y_e = 0 ; 
-            EAl_e = 0 ; EAh_e = 0 ;
+    tick(sty) ;
 }
 
 static void tax() {
-    ACC_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            ACC_e = 0 ; // B = ACC ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        X_s = 1 ; X_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // X = ALU ; 
+    tick(tax) ;
 }
 
 static void tay() {
-    ACC_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            ACC_e = 0 ; // B = ACC ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        Y_s = 1 ; Y_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // X = ALU ; 
+    tick(tay) ;
 }
 
 static void tsx() {
-    SP_e = 1 ; Al2D_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            Al2D_e = 0 ; SP_e = 0 ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        X_s = 1 ; X_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // X = ALU ;
+    tick(tsx) ;
 }
 
 static void txa() {
-    X_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            X_e = 0 ; // B = X ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ; 
+    tick(txa) ;
 }
 
 static void txs() {
-    X_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            X_e = 0 ; // B = X ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        SP_s = 1 ; SP_s = 0 ; 
-            ALU_e = 0 ; // SP = ALU ; 
+    tick(txs) ;
 }
 
 static void tya() {
-    Y_e = 1 ; 
-        B_s = 1 ; B_s = 0 ; 
-            Y_e = 0 ; // B = Y ;
-    ALU_op = ALU_PASS ; ALU_e = 1 ; 
-        ACC_s = 1 ; ACC_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // ACC = ALU ; 
+    tick(tya) ;
 }
 
 
