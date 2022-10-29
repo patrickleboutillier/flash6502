@@ -305,10 +305,7 @@ static void inc() {
 }
 
 static void inx() {
-    X_e = 1 ; B_s = 1 ; B_s = 0 ; X_e = 0 ; // B = X ;
-    ALU_op = ALU_INC ; ALU_e = 1 ; 
-        X_s = 1 ; X_s = 0 ; setNZ() ; 
-            ALU_e = 0 ; // X = ALU ;
+    tick(inx) ;
 }
 
 static void iny() {

@@ -283,6 +283,7 @@ uint8_t clc(uint8_t tick) {
         case 0x11:  STATUS_c_set = 1 ; break ;
         case 0x12:  STATUS_c_set = 0 ; break ;
         case 0x13:  break ;
+
         default:    return 0 ;
     }
     return 1 ;
@@ -316,6 +317,7 @@ uint8_t clv(uint8_t tick) {
         case 0x11:  STATUS_v_set = 1 ; break ;
         case 0x12:  STATUS_v_set = 0 ; break ;
         case 0x13:  break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -333,6 +335,7 @@ uint8_t cmp(uint8_t tick) {
         case 0x11:  STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -350,6 +353,7 @@ uint8_t cpx(uint8_t tick) {
         case 0x11:  STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  break ; 
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -367,6 +371,7 @@ uint8_t cpy(uint8_t tick) {
         case 0x11:  STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -379,6 +384,7 @@ uint8_t dec(uint8_t tick) {
         case 0x01:  RAM_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x02:  RAM_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x03:  ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -396,6 +402,7 @@ uint8_t dex(uint8_t tick) {
         case 0x11:  X_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  X_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  ALU_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -413,6 +420,7 @@ uint8_t dey(uint8_t tick) {
         case 0x11:  Y_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  Y_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  ALU_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -430,6 +438,7 @@ uint8_t eor(uint8_t tick) {
         case 0x11:  ACC_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  ACC_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  ALU_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -442,6 +451,7 @@ uint8_t inc(uint8_t tick) {
         case 0x01:  RAM_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x02:  RAM_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x03:  ALU_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -459,6 +469,7 @@ uint8_t inx(uint8_t tick) {
         case 0x11:  X_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  X_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  ALU_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -476,6 +487,7 @@ uint8_t iny(uint8_t tick) {
         case 0x11:  Y_s = 1 ; STATUS_nz_set = 1 ; break ;
         case 0x12:  Y_s = 0 ; STATUS_nz_set = 0 ; break ;
         case 0x13:  ALU_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -493,6 +505,7 @@ uint8_t jmp(uint8_t tick) {
         case 0x11:  PCl_s = 1 ; break ;
         case 0x12:  PCl_s = 0 ; break ;
         case 0x13:  Al2D_e = 0 ; EAl_e = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
