@@ -28,19 +28,6 @@ output<1> SP_down("37"), SP_up, PC_up("38"), PC_down ;
 RAM RAM ;
 output<1> RAM_s("13"), RAM_e("14") ;
 
-
-void incPC(){
-    uint16_t pc = PChreg << 8 | PClreg ;
-    pc++ ;
-    PChreg = pc >> 8 ;
-    PClreg = pc & 0xFF ;
-
-    PC_up = 0 ; PC_up = 1 ;
-
-    //printf("PCreg:%u, PCcnt:%u\n", PChreg << 8 | PClreg, PCh << 8 | PCl) ;
-}
-
-
 reg<8> ACC ;
 output<1> ACC_s("15"), ACC_e("16") ;
 reg<8> A, B ;
@@ -124,7 +111,7 @@ void init6502(){
     SP.data_out.connect(SPlt.data_in) ;
     SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
-    
+
     SPh_v.connect(SPht.data_in) ;
     SPh_v = 0x01 ;
     SPh_e.connect(SPht.enable) ;

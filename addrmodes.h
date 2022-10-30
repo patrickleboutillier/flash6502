@@ -89,8 +89,8 @@ uint8_t zpx(uint8_t tick) { // 5 cycles
     
         case 0x40:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ; 
         case 0x41:  B_s = 1 ; break ;
-        case 0x42:  B_s = 0 ; break ;
-        case 0x43:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; break ;
+        case 0x42:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x43:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; PC_up = 1 ; break ;
 
         default:    return 0 ;
     } 
@@ -122,8 +122,8 @@ uint8_t zpy(uint8_t tick) { // 5 cycles
     
         case 0x40:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ; 
         case 0x41:  B_s = 1 ; break ;
-        case 0x42:  B_s = 0 ; break ;
-        case 0x43:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; incPC() ; break ;
+        case 0x42:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x43:  RAM_e = 0 ; EAl_e = 0 ; EAh_e = 0 ; PC_up = 1 ; break ;
 
         default:    return 0 ;
     } 
@@ -135,8 +135,8 @@ uint8_t rel(uint8_t tick){ // 7 cycles
     switch (tick){
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  A_s = 1 ; B_s = 1 ; break ;
-        case 0x02:  A_s = 0 ; B_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x02:  A_s = 0 ; B_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
 
         case 0x10:  ALU_op = ALU_SXT ; ALU_e = 1 ; break ;
         case 0x11:  EAh_s = 1 ; break ;
@@ -178,13 +178,13 @@ uint8_t abso(uint8_t tick) { // 3 cycles
     switch(tick) {
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ; 
         case 0x01:  EAl_s = 1 ; break ; 
-        case 0x02:  EAl_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x02:  EAl_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x10:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x11:  EAh_s = 1 ; break ;
-        case 0x12:  EAh_s = 0 ; break ;
-        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x12:  EAh_s = 0 ; PC_up = 0 ; break ;
+        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
 
         case 0x20:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ;
         case 0x21:  B_s = 1 ; break ;
@@ -206,8 +206,8 @@ uint8_t absx(uint8_t tick) { // 7 cycles
         
         case 0x10:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x11:  B_s = 1 ; break ;
-        case 0x12:  B_s = 0 ; break ;
-        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x12:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x20:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
         case 0x21:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
@@ -221,8 +221,8 @@ uint8_t absx(uint8_t tick) { // 7 cycles
 
         case 0x40:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ; 
         case 0x41:  B_s = 1 ; break ;
-        case 0x42:  B_s = 0 ; break ;
-        case 0x43:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x42:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x43:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x50:  ALU_op = ALU_ADC ; ALU_e = 1 ; break ;
         case 0x51:  EAh_s = 1 ; break ;
@@ -249,8 +249,8 @@ uint8_t absy(uint8_t tick) { // 7 cycles
         
         case 0x10:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x11:  B_s = 1 ; break ;
-        case 0x12:  B_s = 0 ; break ;
-        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x12:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x20:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
         case 0x21:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
@@ -264,8 +264,8 @@ uint8_t absy(uint8_t tick) { // 7 cycles
 
         case 0x40:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ; 
         case 0x41:  B_s = 1 ; break ;
-        case 0x42:  B_s = 0 ; break ;
-        case 0x43:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x42:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x43:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x50:  ALU_op = ALU_ADC ; ALU_e = 1 ; break ;
         case 0x51:  EAh_s = 1 ; break ;
@@ -287,13 +287,13 @@ uint8_t ind(uint8_t tick) { // 8 cycles
     switch(tick) {
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  EAl_s = 1 ; B_s = 1 ; break ;
-        case 0x02:  B_s = 0 ; EAl_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ; 
+        case 0x02:  B_s = 0 ; EAl_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ; 
         
         case 0x10:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x11:  EAh_s = 1 ; break ;
-        case 0x12:  EAh_s = 0 ; break ;
-        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x12:  EAh_s = 0 ; PC_up = 0 ; break ;
+        case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x20:  EAh_e = 1 ; EAl_e = 1 ; RAM_e = 1 ; break ;
         case 0x21:  A_s = 1 ; break ;
@@ -335,8 +335,8 @@ uint8_t indx(uint8_t tick) { // 10 cycles
     switch(tick) {
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  B_s = 1 ; break ;
-        case 0x02:  B_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x02:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x10:  X_e = 1 ; break ;
         case 0x11:  A_s = 1 ; break ;
@@ -393,8 +393,8 @@ uint8_t indy(uint8_t tick) { // 10 cycles
     switch(tick) {
         case 0x00:  PCh_e = 1 ; PCl_e = 1 ; RAM_e = 1 ; break ;
         case 0x01:  B_s = 1 ; break ;
-        case 0x02:  B_s = 0 ; break ;
-        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; incPC() ; break ;
+        case 0x02:  B_s = 0 ; PC_up = 0 ; break ;
+        case 0x03:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
         case 0x10:  Y_e = 1 ; break ;
         case 0x11:  A_s = 1 ; break ;
