@@ -26,8 +26,6 @@
     c should go to the c_in of ALUh.
     s_in should come from the LSB of ALUh.a
     s should go to the s_in on ALUh in order to be sent to c when required
-
-    TODO: Add PASS for A passthru?
 */
 class ALUl : public component {
     public:

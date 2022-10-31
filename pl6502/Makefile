@@ -21,3 +21,11 @@ test_STATUS: STATUS_unittests
 
 clean:
 	rm -f ALU_unittests STATUS_unittests
+
+
+FLASH=SST39SF020A
+flash_ALUL:
+	minipro -p $(FLASH) -w ALUL_ROM.bin	
+
+flash_ALUH:
+	minipro -p $(FLASH) -w ALUH_ROM.bin	

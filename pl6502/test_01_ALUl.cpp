@@ -171,4 +171,33 @@ TEST(test_pl6502, ALUl){
         EXPECT_EQ(alul.s.get_value(), 0) ;
         EXPECT_EQ(alul.z.get_value(), ((res & 0xF) == 0 ? 1 : 0)) ;
     }
+
+    /*
+        SST39SF020A: 
+            VDD WE# A17 A14 A13 A8  A9  A11 OE# A10 CE# DQ7 DQ6 DQ5 DQ4 DQ3
+            NC  A16 A15 A12 A7  A6  A5  A4  A3  A2  A1  A0  DQ0 DQ1 DQ2 VSS
+
+            a:                  A16, A15, A12, A7
+            b:                  A3,  A2,  A1,  A0
+            op:                 A13, A8, A9, A11
+            c_in, s_in, n_in:   A10, A17, A14     
+            res:                DQ3, DQ2, DQ1, DQ0
+            z, c, s:            DQ6, DQ5, DQ4
+    */
+
+    // Final run to generate ROM file
+    FILE *rom = fopen("ALUL_ROM.bin","wb") ;
+    #define bit(b) ((addr >> (b)) & 0x01)
+    uint32_t max = 1 << 18 ; // Flash has 18 address bits
+    for (uint32_t addr = 0 ; addr < max ; addr++){
+        a =  bit(16) << 3 | bit(15) << 2 | bit(12) << 1 | bit(7) ;
+        b =  bit(3)  << 3 | bit(2)  << 2 | bit(1)  << 1 | bit(0) ;
+        op = bit(13) << 3 | bit(8)  << 2 | bit(9)  << 1 | bit(11) ;
+        cy = bit(10) ;
+        shr = bit(17) ;
+        neg = bit(14) ;
+
+        uint8_t data = alul.z << 6 | alul.c << 5 | alul.s << 4 | alul.res ;
+        fwrite(&data, 1, 1, rom) ;
+    }
 }
