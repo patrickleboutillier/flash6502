@@ -50,4 +50,39 @@ TEST(test_pl6502, STATUS_ROM){
         c_set = 0 ;
         alu_c_set = 0 ;
     }
+
+    /*
+        SST39SF020A: 
+            VDD WE# A17 A14 A13 A8  A9  A11 OE# A10 CE# DQ7 DQ6 DQ5 DQ4 DQ3
+            NC  A16 A15 A12 A7  A6  A5  A4  A3  A2  A1  A0  DQ0 DQ1 DQ2 VSS
+
+        n_in, v_in, z_in, c_in, b_in:                   A16, A15, A12, A7, A6
+        nz_set, v_set, c_set, alu_c_set, alu_c_from_C:  A4, A3, A2, A1, A0 
+        n_old, v_old, z_old, c_old, alu_c_old:          A17, A14, A8, A9, A11
+        N, V, B, Z, C, alu_c:                           D7, D6, D5, D4, D3, D2
+    */
+
+    // Final run to generate ROM file
+    FILE *rom = fopen("STATUS_ROM.bin","wb") ;
+    #define bit(b) ((addr >> (b)) & 0x01)
+    uint32_t max = 1 << 18 ; // Flash has 18 address bits
+    for (uint32_t addr = 0 ; addr < max ; addr++){
+        n_in = bit(16) ;
+        v_in = bit(15) ;
+        z_in = bit(12) ;
+        c_in = bit(7) ;
+        b_in = bit(6) ;
+        
+        nz_set = bit(4) ;
+        v_set = bit(3) ;
+        c_set = bit(2) ;
+        alu_c_set = bit(1) ;
+        alu_c_from_C = bit(0) ;
+
+        // N, V, B, Z, C, alu_c: D7, D6, D5, D4, D3, D2
+        uint8_t data = status_rom.N << 7 | status_rom.V << 6 | status_rom.B << 5 | 
+            status_rom.Z << 4 | status_rom.C << 3 | status_rom.alu_c << 2 ;
+ 
+        fwrite(&data, 1, 1, rom) ;
+    }
 }

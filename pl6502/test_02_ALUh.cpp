@@ -207,4 +207,5 @@ TEST(test_pl6502, ALUh){
 
         uint8_t data = aluh.n << 7 | aluh.z << 6 | aluh.c << 5 | aluh.v << 4 | aluh.res ;
         fwrite(&data, 1, 1, rom) ;
-    }}
+    }
+}
