@@ -24,8 +24,11 @@
 
 /*
     c should go to the c_in of ALUh.
-    s_in should come from the LSB of ALUh.a
-    s should go to the s_in on ALUh in order to be sent to c when required
+    s should go to the s_in on ALUh in order to be sent to c when required.
+
+    c_in: carry in
+    s_in: B[4]
+    n_in: B[7]
 */
 class ALUl : public component {
     public:
