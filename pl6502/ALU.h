@@ -44,12 +44,12 @@ class ALU : public component {
             aluh_a = a >> 4 ;
             alul_b = b & 0xF ;
             aluh_b = b >> 4 ;
-            alul_c_in = c_in ;      // A10
-            aluh_c_in = alul.c ;
-            alul_s_in = b >> 4 ;    // B[4] -> A17
-            aluh_s_in = alul.s ;
-            aluh_z_in = alul.z ;
-            alul_n_in = b >> 7 ;    // B[7] -> A14
+            alul_c_in = c_in ;      // cy_in    -> A10
+            aluh_c_in = alul.c ;    // ALUL.DQ5 -> A10
+            alul_s_in = b >> 4 ;    // B[4]     -> A17
+            aluh_s_in = alul.s ;    // ALUL.DQ4 -> A17
+            aluh_z_in = alul.z ;    // ALUL.DQ6 -> A14
+            alul_n_in = b >> 7 ;    // B[7]     -> A14
             // ...
             res = aluh.res << 4 | alul.res ;
             n = aluh.n ;
