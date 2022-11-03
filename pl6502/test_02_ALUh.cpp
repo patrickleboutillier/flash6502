@@ -190,7 +190,7 @@ TEST(test_pl6502, ALUh){
             op:                 A13, A8, A9, A11
             c_in, s_in, z_in:   A10, A17, A14     
             res:                DQ3, DQ2, DQ1, DQ0
-            n, z, c, s:         DQ7, DQ6, DQ5, DQ4
+            n, z, c, v:         DQ7, DQ6, DQ5, DQ4
     */
 
     // Final run to generate ROM file
