@@ -58,8 +58,8 @@ TEST(test_pl6502, STATUS_ROM){
 
         n_in, v_in, z_in, c_in, b_in:                   A16, A15, A12, A7, A6
         nz_set, v_set, c_set, alu_c_set, alu_c_from_C:  A4, A3, A2, A1, A0 
-        n_old, v_old, z_old, c_old, alu_c_old:          A17, A14, A8, A9, A11
-        N, V, B, Z, C, alu_c:                           D7, D6, D5, D4, D3, D2
+        n_old, v_old, z_old, c_old, alu_c_old:          A9, A8,     A13, A14, A17
+        N, V, B, Z, C, alu_c:                           D7, D6, D5,  D4,  D3, D2
     */
 
     // Final run to generate ROM file
