@@ -27,6 +27,7 @@ class STATUS_ROM : public component {
     public:
         STATUS_ROM() : b_in(this), n_old(this),  v_old(this), z_old(this), c_old(this), alu_c_old(this),
                        nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this) {
+            // TODO: This needs to be moved out of here into STATUS. The ROM chip doesn't have these internal connections.
             N.connect(n_old) ;
             V.connect(v_old) ;
             Z.connect(z_old) ;
