@@ -44,6 +44,12 @@ class STATUS : public component {
         STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
                    src_data(this), data_in(), data_enable(this) {
+            rom.N.connect(rom.n_old) ;
+            rom.V.connect(rom.v_old) ;
+            rom.Z.connect(rom.z_old) ;
+            rom.C.connect(rom.c_old) ;
+            rom.alu_c.connect(rom.alu_c_old) ;
+            
             sr_n_in.connect(rom.n_in) ;
             sr_v_in.connect(rom.v_in) ;
             sr_z_in.connect(rom.z_in) ;

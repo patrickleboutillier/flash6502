@@ -19,6 +19,13 @@ TEST(test_pl6502, STATUS_ROM){
     alu_c_set.connect(status_rom.alu_c_set) ;
     alu_c_from_C.connect(status_rom.alu_c_from_C) ;
 
+    status_rom.N.connect(status_rom.n_old) ;
+    status_rom.V.connect(status_rom.v_old) ;
+    status_rom.Z.connect(status_rom.z_old) ;
+    status_rom.C.connect(status_rom.c_old) ;
+    status_rom.alu_c.connect(status_rom.alu_c_old) ;
+
+
     for (int i = 0 ; i < 1024 ; i++){
         uint32_t n_old = status_rom.N ;
         uint32_t v_old = status_rom.V ;
@@ -51,6 +58,20 @@ TEST(test_pl6502, STATUS_ROM){
         alu_c_set = 0 ;
     }
 
+
+    status_rom.N.disconnect(status_rom.n_old) ;
+    status_rom.V.disconnect(status_rom.v_old) ;
+    status_rom.Z.disconnect(status_rom.z_old) ;
+    status_rom.C.disconnect(status_rom.c_old) ;
+    status_rom.alu_c.disconnect(status_rom.alu_c_old) ;
+
+    output<1> n_old, v_old, z_old, c_old, alu_c_old ;
+    n_old.connect(status_rom.n_old) ;
+    v_old.connect(status_rom.v_old) ;
+    z_old.connect(status_rom.z_old) ;
+    c_old.connect(status_rom.c_old) ;
+    alu_c_old.connect(status_rom.alu_c_old) ;
+
     /*
         SST39SF020A: 
             VDD WE# A17 A14 A13 A8  A9  A11 OE# A10 CE# DQ7 DQ6 DQ5 DQ4 DQ3
@@ -72,7 +93,13 @@ TEST(test_pl6502, STATUS_ROM){
         z_in = bit(12) ;
         c_in = bit(7) ;
         b_in = bit(6) ;
-        
+
+        n_old = bit(9) ;
+        v_old = bit(8) ;
+        z_old = bit(13) ;
+        c_old = bit(14) ;
+        alu_c_old = bit(17) ;
+
         nz_set = bit(4) ;
         v_set = bit(3) ;
         c_set = bit(2) ;
