@@ -282,12 +282,14 @@ int main(int argc, char *argv[]){
     // PCl = 0x00 ;
     // SPreg = 0x00 ;
 
+    int nb_inst = 0 ;
     while (1) {
         if ((PChreg << 8 | PClreg) == SUCCESS_ADDR){
-            printf("SUCCESS!\n") ;
+            printf("SUCCESS (%d instructions executed)!\n", nb_inst) ;
             exit(0) ;
         }
 
         do_inst() ;
+        nb_inst++ ;
     }
 }
