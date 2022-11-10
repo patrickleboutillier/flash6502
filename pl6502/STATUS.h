@@ -3,6 +3,7 @@
 
 
 #include "circuit.h"
+#include "reg.h"
 #include "STATUS_ROM.h"
 
 /*
@@ -33,68 +34,88 @@ class STATUS : public component {
         input<1> n_in, v_in, z_in, c_in, b_in ;
         input<1> nz_set, v_set, c_set, alu_c_set, alu_c_from_C, src_data ;
         input<8> data_in ;
+        input<1> set ;
         input<1> data_enable ;
         output<1> N, V, B, Z, C, alu_c ;
         output<8> data_out ;
     private:
-        STATUS_ROM rom ;
-        output<1> sr_n_in, sr_v_in, sr_z_in, sr_c_in, sr_b_in ;
-        output<1> sr_nz_set, sr_v_set, sr_c_set, sr_alu_c_set, sr_alu_c_from_C ;
+        STATUS_ROM srom ;
+        reg<8> sreg ;
+        output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in, srom_b_in ;
+        output<1> srom_nz_set, srom_v_set, srom_c_set, srom_alu_c_set, srom_alu_c_from_C ;
+        output<1> srom_n_old, srom_v_old, srom_z_old, srom_c_old, srom_alu_c_old ;
+        output<1> sreg_enable, sreg_set ;
+        output<8> sreg_data_in ;
     public:
         STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
-                   src_data(this), data_in(), data_enable(this) {
-            rom.N.connect(rom.n_old) ;
-            rom.V.connect(rom.v_old) ;
-            rom.Z.connect(rom.z_old) ;
-            rom.C.connect(rom.c_old) ;
-            rom.alu_c.connect(rom.alu_c_old) ;
+                   set(this), src_data(this), data_in(), data_enable(this) {
+            sreg_set.connect(sreg.set) ;
+            sreg_enable.connect(sreg.enable) ;
+            sreg_data_in.connect(sreg.data_in) ;
+            sreg_enable = 1 ;
+
+            srom_n_old.connect(srom.n_old) ;
+            srom_v_old.connect(srom.v_old) ;
+            srom_z_old.connect(srom.z_old) ;
+            srom_c_old.connect(srom.c_old) ;
+            srom_alu_c_old.connect(srom.alu_c_old) ;
             
-            sr_n_in.connect(rom.n_in) ;
-            sr_v_in.connect(rom.v_in) ;
-            sr_z_in.connect(rom.z_in) ;
-            sr_c_in.connect(rom.c_in) ;
-            sr_b_in.connect(rom.b_in) ;
-            sr_nz_set.connect(rom.nz_set) ;
-            sr_v_set.connect(rom.v_set) ;
-            sr_c_set.connect(rom.c_set) ;
-            sr_alu_c_set.connect(rom.alu_c_set) ;
-            sr_alu_c_from_C.connect(rom.alu_c_from_C) ;
+            srom_n_in.connect(srom.n_in) ;
+            srom_v_in.connect(srom.v_in) ;
+            srom_z_in.connect(srom.z_in) ;
+            srom_c_in.connect(srom.c_in) ;
+            srom_b_in.connect(srom.b_in) ;
+            srom_nz_set.connect(srom.nz_set) ;
+            srom_v_set.connect(srom.v_set) ;
+            srom_c_set.connect(srom.c_set) ;
+            srom_alu_c_set.connect(srom.alu_c_set) ;
+            srom_alu_c_from_C.connect(srom.alu_c_from_C) ;
             data_out.drive(false) ;
         } ;
 
-        void always(){
-            sr_nz_set = nz_set ;
-            sr_v_set = v_set ;
-            sr_c_set = c_set ;
-            sr_alu_c_set = alu_c_set ;
-            sr_alu_c_from_C = alu_c_from_C ;
+        void always(){ 
+            sreg_data_in = srom.N << 4 | srom.V << 3 | srom.Z << 2 | srom.C << 1 | srom.alu_c ; 
+
+            sreg_set = set ;
+
+            srom_n_old = sreg.data_out >> 4 ;
+            srom_v_old = sreg.data_out >> 3 ;
+            srom_z_old = sreg.data_out >> 2 ;
+            srom_c_old = sreg.data_out >> 1 ;
+            srom_alu_c_old = sreg.data_out ;
+
+            srom_nz_set = nz_set ;
+            srom_v_set = v_set ;
+            srom_c_set = c_set ;
+            srom_alu_c_set = alu_c_set ;
+            srom_alu_c_from_C = alu_c_from_C ;
 
             // This can be implemented using a 2-1 multiplexer
             if (src_data){
-                // Drive sr_*_in from the data bus
-                sr_n_in = data_in >> 7 ;
-                sr_v_in = data_in >> 6 ;
-                sr_b_in = data_in >> 4 ;
-                sr_z_in = data_in >> 1 ;
-                sr_c_in = data_in ;
+                // Drive srom_*_in from the data bus
+                srom_n_in = data_in >> 7 ;
+                srom_v_in = data_in >> 6 ;
+                srom_b_in = data_in >> 4 ;
+                srom_z_in = data_in >> 1 ;
+                srom_c_in = data_in ;
             }
             else {
-                // Drive sr_*_in from the flag inputs
-                sr_n_in = n_in ;
-                sr_v_in = v_in ;
-                sr_b_in = b_in ;
-                sr_z_in = z_in ;
-                sr_c_in = c_in ;
+                // Drive srom_*_in from the flag inputs
+                srom_n_in = n_in ;
+                srom_v_in = v_in ;
+                srom_b_in = b_in ;
+                srom_z_in = z_in ;
+                srom_c_in = c_in ;
             }
 
-            N = rom.N ;
-            V = rom.V ;
-            B = rom.B ;
-            Z = rom.Z ;
-            C = rom.C ;
-            alu_c = rom.alu_c ;
-
+            N = sreg.data_out >> 4 ;
+            V = sreg.data_out >> 3 ;
+            B = srom.B ;
+            Z = sreg.data_out >> 2 ;
+            C = sreg.data_out >> 1 ;
+            alu_c = sreg.data_out ;
+ 
             if (data_enable){
                 // This can be implemented with a 373 with the set always on 
                 data_out.drive(true) ;
