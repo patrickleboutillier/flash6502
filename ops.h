@@ -618,10 +618,10 @@ uint8_t lsr(uint8_t tick) {
     if ((INST & 0xF) == 0xA) {
         switch (tick) {
             case 0x00:  ALU_op = ALU_LSR ; 
-                        ALU_e = 1 ; break ;
+                        ALU_e = 1 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
             case 0x01:  ACC_s = 1 ; STATUS_set = 1 ; break ;
             case 0x02:  ACC_s = 0 ; STATUS_set = 0 ; break ;
-            case 0x03:  ALU_e = 0 ; STATUS_c_set = 1 ; STATUS_nz_set = 1 ; break ;
+            case 0x03:  ALU_e = 0 ; STATUS_c_set = 0 ; STATUS_nz_set = 0 ; break ;
             
             default:    return 0 ;
         }
@@ -670,10 +670,10 @@ uint8_t ora(uint8_t tick) {
 
 uint8_t pha(uint8_t tick) {
     switch (tick) {
-        case 0x00:  SPh_e = 1 ; SP_e = 1 ; ACC_e = 1 ; break ;
+        case 0x00:  ACC_e = 1 ; SPh_e = 1 ; SP_e = 1 ; break ;
         case 0x01:  RAM_s = 1 ; break ;
         case 0x02:  RAM_s = 0 ; SP_down = 0 ; break ;
-        case 0x03:  ACC_e = 0 ; SP_e = 0 ; SPh_e = 0 ; SP_down = 1 ; break ;
+        case 0x03:  ACC_e = 0 ; SPh_e = 0 ; SP_e = 0 ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }
@@ -683,10 +683,10 @@ uint8_t pha(uint8_t tick) {
 
 uint8_t php(uint8_t tick) {
     switch (tick) {
-        case 0x00:  STATUS_b_in = 1 ; STATUS_data_enable = 1 ; SPh_e = 1 ; SP_e = 1 ; break ;
+        case 0x00:  SPh_e = 1 ; SP_e = 1 ; STATUS_b_in = 1 ; STATUS_data_enable = 1 ; break ;
         case 0x01:  RAM_s = 1 ; break ;
         case 0x02:  RAM_s = 0 ; SP_down = 0 ; break ;
-        case 0x03:  SP_e = 0 ; SPh_e = 0 ; STATUS_data_enable = 0 ; STATUS_b_in = 0 ; SP_down = 1 ; break ;
+        case 0x03:  SPh_e = 0 ; SP_e = 0 ; STATUS_b_in = 0 ; STATUS_data_enable = 0 ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }
@@ -710,10 +710,11 @@ uint8_t pla(uint8_t tick) {
         case 0x22:  B_s = 0 ; break ;
         case 0x23:  RAM_e = 0 ; SP_e = 0 ; SPh_e = 0 ; break ;
         
-        case 0x30:  ALU_op = ALU_PASS ; ALU_e = 1 ; break ;
-        case 0x31:  ACC_s = 1 ; STATUS_nz_set = 1 ; STATUS_set = 1 ; STATUS_set = 0 ; break ;
-        case 0x32:  ACC_s = 0 ; STATUS_nz_set = 0 ; break ;
-        case 0x33:  ALU_e = 0 ; break ;
+        case 0x30:  ALU_op = ALU_PASS ; 
+                    ALU_e = 1 ; STATUS_nz_set = 1 ; break ;
+        case 0x31:  ACC_s = 1 ; STATUS_set = 1 ; break ;
+        case 0x32:  ACC_s = 0 ; STATUS_set = 0 ; break ;
+        case 0x33:  ALU_e = 0 ; STATUS_nz_set = 0 ; break ;
         
         default:    return 0 ;
     }
