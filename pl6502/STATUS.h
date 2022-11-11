@@ -36,12 +36,12 @@ class STATUS : public component {
         input<8> data_in ;
         input<1> set ;
         input<1> data_enable ;
-        output<1> N, V, B, Z, C, alu_c ;
+        output<1> N, V, Z, C, alu_c ;
         output<8> data_out ;
     private:
         STATUS_ROM srom ;
         reg<8> sreg ;
-        output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in, srom_b_in ;
+        output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in ;
         output<1> srom_nz_set, srom_v_set, srom_c_set, srom_alu_c_set, srom_alu_c_from_C ;
         output<1> srom_n_old, srom_v_old, srom_z_old, srom_c_old, srom_alu_c_old ;
         output<1> sreg_enable, sreg_set ;
@@ -65,7 +65,6 @@ class STATUS : public component {
             srom_v_in.connect(srom.v_in) ;
             srom_z_in.connect(srom.z_in) ;
             srom_c_in.connect(srom.c_in) ;
-            srom_b_in.connect(srom.b_in) ;
             srom_nz_set.connect(srom.nz_set) ;
             srom_v_set.connect(srom.v_set) ;
             srom_c_set.connect(srom.c_set) ;
@@ -96,7 +95,6 @@ class STATUS : public component {
                 // Drive srom_*_in from the data bus
                 srom_n_in = data_in >> 7 ;
                 srom_v_in = data_in >> 6 ;
-                srom_b_in = data_in >> 4 ;
                 srom_z_in = data_in >> 1 ;
                 srom_c_in = data_in ;
             }
@@ -104,14 +102,12 @@ class STATUS : public component {
                 // Drive srom_*_in from the flag inputs
                 srom_n_in = n_in ;
                 srom_v_in = v_in ;
-                srom_b_in = b_in ;
                 srom_z_in = z_in ;
                 srom_c_in = c_in ;
             }
 
             N = sreg.data_out >> 4 ;
             V = sreg.data_out >> 3 ;
-            B = srom.B ;
             Z = sreg.data_out >> 2 ;
             C = sreg.data_out >> 1 ;
             alu_c = sreg.data_out ;
@@ -119,7 +115,7 @@ class STATUS : public component {
             if (data_enable){
                 // This can be implemented with a 373 with the set always on 
                 data_out.drive(true) ;
-                uint8_t P = N << 7 | V << 6 | 1 << 5 | B << 4 | Z << 1 | C ;
+                uint8_t P = N << 7 | V << 6 | 1 << 5 | b_in << 4 | Z << 1 | C ;
                 data_out.set_value(P) ;
             }
             else {

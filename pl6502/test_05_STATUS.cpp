@@ -49,11 +49,10 @@ TEST(test_pl6502, STATUS){
 
         EXPECT_EQ(status.N.get_value(), (nz_set ? n_in.get_value() : n_old)) ;
         EXPECT_EQ(status.V.get_value(), (v_set ? v_in.get_value() : v_old)) ;
-        EXPECT_EQ(status.B.get_value(), b_in.get_value()) ;
         EXPECT_EQ(status.C.get_value(), (c_set ? c_in.get_value() : c_old)) ;
         EXPECT_EQ(status.alu_c.get_value(), (alu_c_set ? (alu_c_from_C ? c_old : c_in.get_value()) : alu_c_old)) ;
         EXPECT_EQ(status.Z.get_value(), (nz_set ? z_in.get_value() : z_old)) ;
-        uint8_t P = status.N << 7 | status.V << 6 | 1 << 5 | status.B << 4 | 
+        uint32_t P = status.N << 7 | status.V << 6 | 1 << 5 | b_in << 4 | 
             status.Z << 1 | status.C ;
         EXPECT_EQ(status.data_out.get_value(), P) ;
 
@@ -65,8 +64,11 @@ TEST(test_pl6502, STATUS){
         alu_c_set = 0 ;
     }
 
-    for (int i = 0 ; i < 256 ; i++){
-        data_in = i ;
+    for (int i = 0 ; i < 512 ; i++){
+        uint8_t data = i >> 1 ;
+        data_in = data ;
+        b_in = i ;
+
         src_data = 1 ;
         nz_set = 1 ;
         v_set = 1 ;
@@ -75,11 +77,11 @@ TEST(test_pl6502, STATUS){
         status_set = 1 ;
         status_set = 0 ;
         
-        // Zero-out bit 3 and 4 (D and I) because it will always be 0, and one bit 6 because it is always 1.
-        uint8_t p = (i | 0b00100000) & 0b11110011 ;
+        // One bit 5 because it is constant, zero-out bits 2,3 (D,I,B) because they will always be 0, add b_in
+        uint32_t p = ((data | 0b00100000) & 0b11100011) | (b_in << 4) ;
         EXPECT_EQ(status.data_out.get_value(), p) ;
         
-         // Reset the set signals or else they may still be on when we set in inputs 
+        // Reset the set signals or else they may still be on when we set in inputs 
         // in the next test...
         nz_set = 0 ;
         v_set = 0 ;
