@@ -87,7 +87,7 @@ TEST(test_pl6502, STATUS_ROM){
         alu_c_set = bit(1) ;
         alu_c_from_C = bit(0) ;
 
-        // N, V, B, Z, C, alu_c: D7, D6, D5, D4, D3, D2
+        // N, V, Z, C, alu_c: D7, D6, D4, D3, D2
         uint8_t data = status_rom.N << 7 | status_rom.V << 6 |  
             status_rom.Z << 4 | status_rom.C << 3 | status_rom.alu_c << 2 ;
  
