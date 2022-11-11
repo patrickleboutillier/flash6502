@@ -148,10 +148,11 @@ uint8_t rel(uint8_t tick){ // 7 cycles
         case 0x22:  B_s = 0 ; break ;
         case 0x23:  Al2D_e = 0 ; PCl_e = 0 ; break ;
     
-        case 0x30:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
-        case 0x31:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
-        case 0x32:  STATUS_alu_c_set = 0 ; EAl_s = 0 ; break ;
-        case 0x33:  ALU_e = 0 ; break ;
+        case 0x30:  ALU_op = ALU_ADD ; 
+                    ALU_e = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x31:  EAl_s = 1 ; STATUS_set = 1 ; break ;
+        case 0x32:  EAl_s = 0 ; STATUS_set = 0 ; break ;
+        case 0x33:  ALU_e = 0 ; STATUS_alu_c_set = 0 ; break ;
     
         case 0x40:  EAh_e = 1 ; Ah2D_e = 1 ; break ;
         case 0x41:  A_s = 1 ; break ;
@@ -209,10 +210,11 @@ uint8_t absx(uint8_t tick) { // 7 cycles
         case 0x12:  B_s = 0 ; PC_up = 0 ; break ;
         case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
-        case 0x20:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
-        case 0x21:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
-        case 0x22:  STATUS_alu_c_set = 0 ; EAl_s = 0 ; break ;
-        case 0x23:  ALU_e = 0 ; break ;
+        case 0x20:  ALU_op = ALU_ADD ; 
+                    ALU_e = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x21:  EAl_s = 1 ; STATUS_set = 1 ; break ;
+        case 0x22:  EAl_s = 0 ; STATUS_set = 0 ; break ;
+        case 0x23:  ALU_e = 0 ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x30:  break ;
         case 0x31:  A_s = 1 ; break ;
@@ -252,10 +254,11 @@ uint8_t absy(uint8_t tick) { // 7 cycles
         case 0x12:  B_s = 0 ; PC_up = 0 ; break ;
         case 0x13:  RAM_e = 0 ; PCl_e = 0 ; PCh_e = 0 ; PC_up = 1 ; break ;
         
-        case 0x20:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
-        case 0x21:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
-        case 0x22:  STATUS_alu_c_set = 0 ; EAl_s = 0 ; break ;
-        case 0x23:  ALU_e = 0 ; break ;
+        case 0x20:  ALU_op = ALU_ADD ; 
+                    ALU_e = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x21:  EAl_s = 1 ; STATUS_set = 1 ; break ;
+        case 0x22:  EAl_s = 0 ; STATUS_set = 0 ; break ;
+        case 0x23:  ALU_e = 0 ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x30:  break ;
         case 0x31:  A_s = 1 ; break ;
@@ -421,10 +424,11 @@ uint8_t indy(uint8_t tick) { // 10 cycles
         case 0x52:  B_s = 0 ; break ;
         case 0x53:  RAM_e = 0 ; EAl_e = 0 ; break ;
         
-        case 0x60:  ALU_op = ALU_ADD ; ALU_e = 1 ; break ;
-        case 0x61:  EAl_s = 1 ; STATUS_alu_c_set = 1 ; break ;
-        case 0x62:  STATUS_alu_c_set = 0 ; EAl_s = 0 ; break ;
-        case 0x63:  ALU_e = 0 ; break ;
+        case 0x60:  ALU_op = ALU_ADD ; 
+                    ALU_e = 1 ; STATUS_alu_c_set = 1 ; break ;
+        case 0x61:  EAl_s = 1 ; STATUS_set = 1 ; break ;
+        case 0x62:  EAl_s = 0 ; STATUS_set = 0 ; break ;
+        case 0x63:  ALU_e = 0 ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x70:  break ;
         case 0x71:  A_s = 1 ; break ;
