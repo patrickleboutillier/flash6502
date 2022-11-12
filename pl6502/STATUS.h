@@ -33,8 +33,8 @@ class STATUS : public component {
     public:
         input<1> n_in, v_in, z_in, c_in, b_in ;
         input<1> nz_set, v_set, c_set, alu_c_set, alu_c_from_C, src_data ;
-        input<8> data_in ;
         input<1> set ;
+        input<8> data_in ;
         input<1> data_enable ;
         output<1> N, V, Z, C, alu_c ;
         output<8> data_out ;
@@ -49,7 +49,7 @@ class STATUS : public component {
     public:
         STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
-                   set(this), src_data(this), data_in(), data_enable(this) {
+                   src_data(this), set(this), data_in(), data_enable(this) {
             sreg_set.connect(sreg.set) ;
             sreg_enable.connect(sreg.enable) ;
             sreg_data_in.connect(sreg.data_in) ;

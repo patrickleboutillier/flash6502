@@ -24,8 +24,8 @@ class STATUS_ROM : public component {
         input<1> n_old, v_old, z_old, c_old, alu_c_old ;
 
     public:
-        STATUS_ROM() : n_old(this),  v_old(this), z_old(this), c_old(this), alu_c_old(this),
-                       nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this) {
+        STATUS_ROM() : nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
+                       n_old(this),  v_old(this), z_old(this), c_old(this),     alu_c_old(this){
         } ;
 
         void always(){

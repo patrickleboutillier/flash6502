@@ -17,7 +17,7 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 output<1> Ah2D_e("0"), Al2D_e("1") ;
 
-reg<8> EAh, EAl, PChreg, PClreg ;
+reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
@@ -74,14 +74,14 @@ void init6502(){
     EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    DATA.data_out.connect(PChreg.data_in) ;
-    PCh_e.connect(PChreg.enable) ;
-    PCh_s.connect(PChreg.set) ;
+    //DATA.data_out.connect(PChreg.data_in) ;
+    //PCh_e.connect(PChreg.enable) ;
+    //PCh_s.connect(PChreg.set) ;
     //PChreg.data_out.connect(ADDRh.data_in) ;
 
-    DATA.data_out.connect(PClreg.data_in) ;    
-    PCl_e.connect(PClreg.enable) ;
-    PCl_s.connect(PClreg.set) ;
+    //DATA.data_out.connect(PClreg.data_in) ;    
+    //PCl_e.connect(PClreg.enable) ;
+    //PCl_s.connect(PClreg.set) ;
     //PClreg.data_out.connect(ADDRl.data_in) ;
 
     PC_up = 1 ;
@@ -272,8 +272,8 @@ int main(int argc, char *argv[]){
 
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
     uint8_t mem[0x10000] ;
-    int nb = fread(mem, 0x10000, 1, file) ;
-    for (int i = 0 ; i < 0x10000 ; i++){
+    int nb = fread(mem, 1, 0x10000, file) ;
+    for (int i = 0 ; i < nb ; i++){
         RAM._mem[i >> 8][i & 0xFF] = mem[i] ;
     }
     fclose(file) ;
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]){
 
     int nb_inst = 0 ;
     while (1) {
-        if ((PChreg << 8 | PClreg) == SUCCESS_ADDR){
+        if ((PCh.data_out << 8 | PCl.data_out) == SUCCESS_ADDR){
             printf("SUCCESS (%d instructions executed)!\n", nb_inst) ;
             exit(0) ;
         }
