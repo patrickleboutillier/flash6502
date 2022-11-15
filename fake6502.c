@@ -74,16 +74,6 @@ void init6502(){
     EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    //DATA.data_out.connect(PChreg.data_in) ;
-    //PCh_e.connect(PChreg.enable) ;
-    //PCh_s.connect(PChreg.set) ;
-    //PChreg.data_out.connect(ADDRh.data_in) ;
-
-    //DATA.data_out.connect(PClreg.data_in) ;    
-    //PCl_e.connect(PClreg.enable) ;
-    //PCl_s.connect(PClreg.set) ;
-    //PClreg.data_out.connect(ADDRl.data_in) ;
-
     PC_up = 1 ;
     PC_down = 1 ;
     DATA.data_out.connect(PCl.data_in) ;
@@ -229,10 +219,11 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 };
 
 
-void do_inst(){
+int do_inst(){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
-    for (int step = 0 ; step < 16 ; step++){
+    int step = 0 ;
+    for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
             uint8_t tick = step << 4 | phase ;
             if (! fetch_done){
@@ -250,14 +241,15 @@ void do_inst(){
                 op_start = step << 4 ;
             }
             if (! op_done){
-                //(*optable[INST])() ;
                 if ((*optable[INST])(tick - op_start)){
                     continue ;
                 }
-                return ;
+                return step ;
             }
         }
     }
+
+    return step ;
 }
 
 
@@ -281,16 +273,16 @@ int main(int argc, char *argv[]){
     init6502() ;
     // PCh = 0x00 ;
     // PCl = 0x00 ;
-    // SPreg = 0x00 ;
+    // SP = 0x00 ;
 
-    int nb_inst = 0 ;
+    int nb_inst = 0, nb_step = 0 ;
     while (1) {
         if ((PCh.data_out << 8 | PCl.data_out) == SUCCESS_ADDR){
-            printf("SUCCESS (%d instructions executed)!\n", nb_inst) ;
+            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_inst, nb_step) ;
             exit(0) ;
         }
 
-        do_inst() ;
+        nb_step += do_inst() ;
         nb_inst++ ;
     }
 }
