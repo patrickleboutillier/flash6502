@@ -64,6 +64,15 @@ TEST(test_pl6502, STATUS){
         alu_c_set = 0 ;
     }
 
+    /*
+    SN74HC244:
+    
+      VCC    20E    1Y1    2A4    1Y2    2A3    1Y3    2A2    1Y4    2A1
+      10E    1A1    2Y4    1A2    2Y3    1A3    2Y2    1A4    2Y1    GND
+                                                 
+                    0out3  Bin    0out2  1in    Cout0  Vin    Zout1  Nin
+             0in    Bout4  0in    1out5  Cin    Vout6  Zin    Nout7  
+    */
     for (int i = 0 ; i < 512 ; i++){
         uint8_t data = i >> 1 ;
         data_in = data ;
