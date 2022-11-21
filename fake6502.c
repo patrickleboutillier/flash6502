@@ -21,7 +21,7 @@ reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
-output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
+output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PC_e, PCl_s("8"), 
     SPh_e("10"), SP_s("11"), SP_e("12") ;
 output<1> SP_down("37"), SP_up, PC_up("38"), PC_down, SP_clear, PC_clear ;
 
@@ -81,7 +81,7 @@ void init6502(){
     PC_down.connect(PCl.down) ;
     PC_clear.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
-    PCl_e.connect(PClt.enable) ;
+    PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
@@ -90,7 +90,7 @@ void init6502(){
     PCl.bo.connect(PCh.down) ;
     PC_clear.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
-    PCh_e.connect(PCht.enable) ;
+    PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
     SP_up = 1 ;
@@ -257,8 +257,8 @@ int do_inst(){
 void reset6502(){
     PC_clear.pulse() ;
     DATA.data_out = 0x02 ; // RST instruction
-    PCh_e.toggle() ; PCl_e.toggle() ; RAM_s.toggle() ;
-    PCh_e.toggle() ; PCl_e.toggle() ; RAM_s.toggle() ;
+    PC_e.toggle() ; RAM_s.toggle() ;
+    PC_e.toggle() ; RAM_s.toggle() ;
     DATA.data_out = 0 ;
     do_inst() ;
     PC_clear.pulse() ;
@@ -270,8 +270,8 @@ void load6502(uint8_t prog[], int prog_len){
     PC_clear.pulse() ;
     for (int i = 0 ; i < prog_len ; i++){
         DATA.data_out = prog[i] ;
-        PCh_e.toggle() ; PCl_e.toggle() ; RAM_s.toggle() ;
-        PCh_e.toggle() ; PCl_e.toggle() ; RAM_s.toggle() ;
+        PC_e.toggle() ; RAM_s.toggle() ;
+        PC_e.toggle() ; RAM_s.toggle() ;
         DATA.data_out = 0 ;
         PC_up.pulse() ;
     }

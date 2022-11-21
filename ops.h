@@ -520,15 +520,15 @@ uint8_t jmp(uint8_t tick) {
 
 uint8_t jsr(uint8_t tick) {
     switch (tick) { 
-        case 0x00:  PCh_e.toggle() ; Ah2D_e.toggle() ; break ;
+        case 0x00:  PC_e.toggle() ; Ah2D_e.toggle() ; break ;
         case 0x01:  A_s.toggle() ; break ;
         case 0x02:  A_s.toggle() ; break ;
-        case 0x03:  Ah2D_e.toggle() ; PCh_e.toggle() ; break ;
+        case 0x03:  Ah2D_e.toggle() ; PC_e.toggle() ; break ;
         
-        case 0x10:  PCl_e.toggle() ; Al2D_e.toggle() ; break ;
+        case 0x10:  PC_e.toggle() ; Al2D_e.toggle() ; break ;
         case 0x11:  B_s.toggle() ; break ;
         case 0x12:  B_s.toggle() ; break ;
-        case 0x13:  Al2D_e.toggle() ; PCl_e.toggle() ; break ;
+        case 0x13:  Al2D_e.toggle() ; PC_e.toggle() ; break ;
         
         case 0x20:  ALU_op = ALU_DEC ; 
                     ALU_e.toggle() ; STATUS_alu_c_set = 1 ; break ;
@@ -546,10 +546,10 @@ uint8_t jsr(uint8_t tick) {
         case 0x42:  RAM_s.toggle() ; SP_down = 0 ; break ;
         case 0x43:  ALU_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; SP_down = 1 ; break ;
         
-        case 0x50:  PCl_e.toggle() ; Al2D_e.toggle() ; break ;
+        case 0x50:  PC_e.toggle() ; Al2D_e.toggle() ; break ;
         case 0x51:  B_s.toggle() ; break ;
         case 0x52:  B_s.toggle() ; break ;
-        case 0x53:  Al2D_e.toggle() ; PCl_e.toggle() ; break ;
+        case 0x53:  Al2D_e.toggle() ; PC_e.toggle() ; break ;
         
         case 0x60:  ALU_op = ALU_PASS ; SPh_e.toggle() ; SP_e.toggle() ; ALU_e.toggle() ; break ;
         case 0x61:  RAM_s.toggle() ; break ;
