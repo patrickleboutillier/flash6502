@@ -20,19 +20,15 @@ template <uint32_t W> class output {
     public:
         bool _drive ;
         
-        output(){
+        output(uint32_t v = 0){
             _set = false ;
-            _value = 0 ;
+            _value = v ;
             _mask = (1 << W) - 1 ;
             _drive = true ;
-        } 
-
-        output(const char *name) : output() {
-        } 
-
-        output(uint32_t v) : output() {
-            set_value(v) ;
         }
+
+        output(const char *name, uint32_t v = 0) : output(v) {
+        } 
 
         void set_value(uint32_t v){
             if ((v != _value)||(! _set)){ 
@@ -46,6 +42,11 @@ template <uint32_t W> class output {
                     }
                 }
             }
+        }
+
+        // Really only makes sense for output<1>...
+        void toggle(){
+            set_value(~ _value) ;
         }
 
         void operator=(uint32_t v){
