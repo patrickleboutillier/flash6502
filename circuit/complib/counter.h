@@ -8,7 +8,7 @@
 
 template <uint32_t W> class counter : public component {
     public:
-        input<1> up, down, load ;
+        input<1> up, down, load, clear ;
         input<W> data_in ;
         output<1> co, bo ;
         output<W> data_out ;
@@ -17,7 +17,7 @@ template <uint32_t W> class counter : public component {
         uint8_t _prev_up, _prev_down ;
 
     public:
-        counter() : up(this), down(this), load(this) {
+        counter() : up(this), down(this), load(this), clear(this) {
             _cnt = 0 ;
             co = 1 ;
             bo = 1 ;
@@ -30,6 +30,10 @@ template <uint32_t W> class counter : public component {
         }
 
         void always(){
+            if (clear){
+                _cnt = 0 ;
+            }
+            
             if (load){
                 _cnt = data_in ;
             }

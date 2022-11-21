@@ -49,6 +49,11 @@ template <uint32_t W> class output {
             set_value(~ _value) ;
         }
 
+        void pulse(){
+            toggle() ;
+            toggle() ;
+        }
+
         void operator=(uint32_t v){
             set_value(v) ;
         }

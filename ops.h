@@ -1121,3 +1121,35 @@ uint8_t tya(uint8_t tick) {
     }
     return 1 ;
 }
+
+
+uint8_t rst(uint8_t tick){
+    switch (tick) {
+        // Set SP and STATUS to 0
+        case 0x00:  break ;
+        case 0x01:  SP_s.toggle() ; STATUS_src_data = 1 ; STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ; break ;
+        case 0x02:  SP_s.toggle() ; STATUS_src_data = 0 ; STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; break ;
+        case 0x03:  break ;
+
+        // Set ALU_c to 0 
+        case 0x10:  STATUS_alu_c_from_C = 1 ; break ;
+        case 0x11:  STATUS_alu_c_set = 1 ; break ;
+        case 0x12:  STATUS_alu_c_set = 0 ; break ;
+        case 0x13:  STATUS_alu_c_from_C = 0 ; break ;
+
+        // Decrement SP thrice to reach 0xFD
+        case 0x20:  SP_down = 0 ; break ;
+        case 0x21:  SP_down = 1 ; break ;
+        case 0x22:  SP_down = 0 ; break ;
+        case 0x23:  SP_down = 1 ; break ;
+
+        // Decrement SP twice to reach 0xFD
+        case 0x30:  SP_down = 0 ; break ;
+        case 0x31:  SP_down = 1 ; break ;
+        case 0x32:  break ;
+        case 0x33:  break ;
+
+        default:    return 0 ;
+    }
+    return 1 ;    
+}

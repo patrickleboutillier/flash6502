@@ -22,7 +22,7 @@ class RAM : public component {
             if (set){
                 _mem[addrh][addrl] = data_in ;
             }
-            if (enable){
+            if (! enable){ // negative logic
                 data_out.drive(true) ;
                 data_out = _mem[addrh][addrl] ;
             }

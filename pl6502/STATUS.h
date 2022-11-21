@@ -37,9 +37,9 @@ class STATUS : public component {
         input<1> data_enable ;
         output<1> N, V, Z, C, alu_c ;
         output<8> data_out ;
+        reg<8> sreg ;
     private:
         STATUS_ROM srom ;
-        reg<8> sreg ;
         output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in ;
         output<1> srom_nz_set, srom_v_set, srom_c_set, srom_alu_c_set, srom_alu_c_from_C ;
         output<1> srom_n_old, srom_v_old, srom_z_old, srom_c_old, srom_alu_c_old ;
