@@ -13,7 +13,6 @@
 
     Control signals:
         - nz_set, v_set, c_set, alu_c_set
-        - b_in
         - src_data, data_enable
 */
 
@@ -31,7 +30,7 @@
 
 class STATUS : public component {
     public:
-        input<1> n_in, v_in, z_in, c_in, b_in ;
+        input<1> n_in, v_in, z_in, c_in ;
         input<1> nz_set, v_set, c_set, alu_c_set, alu_c_from_C, src_data ;
         input<1> set ;
         input<8> data_in ;
@@ -47,7 +46,7 @@ class STATUS : public component {
         output<1> sreg_enable, sreg_set ;
         output<8> sreg_data_in ;
     public:
-        STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
+        STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), 
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
                    src_data(this), set(this), data_in(), data_enable(this) {
             sreg_set.connect(sreg.set) ;
@@ -115,7 +114,7 @@ class STATUS : public component {
             if (data_enable){
                 // This can be implemented with a 373 with the set always on 
                 data_out.drive(true) ;
-                uint8_t P = N << 7 | V << 6 | 1 << 5 | b_in << 4 | Z << 1 | C ;
+                uint8_t P = N << 7 | V << 6 | 1 << 5 | 1 << 4 | Z << 1 | C ;
                 data_out.set_value(P) ;
             }
             else {

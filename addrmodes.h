@@ -150,8 +150,8 @@ uint8_t rel(uint8_t tick){ // 7 cycles
     
         case 0x30:  ALU_op = ALU_ADD ; 
                     ALU_e.toggle() ; STATUS_alu_c_set = 1 ; break ;
-        case 0x31:  EAl_s.toggle() ; STATUS_set = 1 ; break ;
-        case 0x32:  EAl_s.toggle() ; STATUS_set = 0 ; break ;
+        case 0x31:  EAl_s.toggle() ; STATUS_s = 1 ; break ;
+        case 0x32:  EAl_s.toggle() ; STATUS_s = 0 ; break ;
         case 0x33:  ALU_e.toggle() ; STATUS_alu_c_set = 0 ; break ;
     
         case 0x40:  EAh_e.toggle() ; Ah2D_e.toggle() ; break ;
@@ -212,8 +212,8 @@ uint8_t absx(uint8_t tick) { // 7 cycles
         
         case 0x20:  ALU_op = ALU_ADD ; 
                     ALU_e.toggle() ; STATUS_alu_c_set = 1 ; break ;
-        case 0x21:  EAl_s.toggle() ; STATUS_set = 1 ; break ;
-        case 0x22:  EAl_s.toggle() ; STATUS_set = 0 ; break ;
+        case 0x21:  EAl_s.toggle() ; STATUS_s = 1 ; break ;
+        case 0x22:  EAl_s.toggle() ; STATUS_s = 0 ; break ;
         case 0x23:  ALU_e.toggle() ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x30:  break ;
@@ -256,8 +256,8 @@ uint8_t absy(uint8_t tick) { // 7 cycles
         
         case 0x20:  ALU_op = ALU_ADD ; 
                     ALU_e.toggle() ; STATUS_alu_c_set = 1 ; break ;
-        case 0x21:  EAl_s.toggle() ; STATUS_set = 1 ; break ;
-        case 0x22:  EAl_s.toggle() ; STATUS_set = 0 ; break ;
+        case 0x21:  EAl_s.toggle() ; STATUS_s = 1 ; break ;
+        case 0x22:  EAl_s.toggle() ; STATUS_s = 0 ; break ;
         case 0x23:  ALU_e.toggle() ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x30:  break ;
@@ -426,8 +426,8 @@ uint8_t indy(uint8_t tick) { // 10 cycles
         
         case 0x60:  ALU_op = ALU_ADD ; 
                     ALU_e.toggle() ; STATUS_alu_c_set = 1 ; break ;
-        case 0x61:  EAl_s.toggle() ; STATUS_set = 1 ; break ;
-        case 0x62:  EAl_s.toggle() ; STATUS_set = 0 ; break ;
+        case 0x61:  EAl_s.toggle() ; STATUS_s = 1 ; break ;
+        case 0x62:  EAl_s.toggle() ; STATUS_s = 0 ; break ;
         case 0x63:  ALU_e.toggle() ; STATUS_alu_c_set = 0 ; break ;
         
         case 0x70:  break ;
