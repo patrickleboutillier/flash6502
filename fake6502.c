@@ -22,7 +22,7 @@ counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
 output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PC_e, PCl_s("8"), 
-    SPh_e("10"), SP_s("11"), SP_e("12") ;
+    SP_s("11"), SP_e ;
 output<1> SP_down("37"), SP_up, PC_up("38"), PC_down, SP_clear, PC_clear ;
 
 RAM RAM ;
@@ -106,7 +106,7 @@ void init6502(){
 
     SPh_v.connect(SPht.data_in) ;
     SPh_v = 0x01 ;
-    SPh_e.connect(SPht.enable) ;
+    SP_e.connect(SPht.enable) ;
     SPht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;

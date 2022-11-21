@@ -541,20 +541,20 @@ uint8_t jsr(uint8_t tick) {
         case 0x32:  B_s.toggle() ; break ;
         case 0x33:  break ;  
 
-        case 0x40:  ALU_op = ALU_SBC ; SPh_e.toggle() ; SP_e.toggle() ; ALU_e.toggle() ; break ;
+        case 0x40:  ALU_op = ALU_SBC ; SP_e.toggle() ; ALU_e.toggle() ; break ;
         case 0x41:  RAM_s.toggle() ; break ;
         case 0x42:  RAM_s.toggle() ; SP_down = 0 ; break ;
-        case 0x43:  ALU_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; SP_down = 1 ; break ;
+        case 0x43:  ALU_e.toggle() ; SP_e.toggle() ; SP_down = 1 ; break ;
         
         case 0x50:  PC_e.toggle() ; Al2D_e.toggle() ; break ;
         case 0x51:  B_s.toggle() ; break ;
         case 0x52:  B_s.toggle() ; break ;
         case 0x53:  Al2D_e.toggle() ; PC_e.toggle() ; break ;
         
-        case 0x60:  ALU_op = ALU_PASS ; SPh_e.toggle() ; SP_e.toggle() ; ALU_e.toggle() ; break ;
+        case 0x60:  ALU_op = ALU_PASS ; SP_e.toggle() ; ALU_e.toggle() ; break ;
         case 0x61:  RAM_s.toggle() ; break ;
         case 0x62:  RAM_s.toggle() ; SP_down = 0 ; break ;
-        case 0x63:  ALU_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; SP_down = 1 ; break ;
+        case 0x63:  ALU_e.toggle() ; SP_e.toggle() ; SP_down = 1 ; break ;
         
         case 0x70:  EAh_e.toggle() ; Ah2D_e.toggle() ; break ;
         case 0x71:  PCh_s.toggle() ; break ;
@@ -670,10 +670,10 @@ uint8_t ora(uint8_t tick) {
 
 uint8_t pha(uint8_t tick) {
     switch (tick) {
-        case 0x00:  ACC_e.toggle() ; SPh_e.toggle() ; SP_e.toggle() ; break ;
+        case 0x00:  ACC_e.toggle() ; SP_e.toggle() ; break ;
         case 0x01:  RAM_s.toggle() ; break ;
         case 0x02:  RAM_s.toggle() ; SP_down = 0 ; break ;
-        case 0x03:  ACC_e.toggle() ; SPh_e.toggle() ; SP_e.toggle() ; SP_down = 1 ; break ;
+        case 0x03:  ACC_e.toggle() ; SP_e.toggle() ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }
@@ -683,10 +683,10 @@ uint8_t pha(uint8_t tick) {
 
 uint8_t php(uint8_t tick) {
     switch (tick) {
-        case 0x00:  SPh_e.toggle() ; SP_e.toggle() ; STATUS_e.toggle() ; break ;
+        case 0x00:  SP_e.toggle() ; STATUS_e.toggle() ; break ;
         case 0x01:  RAM_s.toggle() ; break ;
         case 0x02:  RAM_s.toggle() ; SP_down = 0 ; break ;
-        case 0x03:  SPh_e.toggle() ; SP_e.toggle() ; STATUS_e.toggle() ; SP_down = 1 ; break ;
+        case 0x03:  SP_e.toggle() ; STATUS_e.toggle() ; SP_down = 1 ; break ;
         
         default:    return 0 ;
     }
@@ -705,10 +705,10 @@ uint8_t pla(uint8_t tick) {
         case 0x12:  SP_s.toggle() ; break ;
         case 0x13:  ALU_e.toggle() ; break ;
         
-        case 0x20:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; break ;
+        case 0x20:  SP_e.toggle() ; RAM_e.toggle() ; break ;
         case 0x21:  B_s.toggle() ; break ;
         case 0x22:  B_s.toggle() ; break ;
-        case 0x23:  RAM_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; break ;
+        case 0x23:  RAM_e.toggle() ; SP_e.toggle() ; break ;
         
         case 0x30:  ALU_op = ALU_PASS ; 
                     ALU_e.toggle() ; STATUS_nz_set = 1 ; break ;
@@ -734,11 +734,11 @@ uint8_t plp(uint8_t tick) {
         case 0x12:  SP_s.toggle() ; break ;
         case 0x13:  ALU_e.toggle() ; break ;
         
-        case 0x20:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; 
+        case 0x20:  SP_e.toggle() ; RAM_e.toggle() ; 
                     STATUS_src_data = 1 ; STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ; break ;
         case 0x21:  STATUS_s = 1 ; break ;
         case 0x22:  STATUS_s = 0 ; break ;
-        case 0x23:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; 
+        case 0x23:  SP_e.toggle() ; RAM_e.toggle() ; 
                     STATUS_src_data = 0 ; STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; break ;
         default:    return 0 ;
     }
@@ -830,11 +830,11 @@ uint8_t rti(uint8_t tick) {
         case 0x12:  SP_s.toggle() ; break ;
         case 0x13:  ALU_e.toggle() ; break ;
         
-        case 0x20:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ;  
+        case 0x20:  SP_e.toggle() ; RAM_e.toggle() ;  
                     STATUS_src_data = 1 ; STATUS_nz_set = 1 ; STATUS_v_set = 1 ; STATUS_c_set = 1 ; break ;
         case 0x21:  STATUS_s = 1 ; break ;
         case 0x22:  STATUS_s = 0 ; break ;
-        case 0x23:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; 
+        case 0x23:  SP_e.toggle() ; RAM_e.toggle() ; 
                     STATUS_src_data = 0 ; STATUS_nz_set = 0 ; STATUS_v_set = 0 ; STATUS_c_set = 0 ; break ;
 
         case 0x30:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
@@ -847,10 +847,10 @@ uint8_t rti(uint8_t tick) {
         case 0x42:  SP_s.toggle() ; break ;
         case 0x43:  ALU_e.toggle() ; break ;
         
-        case 0x50:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; break ;
+        case 0x50:  SP_e.toggle() ; RAM_e.toggle() ; break ;
         case 0x51:  PCl_s.toggle() ; break ;
         case 0x52:  PCl_s.toggle() ; break ;
-        case 0x53:  RAM_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; break ;
+        case 0x53:  RAM_e.toggle() ; SP_e.toggle() ; break ;
         
         case 0x60:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
         case 0x61:  B_s.toggle() ; break ;
@@ -862,10 +862,10 @@ uint8_t rti(uint8_t tick) {
         case 0x72:  SP_s.toggle() ; break ;
         case 0x73:  ALU_e.toggle() ; break ;
         
-        case 0x80:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; break ;
+        case 0x80:  SP_e.toggle() ; RAM_e.toggle() ; break ;
         case 0x81:  PCh_s.toggle() ; break ;
         case 0x82:  PCh_s.toggle() ; break ;
-        case 0x83:  RAM_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; break ;
+        case 0x83:  RAM_e.toggle() ; SP_e.toggle() ; break ;
         
         default:    return 0 ;
     }
@@ -885,10 +885,10 @@ uint8_t rts(uint8_t tick) {
         case 0x12:  SP_s.toggle() ; break ;
         case 0x13:  ALU_e.toggle() ; break ;
         
-        case 0x20:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; break ;
+        case 0x20:  SP_e.toggle() ; RAM_e.toggle() ; break ;
         case 0x21:  PCl_s.toggle() ; break ;
         case 0x22:  PCl_s.toggle() ; break ;
-        case 0x23:  RAM_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; break ;
+        case 0x23:  RAM_e.toggle() ; SP_e.toggle() ; break ;
         
         case 0x30:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
         case 0x31:  B_s.toggle() ; break ;
@@ -900,10 +900,10 @@ uint8_t rts(uint8_t tick) {
         case 0x42:  SP_s.toggle() ; break ;
         case 0x43:  ALU_e.toggle() ; break ;
         
-        case 0x50:  SPh_e.toggle() ; SP_e.toggle() ; RAM_e.toggle() ; break ;
+        case 0x50:  SP_e.toggle() ; RAM_e.toggle() ; break ;
         case 0x51:  PCh_s.toggle() ; break ;
         case 0x52:  PCh_s.toggle() ; PC_up = 0 ; break ;
-        case 0x53:  RAM_e.toggle() ; SP_e.toggle() ; SPh_e.toggle() ; PC_up = 1 ; break ;
+        case 0x53:  RAM_e.toggle() ; SP_e.toggle() ; PC_up = 1 ; break ;
         
         default:    return 0 ;
     }
