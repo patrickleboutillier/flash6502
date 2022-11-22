@@ -41,8 +41,8 @@ tristate<8> ALU2D ;
 output<1> ALU_e("27") ;
 
 STATUS STATUS ;
-output<1> STATUS_nz_set("29"), STATUS_v_set("30"), STATUS_c_set("31"), STATUS_alu_c_set("32"), STATUS_alu_c_from_C("33"), STATUS_s ;
-output<1> STATUS_e, STATUS_src_data("36") ;
+output<1> STATUS_NZ_s("29"), STATUS_V_s("30"), STATUS_C_s("31"), STATUS_ALU_C_s("32"), STATUS_ALU_C_from_C("33"), STATUS_s ;
+output<1> STATUS_e, STATUS_src("36") ;
 
 reg<8> INST ;
 output<1> INST_s("37"), INST_e ;
@@ -146,14 +146,14 @@ void init6502(){
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
 
-    STATUS_nz_set.connect(STATUS.nz_set) ;
-    STATUS_v_set.connect(STATUS.v_set) ;
-    STATUS_c_set.connect(STATUS.c_set) ;
-    STATUS_alu_c_set.connect(STATUS.alu_c_set) ;
-    STATUS_alu_c_from_C.connect(STATUS.alu_c_from_C) ;
+    STATUS_NZ_s.connect(STATUS.nz_set) ;
+    STATUS_V_s.connect(STATUS.v_set) ;
+    STATUS_C_s.connect(STATUS.c_set) ;
+    STATUS_ALU_C_s.connect(STATUS.alu_c_set) ;
+    STATUS_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
     STATUS_s.connect(STATUS.set) ;
     STATUS_e.connect(STATUS.data_enable) ;
-    STATUS_src_data.connect(STATUS.src_data) ;
+    STATUS_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
