@@ -21,7 +21,7 @@ reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
-output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PC_e(1), PCl_s("8"), 
+output<1> EAh_s("2"), EAh_e(1), EAl_s("4"), EAl_e(1), PCh_s("6"), PC_e(1), PCl_s("8"), 
     SP_s("11"), SP_e(1) ;
 output<1> SP_down("37"), SP_up, PC_up("38"), PC_down, SP_clear, PC_clear ;
 
@@ -29,11 +29,11 @@ RAM RAM ;
 output<1> RAM_s("13"), RAM_e(1) ;
 
 reg<8> ACC ;
-output<1> ACC_s("15"), ACC_e("16") ;
+output<1> ACC_s("15"), ACC_e(1) ;
 reg<8> A, B ;
-output<1> A_s("17"), A_e, B_s("18"), B_e ;
+output<1> A_s("17"), A_e(1), B_s("18"), B_e(1) ;
 reg<8> X, Y ;
-output<1> X_s("19"), X_e("20"), Y_s("21"), Y_e("22") ;
+output<1> X_s("19"), X_e(1), Y_s("21"), Y_e(1) ;
 
 ALU ALU ;
 output<4> ALU_op("23,24,25,26") ;
@@ -45,7 +45,7 @@ output<1> STATUS_NZ_s("29"), STATUS_V_s("30"), STATUS_C_s("31"), STATUS_ALU_C_s(
 output<1> STATUS_e, STATUS_src("36") ;
 
 reg<8> INST ;
-output<1> INST_s("37"), INST_e ;
+output<1> INST_s("37"), INST_e(1) ;
 
 
 void init6502(){
@@ -117,12 +117,12 @@ void init6502(){
     DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
     A_s.connect(A.set) ;
-    A_e = 1 ;
+    A_e = 0 ; // always enabled 
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
     B_s.connect(B.set) ;
-    B_e = 1 ;   
+    B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
     X_e.connect(X.enable) ;
@@ -160,7 +160,7 @@ void init6502(){
     DATA.data_out.connect(INST.data_in) ;
     INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
-    INST_e = 1 ;
+    INST_e = 0 ; // always enabled
 }
 
 

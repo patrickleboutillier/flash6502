@@ -37,7 +37,7 @@ template <uint32_t W> class reg : public component {
             if (set){
                 _mem = data_in ;
             }
-            if (enable){
+            if (! enable){ // negative logic
                 data_out.drive(true) ;
                 data_out = _mem ;
             }

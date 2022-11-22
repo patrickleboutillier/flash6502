@@ -48,11 +48,11 @@ class STATUS : public component {
     public:
         STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), 
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
-                   src_data(this), set(this), data_in(), data_enable(this) {
+                   src_data(this), set(this), data_in(), data_enable(this), sreg_enable(1) {
             sreg_set.connect(sreg.set) ;
             sreg_enable.connect(sreg.enable) ;
             sreg_data_in.connect(sreg.data_in) ;
-            sreg_enable = 1 ;
+            sreg_enable = 0 ; // always enabled
 
             srom_n_old.connect(srom.n_old) ;
             srom_v_old.connect(srom.v_old) ;
