@@ -207,6 +207,8 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 };
 
 
+uint64_t default_cw = CU.get_default_cw() ;
+
 int do_inst(){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
@@ -235,7 +237,8 @@ int do_inst(){
                 return step ;
             }
         }
-        // Normally here the control word should be back to the default
+        // Normally here the control word should be back to the default value
+        assert(CU.get_cw() == default_cw) ;
         //if (CU.get_cw() != CU.get_default_cw()){
         //    printf("CW not reset to default: 0x%10lX != 0x%10lX!\n", CU.get_cw(), CU.get_default_cw()) ;
         //}
