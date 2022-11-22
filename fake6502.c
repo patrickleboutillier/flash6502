@@ -21,31 +21,31 @@ reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
-output<1> EAh_s("2"), EAh_e(1), EAl_s("4"), EAl_e(1), PCh_s("6"), PC_e(1), PCl_s("8"), 
-    SP_s("11"), SP_e(1) ;
-output<1> SP_down("37"), SP_up, PC_up("38"), PC_down, SP_clear, PC_clear ;
+output<1> EAh_s, EAh_e(1), EAl_s, EAl_e(1), PCh_s, PC_e(1), PCl_s, 
+    SP_s, SP_e(1) ;
+output<1> SP_down(1), SP_up(1), PC_up(1), PC_down(1), SP_clear, PC_clear ;
 
 RAM RAM ;
-output<1> RAM_s("13"), RAM_e(1) ;
+output<1> RAM_s, RAM_e(1) ;
 
 reg<8> ACC ;
-output<1> ACC_s("15"), ACC_e(1) ;
+output<1> ACC_s, ACC_e(1) ;
 reg<8> A, B ;
-output<1> A_s("17"), A_e(1), B_s("18"), B_e(1) ;
+output<1> A_s, A_e(1), B_s, B_e(1) ;
 reg<8> X, Y ;
-output<1> X_s("19"), X_e(1), Y_s("21"), Y_e(1) ;
+output<1> X_s, X_e(1), Y_s, Y_e(1) ;
 
 ALU ALU ;
-output<4> ALU_op("23,24,25,26") ;
+output<4> ALU_op ;
 tristate<8> ALU2D ;
 output<1> ALU_e(1) ;
 
 STATUS STATUS ;
-output<1> STATUS_NZ_s("29"), STATUS_V_s("30"), STATUS_C_s("31"), STATUS_ALU_C_s("32"), STATUS_ALU_C_from_C("33"), STATUS_s ;
-output<1> STATUS_e, STATUS_src("36") ;
+output<1> STATUS_NZ_s, STATUS_V_s, STATUS_C_s, STATUS_ALU_C_s, STATUS_ALU_C_from_C, STATUS_s ;
+output<1> STATUS_e, STATUS_src ;
 
 reg<8> INST ;
-output<1> INST_s("37"), INST_e(1) ;
+output<1> INST_s, INST_e(1) ;
 
 
 void init6502(){
@@ -73,8 +73,6 @@ void init6502(){
     EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    PC_up = 1 ;
-    PC_down = 1 ;
     DATA.data_out.connect(PCl.data_in) ;
     PCl_s.connect(PCl.load) ;
     PC_up.connect(PCl.up) ;
@@ -93,8 +91,6 @@ void init6502(){
     PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
-    SP_up = 1 ;
-    SP_down = 1 ;
     DATA.data_out.connect(SP.data_in) ;
     SP_s.connect(SP.load) ;
     SP_up.connect(SP.up) ;

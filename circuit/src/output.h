@@ -27,9 +27,6 @@ template <uint32_t W> class output {
             _drive = true ;
         }
 
-        output(const char *name, uint32_t v = 0) : output(v) {
-        } 
-
         void set_value(uint32_t v){
             if ((v != _value)||(! _set)){ 
                 _value = v & _mask ;
