@@ -1,3 +1,28 @@
 - Reintroduce incSP()?
 
- - Implement negative logic where required?
+
+Reset sequence (find an opcode for it?):
+- Clear PC(l/h) (special signal)
+- Write RST instruction to RAM[0]
+    - Write RST to data bus
+    - Toggle RAM_s
+
+    - RST instruction
+        - Load SP with 253 (or with 0 and decrement twice?)
+        - Load status with 0
+        - Set ALU_c to 0
+        - Set PCh, PCl to 0
+
+- Write LOAD instruction to RAM[0]
+   - Write RST to data bus
+    - Toggle RAM_s
+
+    - LOAD instrucion
+        - Set PCh, PCl to 0
+        - Place instruction on the bus
+        - Enable PCl and PCh
+        - Set RAM
+        - Increment PC
+        - 64times
+
+- Load PCl with RAM[0xFFFD], Load PCh with RAM[0xFFFC] // reset vector

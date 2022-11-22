@@ -15,38 +15,37 @@
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
-output<1> Ah2D_e("0"), Al2D_e("1") ;
+output<1> Ah2D_e(1), Al2D_e(1) ;
 
 reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
-output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PCh_e("7"), PCl_s("8"), PCl_e("9"), 
-    SPh_e("10"), SP_s("11"), SP_e("12") ;
-output<1> SP_down("37"), SP_up, PC_up("38"), PC_down ;
+output<1> EAh_s, EAh_e(1), EAl_s, EAl_e(1), PCh_s, PC_e(1), PCl_s, 
+    SP_s, SP_e(1) ;
+output<1> SP_down(1), SP_up(1), PC_up(1), PC_down(1), SP_clear, PC_clear ;
 
 RAM RAM ;
-output<1> RAM_s("13"), RAM_e("14") ;
+output<1> RAM_s, RAM_e(1) ;
 
 reg<8> ACC ;
-output<1> ACC_s("15"), ACC_e("16") ;
+output<1> ACC_s, ACC_e(1) ;
 reg<8> A, B ;
-output<1> A_s("17"), A_e, B_s("18"), B_e ;
+output<1> A_s, A_e(1), B_s, B_e(1) ;
 reg<8> X, Y ;
-output<1> X_s("19"), X_e("20"), Y_s("21"), Y_e("22") ;
+output<1> X_s, X_e(1), Y_s, Y_e(1) ;
 
 ALU ALU ;
-output<4> ALU_op("23,24,25,26") ;
+output<4> ALU_op ;
 tristate<8> ALU2D ;
-output<1> ALU_e("27") ;
+output<1> ALU_e(1) ;
 
 STATUS STATUS ;
-output<1> STATUS_b_in("28") ;
-output<1> STATUS_nz_set("29"), STATUS_v_set("30"), STATUS_c_set("31"), STATUS_alu_c_set("32"), STATUS_alu_c_from_C("33"), STATUS_set("34") ;
-output<1> STATUS_data_enable("35"), STATUS_src_data("36") ;
+output<1> STATUS_NZ_s, STATUS_V_s, STATUS_C_s, STATUS_ALU_C_s, STATUS_ALU_C_from_C, STATUS_s ;
+output<1> STATUS_e, STATUS_src ;
 
 reg<8> INST ;
-output<1> INST_s("37"), INST_e ;
+output<1> INST_s, INST_e(1) ;
 
 
 void init6502(){
@@ -74,37 +73,36 @@ void init6502(){
     EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    PC_up = 1 ;
-    PC_down = 1 ;
     DATA.data_out.connect(PCl.data_in) ;
     PCl_s.connect(PCl.load) ;
     PC_up.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
+    PC_clear.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
-    PCl_e.connect(PClt.enable) ;
+    PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
     PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
+    PC_clear.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
-    PCh_e.connect(PCht.enable) ;
+    PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
-    SP_up = 1 ;
-    SP_down = 1 ;
     DATA.data_out.connect(SP.data_in) ;
     SP_s.connect(SP.load) ;
     SP_up.connect(SP.up) ;
     SP_down.connect(SP.down) ;
+    SP_clear.connect(SP.clear) ;
     SP.data_out.connect(SPlt.data_in) ;
     SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
 
     SPh_v.connect(SPht.data_in) ;
     SPh_v = 0x01 ;
-    SPh_e.connect(SPht.enable) ;
+    SP_e.connect(SPht.enable) ;
     SPht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
@@ -115,12 +113,12 @@ void init6502(){
     DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
     A_s.connect(A.set) ;
-    A_e = 1 ;
+    A_e = 0 ; // always enabled 
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
     B_s.connect(B.set) ;
-    B_e = 1 ;   
+    B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
     X_e.connect(X.enable) ;
@@ -144,22 +142,21 @@ void init6502(){
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
 
-    STATUS_b_in.connect(STATUS.b_in) ;
-    STATUS_nz_set.connect(STATUS.nz_set) ;
-    STATUS_v_set.connect(STATUS.v_set) ;
-    STATUS_c_set.connect(STATUS.c_set) ;
-    STATUS_alu_c_set.connect(STATUS.alu_c_set) ;
-    STATUS_alu_c_from_C.connect(STATUS.alu_c_from_C) ;
-    STATUS_set.connect(STATUS.set) ;
-    STATUS_data_enable.connect(STATUS.data_enable) ;
-    STATUS_src_data.connect(STATUS.src_data) ;
+    STATUS_NZ_s.connect(STATUS.nz_set) ;
+    STATUS_V_s.connect(STATUS.v_set) ;
+    STATUS_C_s.connect(STATUS.c_set) ;
+    STATUS_ALU_C_s.connect(STATUS.alu_c_set) ;
+    STATUS_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
+    STATUS_s.connect(STATUS.set) ;
+    STATUS_e.connect(STATUS.data_enable) ;
+    STATUS_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
     INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
-    INST_e = 1 ;
+    INST_e = 0 ; // always enabled
 }
 
 
@@ -200,7 +197,7 @@ static uint8_t (*addrtable[256])(uint8_t tick) = {
 
 static uint8_t (*optable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
+/* 0 */      brk,  ora,  rst,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
 /* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
 /* 2 */      jsr,  and_,  nop,  rla,  bit,  and_,  rol,  rla,  plp,  and_,  rol,  nop,  bit,  and_,  rol,  rla, /* 2 */
 /* 3 */      bmi,  and_,  nop,  rla,  nop,  and_,  rol,  rla,  sec,  and_,  nop,  rla,  nop,  and_,  rol,  rla, /* 3 */
@@ -253,6 +250,32 @@ int do_inst(){
 }
 
 
+void reset6502(){
+    PC_clear.pulse() ;
+    DATA.data_out = 0x02 ; // RST instruction
+    PC_e.toggle() ; RAM_s.toggle() ;
+    PC_e.toggle() ; RAM_s.toggle() ;
+    DATA.data_out = 0 ;
+    do_inst() ;
+    PC_clear.pulse() ;
+    printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
+}
+
+
+void load6502(uint8_t prog[], int prog_len){
+    PC_clear.pulse() ;
+    for (int i = 0 ; i < prog_len ; i++){
+        DATA.data_out = prog[i] ;
+        PC_e.toggle() ; RAM_s.toggle() ;
+        PC_e.toggle() ; RAM_s.toggle() ;
+        DATA.data_out = 0 ;
+        PC_up.pulse() ;
+    }
+    PC_clear.pulse() ;
+    printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
+}
+
+
 int main(int argc, char *argv[]){
     if (argc < 2){
         printf("Usage: %s SUCCESS_ADDR_IN_HEX\n", argv[0]) ;
@@ -262,19 +285,19 @@ int main(int argc, char *argv[]){
     uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
 
-    FILE *file = fopen("6502_functional_test.bin", "rb") ; 
-    uint8_t mem[0x10000] ;
-    int nb = fread(mem, 1, 0x10000, file) ;
-    for (int i = 0 ; i < nb ; i++){
-        RAM._mem[i >> 8][i & 0xFF] = mem[i] ;
-    }
-    fclose(file) ;
-
     init6502() ;
-    // PCh = 0x00 ;
-    // PCl = 0x00 ;
-    // SP = 0x00 ;
 
+    // Here the reset sequence begins...
+    reset6502() ;
+
+    // Load the program to RAM
+    FILE *file = fopen("6502_functional_test.bin", "rb") ; 
+    uint8_t prog[0x10000] ;
+    int prog_len = fread(prog, 1, 0x10000, file) ;
+    fclose(file) ;
+    load6502(prog, prog_len) ;
+
+    // Start processing instructions.
     int nb_inst = 0, nb_step = 0 ;
     while (1) {
         if ((PCh.data_out << 8 | PCl.data_out) == SUCCESS_ADDR){

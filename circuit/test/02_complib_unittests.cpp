@@ -136,7 +136,7 @@ TEST(test_complib, mux2){
 }
 
 TEST(test_complib, counter){
-    output<1> up, down, load1, load2 ;
+    output<1> up, down, load1, load2, clear1, clear2 ;
     output<4> data_in1, data_in2 ;
     counter<4> c1, c2 ;
     up = 1 ; down = 1 ;
@@ -148,6 +148,9 @@ TEST(test_complib, counter){
     data_in2.connect(c2.data_in) ;
     c1.bo.connect(c2.down) ;
     c1.co.connect(c2.up) ;
+    clear1.connect(c1.clear) ;
+    clear2.connect(c2.clear) ;
+    
     EXPECT_EQ(c1.data_out.get_value(), 0) ;
     EXPECT_EQ(c2.data_out.get_value(), 0) ;
     up = 0 ; up = 1 ;

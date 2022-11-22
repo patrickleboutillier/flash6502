@@ -13,7 +13,6 @@
 
     Control signals:
         - nz_set, v_set, c_set, alu_c_set
-        - b_in
         - src_data, data_enable
 */
 
@@ -31,29 +30,29 @@
 
 class STATUS : public component {
     public:
-        input<1> n_in, v_in, z_in, c_in, b_in ;
+        input<1> n_in, v_in, z_in, c_in ;
         input<1> nz_set, v_set, c_set, alu_c_set, alu_c_from_C, src_data ;
         input<1> set ;
         input<8> data_in ;
         input<1> data_enable ;
         output<1> N, V, Z, C, alu_c ;
         output<8> data_out ;
+        reg<8> sreg ;
     private:
         STATUS_ROM srom ;
-        reg<8> sreg ;
         output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in ;
         output<1> srom_nz_set, srom_v_set, srom_c_set, srom_alu_c_set, srom_alu_c_from_C ;
         output<1> srom_n_old, srom_v_old, srom_z_old, srom_c_old, srom_alu_c_old ;
         output<1> sreg_enable, sreg_set ;
         output<8> sreg_data_in ;
     public:
-        STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), b_in(this),
+        STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), 
                    nz_set(this), v_set(this), c_set(this), alu_c_set(this), alu_c_from_C(this),
-                   src_data(this), set(this), data_in(), data_enable(this) {
+                   src_data(this), set(this), data_in(), data_enable(this), sreg_enable(1) {
             sreg_set.connect(sreg.set) ;
             sreg_enable.connect(sreg.enable) ;
             sreg_data_in.connect(sreg.data_in) ;
-            sreg_enable = 1 ;
+            sreg_enable = 0 ; // always enabled
 
             srom_n_old.connect(srom.n_old) ;
             srom_v_old.connect(srom.v_old) ;
@@ -115,7 +114,7 @@ class STATUS : public component {
             if (data_enable){
                 // This can be implemented with a 373 with the set always on 
                 data_out.drive(true) ;
-                uint8_t P = N << 7 | V << 6 | 1 << 5 | b_in << 4 | Z << 1 | C ;
+                uint8_t P = N << 7 | V << 6 | 1 << 5 | 1 << 4 | Z << 1 | C ;
                 data_out.set_value(P) ;
             }
             else {
