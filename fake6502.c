@@ -11,6 +11,7 @@
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
+#include "signals.h"
 
 
 bus<8> DATA, ADDRh, ADDRl ;
@@ -41,8 +42,8 @@ tristate<8> ALU2D ;
 output<1> ALU_e(1) ;
 
 STATUS STATUS ;
-output<1> STATUS_NZ_s, STATUS_V_s, STATUS_C_s, STATUS_ALU_C_s, STATUS_ALU_C_from_C, STATUS_s ;
-output<1> STATUS_e, STATUS_src ;
+output<1> ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
+output<1> ST_e(1), ST_src ;
 
 reg<8> INST ;
 output<1> INST_s, INST_e(1) ;
@@ -142,14 +143,14 @@ void init6502(){
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
 
-    STATUS_NZ_s.connect(STATUS.nz_set) ;
-    STATUS_V_s.connect(STATUS.v_set) ;
-    STATUS_C_s.connect(STATUS.c_set) ;
-    STATUS_ALU_C_s.connect(STATUS.alu_c_set) ;
-    STATUS_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
-    STATUS_s.connect(STATUS.set) ;
-    STATUS_e.connect(STATUS.data_enable) ;
-    STATUS_src.connect(STATUS.src_data) ;
+    ST_NZ_s.connect(STATUS.nz_set) ;
+    ST_V_s.connect(STATUS.v_set) ;
+    ST_C_s.connect(STATUS.c_set) ;
+    ST_ALU_C_s.connect(STATUS.alu_c_set) ;
+    ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
+    ST_s.connect(STATUS.set) ;
+    ST_e.connect(STATUS.data_enable) ;
+    ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
