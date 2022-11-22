@@ -17,35 +17,24 @@ CONTROL_UNIT CU ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
-//output<1> Ah2D_e(1), Al2D_e(1) ;
 
 reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
-output<8> SPh_v ;
-//output<1> EAh_s, EAh_e(1), EAl_s, EAl_e(1), PCh_s, PC_e(1), PCl_s, 
-    //SP_s, SP_e(1) ;
-//output<1> SP_down(1), SP_up(1), PC_up(1), PC_down(1), 
-output<1> PC_down(1), SP_up(1), SP_clear, PC_clear ;
+output<8> SPh_v(0x01) ;
+output<1> PC_down(1), SP_up(1), SP_clear, PC_clear ; // the signals are not used by the CU 
 
 RAM RAM ;
-//output<1> RAM_s, RAM_e(1) ;
 
 reg<8> ACC ;
-//output<1> ACC_s, ACC_e(1) ;
 reg<8> A, B ;
 output<1> A_e(1), B_e(1) ;
 reg<8> X, Y ;
-//output<1> X_s, X_e(1), Y_s, Y_e(1) ;
 
 ALU ALU ;
-//output<4> ALU_op ;
 tristate<8> ALU2D ;
-//output<1> ALU_e(1) ;
 
 STATUS STATUS ;
-//output<1> ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
-//output<1> ST_e(1), ST_src ;
 
 reg<8> INST ;
 output<1> INST_e(1) ;
@@ -104,7 +93,6 @@ void init6502(){
     SPlt.data_out.connect(ADDRl.data_in) ;
 
     SPh_v.connect(SPht.data_in) ;
-    SPh_v = 0x01 ;
     CU.SP_e.connect(SPht.enable) ;
     SPht.data_out.connect(ADDRh.data_in) ;
 
