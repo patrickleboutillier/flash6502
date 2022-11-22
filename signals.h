@@ -15,7 +15,8 @@ class CONTROL_UNIT {
     CONTROL_UNIT() :    X_e(1), Y_e(1), ACC_e(1), 
                         SP_down(1), SP_e(1), EAl_e(1), PC_up(1), PC_e(1), 
                         ALU_e(1),
-                        Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1){
+                        Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1),
+                        ST_e(1){
 
     }
 } ;
