@@ -235,6 +235,10 @@ int do_inst(){
                 return step ;
             }
         }
+        // Normally here the control word should be back to the default
+        //if (CU.get_cw() != CU.get_default_cw()){
+        //    printf("CW not reset to default: 0x%10lX != 0x%10lX!\n", CU.get_cw(), CU.get_default_cw()) ;
+        //}
     }
 
     return step ;
@@ -275,9 +279,10 @@ int main(int argc, char *argv[]){
 
     uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
-
+    
     init6502() ;
-
+    printf("Default control word is 0x%10lX\n", CU.get_default_cw()) ;
+ 
     // Here the reset sequence begins...
     reset6502() ;
 
