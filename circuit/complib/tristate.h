@@ -17,7 +17,7 @@ template <uint32_t W> class tristate : public component {
         } ;
 
         void always(){
-            if (enable){
+            if (! enable){ // negative logic
                 data_out.drive(true) ;
                 data_out = data_in ;
             }

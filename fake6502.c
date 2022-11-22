@@ -15,14 +15,14 @@
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
-output<1> Ah2D_e("0"), Al2D_e("1") ;
+output<1> Ah2D_e(1), Al2D_e(1) ;
 
 reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v ;
-output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PC_e, PCl_s("8"), 
-    SP_s("11"), SP_e ;
+output<1> EAh_s("2"), EAh_e("3"), EAl_s("4"), EAl_e("5"), PCh_s("6"), PC_e(1), PCl_s("8"), 
+    SP_s("11"), SP_e(1) ;
 output<1> SP_down("37"), SP_up, PC_up("38"), PC_down, SP_clear, PC_clear ;
 
 RAM RAM ;
@@ -38,7 +38,7 @@ output<1> X_s("19"), X_e("20"), Y_s("21"), Y_e("22") ;
 ALU ALU ;
 output<4> ALU_op("23,24,25,26") ;
 tristate<8> ALU2D ;
-output<1> ALU_e("27") ;
+output<1> ALU_e(1) ;
 
 STATUS STATUS ;
 output<1> STATUS_NZ_s("29"), STATUS_V_s("30"), STATUS_C_s("31"), STATUS_ALU_C_s("32"), STATUS_ALU_C_from_C("33"), STATUS_s ;
