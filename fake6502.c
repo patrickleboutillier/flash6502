@@ -207,46 +207,63 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 };
 
 
-uint64_t default_cw = CU.get_default_cw() ;
-
 int do_inst(){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
     int step = 0 ;
     for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            uint8_t tick = step << 4 | phase ;
-            if (! fetch_done){
-                if (fetch(tick)){
-                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
-                    continue ;
-                } 
-                fetch_done = true ;
-                addr_start = step << 4 ;
-            }
-            if (! addr_done){
-                if ((*addrtable[INST])(tick - addr_start)){
-                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
-                    continue ;
+            #if 0
+                uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                CU.apply_cw(cw) ;
+                assert(CU.make_cw() == cw) ;
+            #else
+                uint8_t tick = step << 4 | phase ;
+                if (! fetch_done){
+                    if (fetch(tick)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                        //CU.apply_cw(cw) ;
+                        //assert(CU.make_cw() == cw) ;
+                        continue ;
+                    } 
+                    fetch_done = true ;
+                    addr_start = step << 4 ;
                 }
-                addr_done = true ;
-                op_start = step << 4 ;
-            }
-            if (! op_done){
-                if ((*optable[INST])(tick - op_start)){
-                    //if (CU.make_cw() != CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase))
-                    //    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX, 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
-                    //        CU.make_cw(), CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
-                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
-                    continue ;
+                if (! addr_done){
+                    if ((*addrtable[INST])(tick - addr_start)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                        //CU.apply_cw(cw) ;
+                        //assert(CU.make_cw() == cw) ;
+                        continue ;
+                    }
+                    addr_done = true ;
+                    op_start = step << 4 ;
                 }
-                // Optimization
-                // return step ;
-            }
+                if (! op_done){
+                    if ((*optable[INST])(tick - op_start)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        //if (CU.make_cw() != cw)
+                        //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
+                        //        CU.make_cw(), cw) ;
+                        assert(CU.make_cw() == cw) ;
+                        //CU.apply_cw(cw) ;
+                        //assert(CU.make_cw() == cw) ;
+                        continue ;
+                    }
+                    // Optimization
+                    // return step ;
+                    else {
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                    }
+                }
+            #endif
         }
 
         // Normally here the control word should be back to the default value
-        assert(CU.make_cw() == default_cw) ;
+        assert(CU.make_cw() == CU.get_default_cw()) ;
         //if (CU.make_cw() != CU.get_default_cw()){
         //    printf("CW not reset to default: 0x%010lX != 0x%010lX!\n", CU.make_cw(), CU.get_default_cw()) ;
         //}
@@ -263,7 +280,7 @@ void generate_microcode(){
         uint8_t inst = i >> 4 ;
 
         uint8_t addr_start = 0, op_start = 0 ;
-        bool fetch_done = false, addr_done = false, op_done = false ;
+        bool fetch_done = false, addr_done = false ;
         int step = 0 ;
         for (; step < 16 ; step++){
             for (int phase = 0 ; phase < 4 ; phase++){
@@ -294,12 +311,9 @@ void generate_microcode(){
                     addr_done = true ;
                     op_start = step << 4 ;
                 }
-                if (! op_done){
-                    (*optable[inst])(tick - op_start) ;
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
-                        CU.make_cw()) ;
-                    continue ;
-                }
+                (*optable[inst])(tick - op_start) ;
+                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                    CU.make_cw()) ;
             }
         }
     }
@@ -370,5 +384,8 @@ int main(int argc, char *argv[]){
 
         nb_step += do_inst() ;
         nb_inst++ ;
+        if ((nb_inst % 100000) == 0){
+            printf("%d instructions executed.\n", nb_inst) ;
+        }
     }
 }

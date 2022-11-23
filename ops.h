@@ -784,34 +784,34 @@ uint8_t plp(uint8_t tick) {
 uint8_t rol(uint8_t tick) {
     if ((INST & 0xF) == 0xA){
         switch (tick) {
-            case 0x00:  CU.ST_ALU_C_from_C.toggle() ; break ;
-            case 0x01:  CU.ST_ALU_C_s.toggle() ; CU.ST_s.toggle() ; CU.ST_s.toggle() ; break ;
-            case 0x02:  CU.ST_ALU_C_s.toggle() ; break ;
-            case 0x03:  CU.ST_ALU_C_from_C.toggle() ; break ;
+            case 0x00:  CU.ST_ALU_C_from_C.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+            case 0x01:  CU.ST_s.toggle() ; break ;
+            case 0x02:  CU.ST_s.toggle() ; break ;
+            case 0x03:  CU.ST_ALU_C_from_C.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
 
             case 0x10:  CU.ALU_op = ALU_ROL ; 
-                        CU.ALU_e.toggle() ; break ;
-            case 0x11:  CU.ACC_s.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_s.toggle() ; CU.ST_s.toggle() ; break ;
-            case 0x12:  CU.ACC_s.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
+                        CU.ALU_e.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
+            case 0x11:  CU.ACC_s.toggle() ; CU.ST_s.toggle() ; break ;
+            case 0x12:  CU.ACC_s.toggle() ; CU.ST_s.toggle() ; break ;
             case 0x13:  CU.ALU_op = 0 ; 
-                        CU.ALU_e.toggle() ; break ;
+                        CU.ALU_e.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
             
             default:    return 0 ;
         }
     }
     else {
         switch (tick) {
-            case 0x00:  CU.ST_ALU_C_from_C.toggle() ; break ;
-            case 0x01:  CU.ST_ALU_C_s.toggle() ; CU.ST_s.toggle() ; CU.ST_s.toggle() ; break ;
-            case 0x02:  CU.ST_ALU_C_s.toggle() ; break ;
-            case 0x03:  CU.ST_ALU_C_from_C.toggle() ; break ;
+            case 0x00:  CU.ST_ALU_C_from_C.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+            case 0x01:  CU.ST_s.toggle() ; break ;
+            case 0x02:  CU.ST_s.toggle() ; break ;
+            case 0x03:  CU.ST_ALU_C_from_C.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
 
             case 0x10:  CU.ALU_op = ALU_ROL ; 
-                        CU.EAh_e.toggle() ; CU.EAl_e.toggle() ; CU.ALU_e.toggle() ; break ;
-            case 0x11:  CU.RAM_s.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_s.toggle() ; CU.ST_s.toggle() ; break ;
-            case 0x12:  CU.RAM_s.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
+                        CU.EAh_e.toggle() ; CU.EAl_e.toggle() ; CU.ALU_e.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
+            case 0x11:  CU.RAM_s.toggle() ; CU.ST_s.toggle() ; break ;
+            case 0x12:  CU.RAM_s.toggle() ; CU.ST_s.toggle() ; break ;
             case 0x13:  CU.ALU_op = 0 ; 
-                        CU.ALU_e.toggle() ; CU.EAl_e.toggle() ; CU.EAh_e.toggle() ; break ;
+                        CU.ALU_e.toggle() ; CU.EAl_e.toggle() ; CU.EAh_e.toggle() ; CU.ST_C_s.toggle() ; CU.ST_NZ_s.toggle() ; break ;
 
             default:    return 0 ;
         }
@@ -1186,10 +1186,10 @@ uint8_t tya(uint8_t tick) {
 uint8_t rst(uint8_t tick){
     switch (tick) {
         // Set SP and STATUS to 0
-        case 0x00:  break ;
-        case 0x01:  CU.SP_s.toggle() ; CU.ST_src.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_V_s.toggle() ; CU.ST_C_s.toggle() ; break ;
-        case 0x02:  CU.SP_s.toggle() ; CU.ST_src.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_V_s.toggle() ; CU.ST_C_s.toggle() ; break ;
-        case 0x03:  break ;
+        case 0x00:  CU.ST_src.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_V_s.toggle() ; CU.ST_C_s.toggle() ; break ;
+        case 0x01:  CU.SP_s.toggle() ; CU.ST_s.toggle() ; break ;
+        case 0x02:  CU.SP_s.toggle() ; CU.ST_s.toggle() ; break ;
+        case 0x03:  CU.ST_src.toggle() ; CU.ST_NZ_s.toggle() ; CU.ST_V_s.toggle() ; CU.ST_C_s.toggle() ; break ;
 
         // Set ALU_c to 0 
         case 0x10:  CU.ST_ALU_C_from_C.toggle() ; break ;
