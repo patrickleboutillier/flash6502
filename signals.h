@@ -3,6 +3,7 @@
 class CONTROL_UNIT {
     private:
         uint64_t _default ;
+        uint64_t _prev_cw ;
 
     public:
         // 1
@@ -24,6 +25,7 @@ class CONTROL_UNIT {
                         ST_e(1){
 
         _default = make_cw() ;
+        _prev_cw = _default ;
     }
 
     uint64_t get_default_cw(){
@@ -35,12 +37,16 @@ class CONTROL_UNIT {
     }
 
     void apply_cw(uint64_t cw){
+        //if (cw == _prev_cw){
+        //    return ;
+        //}
+
         X_s = cw >> 0 ;
         X_e = cw >> 1 ;
         Y_s = cw >> 2 ;
         Y_e = cw >> 3 ;
         ACC_s = cw >> 4 ;
-        ACC_e  = cw >> 5 ;
+        ACC_e = cw >> 5 ;
         // 6
         // 7
         // Chip 2
@@ -76,6 +82,8 @@ class CONTROL_UNIT {
         ST_ALU_C_s = cw >> 37 ;
         ST_ALU_C_from_C = cw >> 38 ;
         ST_s = cw >> 39 ;
+
+        _prev_cw = cw ;
     }
 
     uint64_t make_cw(){
@@ -86,7 +94,7 @@ class CONTROL_UNIT {
             Y_s << 2 |
             Y_e << 3 |
             ACC_s << 4 |
-            ACC_e  << 5 |
+            ACC_e << 5 |
             // 6
             // 7
             // Chip 2
