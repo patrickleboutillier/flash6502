@@ -12,7 +12,7 @@ template <uint32_t W> class tristate : public component {
         output<W> data_out ;
 
     public:
-        tristate() : enable(this) {
+        tristate() : data_in(this), enable(this) {
             data_out.drive(false) ;
         } ;
 

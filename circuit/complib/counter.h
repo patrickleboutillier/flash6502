@@ -17,7 +17,7 @@ template <uint32_t W> class counter : public component {
         uint8_t _prev_up, _prev_down ;
 
     public:
-        counter() : up(this), down(this), load(this), clear(this) {
+        counter() : up(this), down(this), load(this), clear(this), data_in(this) {
             _cnt = 0 ;
             co = 1 ;
             bo = 1 ;
