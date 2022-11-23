@@ -218,7 +218,7 @@ int do_inst(){
             uint8_t tick = step << 4 | phase ;
             if (! fetch_done){
                 if (fetch(tick)){
-                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
+                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
                     continue ;
                 } 
                 fetch_done = true ;
@@ -226,7 +226,7 @@ int do_inst(){
             }
             if (! addr_done){
                 if ((*addrtable[INST])(tick - addr_start)){
-                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
+                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
                     continue ;
                 }
                 addr_done = true ;
@@ -234,11 +234,14 @@ int do_inst(){
             }
             if (! op_done){
                 if ((*optable[INST])(tick - op_start)){
-                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
+                    //if (CU.make_cw() != CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase))
+                    //    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX, 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
+                    //        CU.make_cw(), CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
+                    assert(CU.make_cw() == CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase)) ;
                     continue ;
                 }
-                // OPTIM
-                return step ;
+                // Optimization
+                // return step ;
             }
         }
 
@@ -256,8 +259,8 @@ int do_inst(){
 void generate_microcode(){
     printf("uint64_t microcode[] = {\n") ;
     for (int i = 0 ; i < 4096 ; i++){
-        uint8_t inst = i & 0b11111111 ;
-        uint8_t flags = (i >> 8) & 0b1111 ;
+        uint8_t flags = i & 0b1111 ;
+        uint8_t inst = i >> 4 ;
 
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false, op_done = false ;
@@ -275,7 +278,7 @@ void generate_microcode(){
 
                 if (! fetch_done){
                     if (fetch(tick)){
-                        printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
                             CU.make_cw()) ;
                         continue ;
                     } 
@@ -284,7 +287,7 @@ void generate_microcode(){
                 }
                 if (! addr_done){
                     if ((*addrtable[inst])(tick - addr_start)){
-                        printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
                             CU.make_cw()) ;
                         continue ;
                     }
@@ -293,7 +296,7 @@ void generate_microcode(){
                 }
                 if (! op_done){
                     (*optable[inst])(tick - op_start) ;
-                    printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
                         CU.make_cw()) ;
                     continue ;
                 }
@@ -343,7 +346,7 @@ int main(int argc, char *argv[]){
         generate_microcode() ;
         exit(0) ; 
     }
-    printf("Default control word is 0x%10lX\n", CU.get_default_cw()) ;
+    printf("Default control word is 0x%010lX\n", CU.get_default_cw()) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
     
 

@@ -30,8 +30,52 @@ class CONTROL_UNIT {
         return _default ; 
     }
 
-    uint64_t get_cw(uint8_t flags, uint8_t inst, uint8_t step, uint8_t phase){
-        return microcode[flags << 14 | inst << 6 | step << 2 | phase] ;
+    uint64_t get_cw(uint8_t inst, uint8_t flags, uint8_t step, uint8_t phase){
+        return microcode[inst << 10 | flags << 6 | step << 2 | phase] ;
+    }
+
+    void apply_cw(uint64_t cw){
+        X_s = cw >> 0 ;
+        X_e = cw >> 1 ;
+        Y_s = cw >> 2 ;
+        Y_e = cw >> 3 ;
+        ACC_s = cw >> 4 ;
+        ACC_e  = cw >> 5 ;
+        // 6
+        // 7
+        // Chip 2
+        SP_down = cw >> 8 ;
+        SP_s = cw >> 9 ;
+        SP_e = cw >> 10 ;
+        EAl_s = cw >> 11 ;
+        EAl_e = cw >> 12 ;
+        PC_up = cw >> 13 ;
+        PCl_s = cw >> 14 ;
+        PC_e  = cw >> 15 ;
+        // Chip 3
+        ALU_op = cw >> 16 ; 
+        A_s = cw >> 20 ;
+        ALU_e = cw >> 21 ; 
+        B_s = cw >> 22 ;
+        // 23
+        // Chip 4
+        Ah2D_e = cw >> 24 ;
+        INST_s = cw >> 25 ;
+        RAM_s = cw >> 26 ;
+        RAM_e = cw >> 27 ;
+        Al2D_e = cw >> 28 ;
+        EAh_s = cw >> 29 ;
+        EAh_e = cw >> 30 ;
+        PCh_s = cw >> 31 ;
+        // Chip 5
+        ST_e = cw >> 32 ;
+        ST_src = cw >> 33 ;
+        ST_NZ_s = cw >> 34 ;
+        ST_V_s = cw >> 35 ;
+        ST_C_s = cw >> 36 ;
+        ST_ALU_C_s = cw >> 37 ;
+        ST_ALU_C_from_C = cw >> 38 ;
+        ST_s = cw >> 39 ;
     }
 
     uint64_t make_cw(){
