@@ -984,23 +984,27 @@ uint8_t sbc(uint8_t tick) {
 
 uint8_t sec(uint8_t tick) {
     switch (tick) {
-        case 0x00:  break ;
+        // The STATUS word is never 0, at a minimum the constant bits will be on.
+        // Decrementing it will always produce a carry.
+        case 0x00:  CU.ST_e.toggle() ; break ;
         case 0x01:  CU.B_s.toggle() ; break ;
         case 0x02:  CU.B_s.toggle() ; break ;
-        case 0x03:  break ;
+        case 0x03:  CU.ST_e.toggle() ; break ;
 
+        // This is a (rentrance) bug !
+        /*
         case 0x10:  CU.ALU_op = ALU_INC ; 
                     CU.ALU_e.toggle() ; break ;
         case 0x11:  CU.B_s.toggle() ; break ;
         case 0x12:  CU.B_s.toggle() ; break ;
         case 0x13:  CU.ALU_op = 0 ; 
                     CU.ALU_e.toggle() ; break ;
-        
-        case 0x20:  CU.ALU_op = ALU_DEC ; 
+        */
+        case 0x10:  CU.ALU_op = ALU_DEC ; 
                     CU.ST_C_s.toggle() ; break ;
-        case 0x21:  CU.ST_s.toggle() ; break ;
-        case 0x22:  CU.ST_s.toggle() ; break ;
-        case 0x23:  CU.ALU_op = 0 ; 
+        case 0x11:  CU.ST_s.toggle() ; break ;
+        case 0x12:  CU.ST_s.toggle() ; break ;
+        case 0x13:  CU.ALU_op = 0 ; 
                     CU.ST_C_s.toggle() ; break ;
         
         default:    return 0 ;

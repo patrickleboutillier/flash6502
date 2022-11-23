@@ -37,53 +37,52 @@ class CONTROL_UNIT {
     }
 
     void apply_cw(uint64_t cw){
-        //if (cw == _prev_cw){
-        //    return ;
-        //}
+        uint64_t prev = make_cw() ;
 
-        X_s = cw >> 0 ;
-        X_e = cw >> 1 ;
-        Y_s = cw >> 2 ;
-        Y_e = cw >> 3 ;
-        ACC_s = cw >> 4 ;
-        ACC_e = cw >> 5 ;
+        #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
+        #define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
+
+        set_signal_1(X_s, 0) ;
+        set_signal_1(X_e, 1) ;
+        set_signal_1(Y_s, 2) ;
+        set_signal_1(Y_e, 3) ;
+        set_signal_1(ACC_s, 4) ;
+        set_signal_1(ACC_e, 5) ;
         // 6
         // 7
         // Chip 2
-        SP_down = cw >> 8 ;
-        SP_s = cw >> 9 ;
-        SP_e = cw >> 10 ;
-        EAl_s = cw >> 11 ;
-        EAl_e = cw >> 12 ;
-        PC_up = cw >> 13 ;
-        PCl_s = cw >> 14 ;
-        PC_e  = cw >> 15 ;
+        set_signal_1(SP_down, 8) ;
+        set_signal_1(SP_s, 9) ;
+        set_signal_1(SP_e, 10) ;
+        set_signal_1(EAl_s, 11) ;
+        set_signal_1(EAl_e, 12) ;
+        set_signal_1(PC_up, 13) ;
+        set_signal_1(PCl_s, 14) ;
+        set_signal_1(PC_e , 15) ;
         // Chip 3
-        ALU_op = cw >> 16 ; 
-        A_s = cw >> 20 ;
-        ALU_e = cw >> 21 ; 
-        B_s = cw >> 22 ;
+        set_signal_4(ALU_op, 16) ; 
+        set_signal_1(A_s, 20) ;
+        set_signal_1(ALU_e, 21) ; 
+        set_signal_1(B_s, 22) ;
         // 23
         // Chip 4
-        Ah2D_e = cw >> 24 ;
-        INST_s = cw >> 25 ;
-        RAM_s = cw >> 26 ;
-        RAM_e = cw >> 27 ;
-        Al2D_e = cw >> 28 ;
-        EAh_s = cw >> 29 ;
-        EAh_e = cw >> 30 ;
-        PCh_s = cw >> 31 ;
+        set_signal_1(Ah2D_e, 24) ;
+        set_signal_1(INST_s, 25) ;
+        set_signal_1(RAM_s, 26) ;
+        set_signal_1(RAM_e, 27) ;
+        set_signal_1(Al2D_e, 28) ;
+        set_signal_1(EAh_s, 29) ;
+        set_signal_1(EAh_e, 30) ;
+        set_signal_1(PCh_s, 31) ;
         // Chip 5
-        ST_e = cw >> 32 ;
-        ST_src = cw >> 33 ;
-        ST_NZ_s = cw >> 34 ;
-        ST_V_s = cw >> 35 ;
-        ST_C_s = cw >> 36 ;
-        ST_ALU_C_s = cw >> 37 ;
-        ST_ALU_C_from_C = cw >> 38 ;
-        ST_s = cw >> 39 ;
-
-        _prev_cw = cw ;
+        set_signal_1(ST_e, 32) ;
+        set_signal_1(ST_src, 33) ;
+        set_signal_1(ST_NZ_s, 34) ;
+        set_signal_1(ST_V_s, 35) ;
+        set_signal_1(ST_C_s, 36) ;
+        set_signal_1(ST_ALU_C_s, 37) ;
+        set_signal_1(ST_ALU_C_from_C, 38) ;
+        set_signal_1(ST_s, 39) ;
     }
 
     uint64_t make_cw(){
