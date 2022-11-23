@@ -218,6 +218,7 @@ int do_inst(){
             uint8_t tick = step << 4 | phase ;
             if (! fetch_done){
                 if (fetch(tick)){
+                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
                     continue ;
                 } 
                 fetch_done = true ;
@@ -225,6 +226,7 @@ int do_inst(){
             }
             if (! addr_done){
                 if ((*addrtable[INST])(tick - addr_start)){
+                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
                     continue ;
                 }
                 addr_done = true ;
@@ -232,19 +234,73 @@ int do_inst(){
             }
             if (! op_done){
                 if ((*optable[INST])(tick - op_start)){
+                    assert(CU.make_cw() == CU.get_cw(STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, INST, step, phase)) ;
                     continue ;
                 }
+                // OPTIM
                 return step ;
             }
         }
+
         // Normally here the control word should be back to the default value
-        assert(CU.get_cw() == default_cw) ;
-        //if (CU.get_cw() != CU.get_default_cw()){
-        //    printf("CW not reset to default: 0x%10lX != 0x%10lX!\n", CU.get_cw(), CU.get_default_cw()) ;
+        assert(CU.make_cw() == default_cw) ;
+        //if (CU.make_cw() != CU.get_default_cw()){
+        //    printf("CW not reset to default: 0x%010lX != 0x%010lX!\n", CU.make_cw(), CU.get_default_cw()) ;
         //}
     }
 
     return step ;
+}
+
+
+void generate_microcode(){
+    printf("uint64_t microcode[] = {\n") ;
+    for (int i = 0 ; i < 4096 ; i++){
+        uint8_t inst = i & 0b11111111 ;
+        uint8_t flags = (i >> 8) & 0b1111 ;
+
+        uint8_t addr_start = 0, op_start = 0 ;
+        bool fetch_done = false, addr_done = false, op_done = false ;
+        int step = 0 ;
+        for (; step < 16 ; step++){
+            for (int phase = 0 ; phase < 4 ; phase++){
+                uint8_t tick = step << 4 | phase ;
+
+                // Set INST and FLAGS
+                INST = inst ;
+                STATUS.N = (flags >> 3) & 1 ;
+                STATUS.V = (flags >> 2) & 1 ;
+                STATUS.Z = (flags >> 1) & 1 ;
+                STATUS.C = (flags >> 0) & 1 ;
+
+                if (! fetch_done){
+                    if (fetch(tick)){
+                        printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                            CU.make_cw()) ;
+                        continue ;
+                    } 
+                    fetch_done = true ;
+                    addr_start = step << 4 ;
+                }
+                if (! addr_done){
+                    if ((*addrtable[inst])(tick - addr_start)){
+                        printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                            CU.make_cw()) ;
+                        continue ;
+                    }
+                    addr_done = true ;
+                    op_start = step << 4 ;
+                }
+                if (! op_done){
+                    (*optable[inst])(tick - op_start) ;
+                    printf("  /* FLAGS:0x%X INST:0x%02X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", flags, inst, step, phase,
+                        CU.make_cw()) ;
+                    continue ;
+                }
+            }
+        }
+    }
+    printf("} ;\n") ;
 }
 
 
@@ -280,12 +336,17 @@ int main(int argc, char *argv[]){
         exit(1) ;
     }
 
+    init6502() ;
+ 
     uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
+    if (SUCCESS_ADDR == 0){
+        generate_microcode() ;
+        exit(0) ; 
+    }
+    printf("Default control word is 0x%10lX\n", CU.get_default_cw()) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
     
-    init6502() ;
-    printf("Default control word is 0x%10lX\n", CU.get_default_cw()) ;
- 
+
     // Here the reset sequence begins...
     reset6502() ;
 

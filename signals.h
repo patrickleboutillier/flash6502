@@ -1,3 +1,5 @@
+#include "microcode.h"
+
 class CONTROL_UNIT {
     private:
         uint64_t _default ;
@@ -21,14 +23,18 @@ class CONTROL_UNIT {
                         Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1),
                         ST_e(1){
 
-        _default = get_cw() ;
+        _default = make_cw() ;
     }
 
     uint64_t get_default_cw(){
         return _default ; 
     }
 
-    uint64_t get_cw(){
+    uint64_t get_cw(uint8_t flags, uint8_t inst, uint8_t step, uint8_t phase){
+        return microcode[flags << 14 | inst << 6 | step << 2 | phase] ;
+    }
+
+    uint64_t make_cw(){
         return 
             // Chip 1
             X_s << 0 |
