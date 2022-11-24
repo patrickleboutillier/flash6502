@@ -83,7 +83,7 @@ TEST(test_complib, xor){
 
 TEST(test_complib, reg){
     output<8> in ;
-    output<1> set, enable ;
+    output<1> set, enable(1) ;
     reg<8> r ;
     in.connect(r.data_in) ;
     set.connect(r.set) ;
@@ -91,22 +91,22 @@ TEST(test_complib, reg){
     buffer<8> b ;
     r.data_out.connect(b.a) ;
 
-    in = 0 ; set = 0 ; enable = 0 ;
+    in = 0 ; set = 0 ; enable = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
     in = 42 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
     set = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
-    enable = 1 ;
+    enable = 0 ;
     EXPECT_EQ(r.data_out.get_value(), 42) ;
     EXPECT_EQ(b.a._driver, &(r.data_out)) ;
     EXPECT_EQ(b.a.get_value(), 42) ;
-    enable = 0 ;
+    enable = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
     EXPECT_EQ(b.a._driver, nullptr) ;
     in = 250 ; set = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
-    enable = 1 ;
+    enable = 0 ;
     EXPECT_EQ(r.data_out.get_value(), 250) ;
 }
 

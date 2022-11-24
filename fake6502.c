@@ -210,32 +210,35 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 int do_inst(){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
-    int step = 0 ;
+    
+    fetch(0) ; fetch(1) ; fetch(2) ; fetch(3) ;
+    
+    int step = 1 ;
+    fetch_done = true ;
+    addr_start = step << 4 ;
+    
     for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            #if 0
+            if (0){ // ((INST == 0xF0)&&(step <= 1)){
                 uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                 CU.apply_cw(cw) ;
                 assert(CU.make_cw() == cw) ;
-            #else
+            }
+            else {
                 uint8_t tick = step << 4 | phase ;
-                if (! fetch_done){
+                /*if (! fetch_done){
                     if (fetch(tick)){
                         uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                         assert(CU.make_cw() == cw) ;
-                        //CU.apply_cw(cw) ;
-                        //assert(CU.make_cw() == cw) ;
                         continue ;
                     } 
                     fetch_done = true ;
                     addr_start = step << 4 ;
-                }
+                }*/
                 if (! addr_done){
                     if ((*addrtable[INST])(tick - addr_start)){
                         uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                         assert(CU.make_cw() == cw) ;
-                        //CU.apply_cw(cw) ;
-                        //assert(CU.make_cw() == cw) ;
                         continue ;
                     }
                     addr_done = true ;
@@ -248,8 +251,6 @@ int do_inst(){
                         //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
                         //        CU.make_cw(), cw) ;
                         assert(CU.make_cw() == cw) ;
-                        //CU.apply_cw(cw) ;
-                        //assert(CU.make_cw() == cw) ;
                         continue ;
                     }
                     // Optimization
@@ -259,14 +260,11 @@ int do_inst(){
                         assert(CU.make_cw() == cw) ;
                     }
                 }
-            #endif
+            }
         }
 
         // Normally here the control word should be back to the default value
         assert(CU.make_cw() == CU.get_default_cw()) ;
-        //if (CU.make_cw() != CU.get_default_cw()){
-        //    printf("CW not reset to default: 0x%010lX != 0x%010lX!\n", CU.make_cw(), CU.get_default_cw()) ;
-        //}
     }
 
     return step ;
@@ -324,8 +322,9 @@ void generate_microcode(){
 void reset6502(){
     PC_clear.pulse() ;
     DATA.data_out = 0x02 ; // RST instruction
-    CU.PC_e.toggle() ; CU.RAM_s.toggle() ;
-    CU.PC_e.toggle() ; CU.RAM_s.toggle() ;
+    CU.PC_e.toggle() ; 
+    CU.RAM_s.pulse() ;
+    CU.PC_e.toggle() ;
     DATA.data_out = 0 ;
     do_inst() ;
     PC_clear.pulse() ;
@@ -337,8 +336,9 @@ void load6502(uint8_t prog[], int prog_len){
     PC_clear.pulse() ;
     for (int i = 0 ; i < prog_len ; i++){
         DATA.data_out = prog[i] ;
-        CU.PC_e.toggle() ; CU.RAM_s.toggle() ;
-        CU.PC_e.toggle() ; CU.RAM_s.toggle() ;
+        CU.PC_e.toggle() ; 
+        CU.RAM_s.pulse() ;
+        CU.PC_e.toggle() ;
         DATA.data_out = 0 ;
         CU.PC_up.pulse() ;
     }
@@ -376,8 +376,16 @@ int main(int argc, char *argv[]){
 
     // Start processing instructions.
     int nb_inst = 0, nb_step = 0 ;
+    uint16_t prev_pc = 0xFFFF ;
     while (1) {
-        if ((PCh.data_out << 8 | PCl.data_out) == SUCCESS_ADDR){
+        uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
+        if (pc == prev_pc){
+            printf("Trap detected at 0x%04X!\n", pc) ;
+            exit(1) ;
+        } 
+        prev_pc = pc ;
+
+        if (pc == SUCCESS_ADDR){
             printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_inst, nb_step) ;
             exit(0) ;
         }
