@@ -17,7 +17,8 @@ class CONTROL_1_ROM : public component {
         input<2> phase ;
         output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e ;
 
-        CONTROL_1_ROM() : inst(this), n(this), v(this), z(this), c(this), step(this), phase(this) {
+        CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+                            X_e(1), Y_e(1), ACC_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -54,7 +55,8 @@ class CONTROL_2_ROM : public component {
         input<2> phase ;
         output<1> SP_down, SP_s, SP_e, EAl_s, EAl_e, PC_up, PCl_s, PC_e ;
 
-        CONTROL_2_ROM() : inst(this), n(this), v(this), z(this), c(this), step(this), phase(this) {
+        CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+                            SP_down(1), SP_e(1), EAl_e(1), PC_up(1), PC_e(1)  {
         } ;
 
         uint8_t make_cw(){

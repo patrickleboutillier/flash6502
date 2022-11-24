@@ -96,6 +96,7 @@ class CONTROL_UNIT {
 
         cw = make_cw() ;
         assert((cw >> 0 & 0xFF) == _C1->make_cw()) ;
+        assert((cw >> 8 & 0xFF) == _C2->make_cw()) ;
     }
 
     uint64_t make_cw(){
