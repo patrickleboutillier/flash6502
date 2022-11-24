@@ -22,7 +22,7 @@ reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v(0x01) ;
-output<1> PC_down(1), SP_up(1), SP_clear, PC_clear ; // the signals are not used by the CU 
+output<1> PC_down(1), SP_up(1), SP_clr, PC_clr ; // the signals are not used by the CU 
 
 RAM RAM ;
 
@@ -38,6 +38,10 @@ STATUS STATUS ;
 
 reg<8> INST ;
 output<1> INST_e(1) ;
+
+counter<4> STEP ;
+counter<2> PHASE ;
+output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
 
 
 void init6502(){
@@ -69,7 +73,7 @@ void init6502(){
     CU.PCl_s.connect(PCl.load) ;
     CU.PC_up.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
-    PC_clear.connect(PCl.clear) ;
+    PC_clr.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     CU.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -78,7 +82,7 @@ void init6502(){
     CU.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    PC_clear.connect(PCh.clear) ;
+    PC_clr.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     CU.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
@@ -87,7 +91,7 @@ void init6502(){
     CU.SP_s.connect(SP.load) ;
     SP_up.connect(SP.up) ;
     CU.SP_down.connect(SP.down) ;
-    SP_clear.connect(SP.clear) ;
+    SP_clr.connect(SP.clear) ;
     SP.data_out.connect(SPlt.data_in) ;
     CU.SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
@@ -148,6 +152,15 @@ void init6502(){
     CU.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
+
+    PHASE_clr.connect(PHASE.clear) ;
+    CLK.connect(PHASE.up) ;
+    PHASE_down.connect(PHASE.down) ;
+    PHASE_s.connect(PHASE.load) ;
+    STEP_clr.connect(STEP.clear) ;
+    PHASE.co.connect(STEP.up) ;
+    PHASE.bo.connect(STEP.down) ;
+    STEP_s.connect(STEP.load) ;
 }
 
 
@@ -215,57 +228,61 @@ int do_inst(){
         bool fetch_done = false, addr_done = false, op_done = false ;
     #endif
 
-    int step = 0 ;
-    for (; step < 16 ; step++){
-        for (int phase = 0 ; phase < 4 ; phase++){
-            #if MICROCODE
-                uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                CU.apply_cw(cw) ;
-                assert(CU.make_cw() == cw) ;
-            #else
-                uint8_t tick = step << 4 | phase ;
-                if (! fetch_done){
-                    if (fetch(tick)){
-                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                        assert(CU.make_cw() == cw) ;
-                        continue ;
-                    } 
-                    fetch_done = true ;
-                    addr_start = step << 4 ;
-                }
-                if (! addr_done){
-                    if ((*addrtable[INST])(tick - addr_start)){
-                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                        assert(CU.make_cw() == cw) ;
-                        continue ;
-                    }
-                    addr_done = true ;
-                    op_start = step << 4 ;
-                }
-                if (! op_done){
-                    if ((*optable[INST])(tick - op_start)){
-                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                        //if (CU.make_cw() != cw)
-                        //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
-                        //        CU.make_cw(), cw) ;
-                        assert(CU.make_cw() == cw) ;
-                        continue ;
-                    }
-                    // Optimization
-                    // return step ;
-                    else {
-                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                        assert(CU.make_cw() == cw) ;
-                    }
-                }
-            #endif
+    for (int i = 0 ; i < 16*4 ; i++){
+        uint8_t step = STEP ;
+        uint8_t phase = PHASE ;
+
+        if (phase == 0){
+            // Normally here the control word should be back to the default value
+            assert(CU.make_cw() == CU.get_default_cw()) ;
         }
 
-        // Normally here the control word should be back to the default value
-        assert(CU.make_cw() == CU.get_default_cw()) ;
+        #if MICROCODE
+            uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+            CU.apply_cw(cw) ;
+            assert(CU.make_cw() == cw) ;
+        #else
+            uint8_t tick = step << 4 | phase ;
+            if (! fetch_done){
+                if (fetch(tick)){
+                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                    assert(CU.make_cw() == cw) ;
+                    continue ;
+                } 
+                fetch_done = true ;
+                addr_start = step << 4 ;
+            }
+            if (! addr_done){
+                if ((*addrtable[INST])(tick - addr_start)){
+                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                    assert(CU.make_cw() == cw) ;
+                    continue ;
+                }
+                addr_done = true ;
+                op_start = step << 4 ;
+            }
+            if (! op_done){
+                if ((*optable[INST])(tick - op_start)){
+                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                    //if (CU.make_cw() != cw)
+                    //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
+                    //        CU.make_cw(), cw) ;
+                    assert(CU.make_cw() == cw) ;
+                    continue ;
+                }
+                // Optimization
+                // return step ;
+                else {
+                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                    assert(CU.make_cw() == cw) ;
+                }
+            }
+        #endif
+    
+        CLK.pulse() ;
     }
 
-    return step ;
+    return 16*4 ;
 }
 
 
@@ -318,20 +335,22 @@ void generate_microcode(){
 
 
 void reset6502(){
-    PC_clear.pulse() ;
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ;
+    PC_clr.pulse() ;
     DATA.data_out = 0x02 ; // RST instruction
     CU.PC_e.toggle() ; 
     CU.RAM_s.pulse() ;
     CU.PC_e.toggle() ;
     DATA.data_out = 0 ;
     do_inst() ;
-    PC_clear.pulse() ;
+    PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
 }
 
 
 void load6502(uint8_t prog[], int prog_len){
-    PC_clear.pulse() ;
+    PC_clr.pulse() ;
     for (int i = 0 ; i < prog_len ; i++){
         DATA.data_out = prog[i] ;
         CU.PC_e.toggle() ; 
@@ -340,7 +359,7 @@ void load6502(uint8_t prog[], int prog_len){
         DATA.data_out = 0 ;
         CU.PC_up.pulse() ;
     }
-    PC_clear.pulse() ;
+    PC_clr.pulse() ;
     printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
 }
 
