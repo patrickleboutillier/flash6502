@@ -89,4 +89,39 @@ class CONTROL_2_ROM : public component {
 } ;
 
 
+class CONTROL_3_ROM : public component {
+    public:
+        input<8> inst ;
+        input<1> n, v, z, c ;
+        input<4> step ;
+        input<2> phase ;
+        output<4> ALU_op ; 
+        output<1> A_s, ALU_e, B_s ;
+
+        CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+                            ALU_e(1)  {
+        } ;
+
+        uint8_t make_cw(){
+            return 
+                ALU_op << 0 | 
+                A_s << 4 |
+                ALU_e << 5 | 
+                B_s << 6 ;
+        }
+
+        void always(){
+            uint8_t prev = make_cw() ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 16) & 0xFF ;
+
+            #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
+            #define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
+
+            set_signal_4(ALU_op, 0) ; 
+            set_signal_1(A_s, 4) ;
+            set_signal_1(ALU_e, 5) ; 
+            set_signal_1(B_s, 6) ;
+        } ;
+} ;
+
 #endif

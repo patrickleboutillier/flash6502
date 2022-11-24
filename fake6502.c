@@ -17,7 +17,8 @@
 
 CONTROL_1_ROM C1 ;
 CONTROL_2_ROM C2 ;
-CONTROL_UNIT CU(&C1, &C2) ;
+CONTROL_3_ROM C3 ;
+CONTROL_UNIT CU(&C1, &C2, &C3) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -181,6 +182,14 @@ void init6502(){
     STATUS.C.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
     PHASE.data_out.connect(C2.phase) ;
+
+    INST.data_out.connect(C3.inst) ;
+    STATUS.N.connect(C3.n) ;
+    STATUS.V.connect(C3.v) ;
+    STATUS.Z.connect(C3.z) ;
+    STATUS.C.connect(C3.c) ;
+    STEP.data_out.connect(C3.step) ;
+    PHASE.data_out.connect(C3.phase) ;
 }
 
 
@@ -416,7 +425,7 @@ int main(int argc, char *argv[]){
     uint16_t prev_pc = 0xFFFF ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X, X:%d\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)X) ;
+        //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
         if (pc == prev_pc){
             printf("Trap detected at 0x%04X! STATUS:0x%02X\n", pc, (uint8_t)STATUS.sreg) ;
             exit(1) ;
