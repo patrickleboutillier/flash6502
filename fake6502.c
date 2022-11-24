@@ -208,25 +208,23 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 
 
 int do_inst(){
-    uint8_t addr_start = 0, op_start = 0 ;
-    bool fetch_done = false, addr_done = false, op_done = false ;
-    
-    fetch(0) ; fetch(1) ; fetch(2) ; fetch(3) ;
+    #define MICROCODE  1
 
-    int step = 1 ;
-    fetch_done = true ;
-    addr_start = step << 4 ;
-    
+    #if !MICROCODE
+        uint8_t addr_start = 0, op_start = 0 ;
+        bool fetch_done = false, addr_done = false, op_done = false ;
+    #endif
+
+    int step = 0 ;
     for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            if (0){
+            #if MICROCODE
                 uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                 CU.apply_cw(cw) ;
                 assert(CU.make_cw() == cw) ;
-            }
-            else {
+            #else
                 uint8_t tick = step << 4 | phase ;
-                /*if (! fetch_done){
+                if (! fetch_done){
                     if (fetch(tick)){
                         uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                         assert(CU.make_cw() == cw) ;
@@ -234,7 +232,7 @@ int do_inst(){
                     } 
                     fetch_done = true ;
                     addr_start = step << 4 ;
-                }*/
+                }
                 if (! addr_done){
                     if ((*addrtable[INST])(tick - addr_start)){
                         uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
@@ -260,7 +258,7 @@ int do_inst(){
                         assert(CU.make_cw() == cw) ;
                     }
                 }
-            }
+            #endif
         }
 
         // Normally here the control word should be back to the default value
@@ -379,8 +377,9 @@ int main(int argc, char *argv[]){
     uint16_t prev_pc = 0xFFFF ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
+        //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X, X:%d\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)X) ;
         if (pc == prev_pc){
-            printf("Trap detected at 0x%04X!\n", pc) ;
+            printf("Trap detected at 0x%04X! STATUS:0x%02X\n", pc, (uint8_t)STATUS.sreg) ;
             exit(1) ;
         } 
         prev_pc = pc ;

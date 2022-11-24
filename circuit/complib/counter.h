@@ -41,15 +41,14 @@ template <uint32_t W> class counter : public component {
             if ((up)&&(! _prev_up)){
                 _cnt = (_cnt + 1) & ((1 << W) - 1) ;
             }
+            _prev_up = up ;
             co = (((! up)&&(_cnt == ((1 << W) - 1))) ? 0 : 1) ;
 
             if ((down)&&(! _prev_down)){
                 _cnt = (_cnt - 1) & ((1 << W) - 1) ;
             }
-            bo = (((! down)&&(_cnt == 0)) ? 0 : 1) ;
-
-            _prev_up = up ;
             _prev_down = down ;
+            bo = (((! down)&&(_cnt == 0)) ? 0 : 1) ;
 
             data_out = _cnt ;
         } ;
