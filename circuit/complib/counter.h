@@ -4,8 +4,21 @@
 
 #include "circuit.h"
 
-// SN74HC193N
+/* 
+SN74HC193N
+- Negative LOAD
+- The outputs of the four flip-flops are triggered on a low-to-high-level transition of either count (clock) input (UP
+or DOWN). The direction of counting is determined by which count input is pulsed while the other count input
+is high.
+- A clear (CLR) input has been provided that forces all outputs to the low level when a high level is applied. The
+clear function is independent of the count and LOAD inputs.
 
+SN74HC161
+- Negative LOAD
+- A low level at the clear (CLR) input sets all four of the flip-flop outputs low, regardless of the levels of the CLK, load (LOAD), or enable inputs.
+- Both ENP and ENT must be high to count
+*/
+    
 template <uint32_t W> class counter : public component {
     public:
         input<1> up, down, load, clear ;
