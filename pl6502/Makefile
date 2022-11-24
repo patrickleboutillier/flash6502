@@ -2,7 +2,7 @@ LIBS = /usr/lib/x86_64-linux-gnu/libgtest_main.a /usr/lib/x86_64-linux-gnu/libgt
 6502_MODULES = *.h
 
 
-test: test_ALU test_STATUS
+test: test_ALU test_STATUS test_CONTROL
 
 
 ALU_unittests: *ALU*.cpp *ALU*.h
@@ -19,8 +19,15 @@ test_STATUS: STATUS_unittests
 	./STATUS_unittests
 
 
+CONTROL_unittests: *CONTROL*.cpp *CONTROL*.h
+	g++ -g -I ../circuit/src -I ../circuit/complib *CONTROL*.cpp -o CONTROL_unittests $(LIBS)
+
+test_CONTROL: CONTROL_unittests
+	./CONTROL_unittests
+
+
 clean:
-	rm -f ALU_unittests STATUS_unittests
+	rm -f ALU_unittests STATUS_unittests CONTROL_unittests
 
 
 FLASH=SST39SF020A
