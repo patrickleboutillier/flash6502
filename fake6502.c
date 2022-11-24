@@ -13,149 +13,139 @@
 #include "STATUS.h"
 #include "signals.h"
 
+CONTROL_UNIT CU ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
-output<1> Ah2D_e(1), Al2D_e(1) ;
 
 reg<8> EAh, EAl ;
 counter<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
-output<8> SPh_v ;
-output<1> EAh_s, EAh_e(1), EAl_s, EAl_e(1), PCh_s, PC_e(1), PCl_s, 
-    SP_s, SP_e(1) ;
-output<1> SP_down(1), SP_up(1), PC_up(1), PC_down(1), SP_clear, PC_clear ;
+output<8> SPh_v(0x01) ;
+output<1> PC_down(1), SP_up(1), SP_clear, PC_clear ; // the signals are not used by the CU 
 
 RAM RAM ;
-output<1> RAM_s, RAM_e(1) ;
 
 reg<8> ACC ;
-output<1> ACC_s, ACC_e(1) ;
 reg<8> A, B ;
-output<1> A_s, A_e(1), B_s, B_e(1) ;
+output<1> A_e(1), B_e(1) ;
 reg<8> X, Y ;
-output<1> X_s, X_e(1), Y_s, Y_e(1) ;
 
 ALU ALU ;
-output<4> ALU_op ;
 tristate<8> ALU2D ;
-output<1> ALU_e(1) ;
 
 STATUS STATUS ;
-output<1> ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
-output<1> ST_e(1), ST_src ;
 
 reg<8> INST ;
-output<1> INST_s, INST_e(1) ;
+output<1> INST_e(1) ;
 
 
 void init6502(){
     ADDRh.data_out.connect(Ah2D.data_in) ;
-    Ah2D_e.connect(Ah2D.enable) ;
+    CU.Ah2D_e.connect(Ah2D.enable) ;
     Ah2D.data_out.connect(DATA.data_in) ;
     ADDRl.data_out.connect(Al2D.data_in) ;    
-    Al2D_e.connect(Al2D.enable) ;
+    CU.Al2D_e.connect(Al2D.enable) ;
     Al2D.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    RAM_e.connect(RAM.enable) ;
-    RAM_s.connect(RAM.set) ;
+    CU.RAM_e.connect(RAM.enable) ;
+    CU.RAM_s.connect(RAM.set) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
-    EAh_e.connect(EAh.enable) ;
-    EAh_s.connect(EAh.set) ;
+    CU.EAh_e.connect(EAh.enable) ;
+    CU.EAh_s.connect(EAh.set) ;
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
-    EAl_e.connect(EAl.enable) ;
-    EAl_s.connect(EAl.set) ;
+    CU.EAl_e.connect(EAl.enable) ;
+    CU.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCl.data_in) ;
-    PCl_s.connect(PCl.load) ;
-    PC_up.connect(PCl.up) ;
+    CU.PCl_s.connect(PCl.load) ;
+    CU.PC_up.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
     PC_clear.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
-    PC_e.connect(PClt.enable) ;
+    CU.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
-    PCh_s.connect(PCh.load) ;
+    CU.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
     PC_clear.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
-    PC_e.connect(PCht.enable) ;
+    CU.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
-    SP_s.connect(SP.load) ;
+    CU.SP_s.connect(SP.load) ;
     SP_up.connect(SP.up) ;
-    SP_down.connect(SP.down) ;
+    CU.SP_down.connect(SP.down) ;
     SP_clear.connect(SP.clear) ;
     SP.data_out.connect(SPlt.data_in) ;
-    SP_e.connect(SPlt.enable) ;
+    CU.SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
 
     SPh_v.connect(SPht.data_in) ;
-    SPh_v = 0x01 ;
-    SP_e.connect(SPht.enable) ;
+    CU.SP_e.connect(SPht.enable) ;
     SPht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
-    ACC_e.connect(ACC.enable) ;
-    ACC_s.connect(ACC.set) ;
+    CU.ACC_e.connect(ACC.enable) ;
+    CU.ACC_s.connect(ACC.set) ;
     ACC.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
-    A_s.connect(A.set) ;
+    CU.A_s.connect(A.set) ;
     A_e = 0 ; // always enabled 
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
-    B_s.connect(B.set) ;
+    CU.B_s.connect(B.set) ;
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
-    X_e.connect(X.enable) ;
-    X_s.connect(X.set) ;
+    CU.X_e.connect(X.enable) ;
+    CU.X_s.connect(X.set) ;
     X.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(Y.data_in) ;
-    Y_e.connect(Y.enable) ;
-    Y_s.connect(Y.set) ;
+    CU.Y_e.connect(Y.enable) ;
+    CU.Y_s.connect(Y.set) ;
     Y.data_out.connect(DATA.data_in) ;
 
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
     STATUS.alu_c.connect(ALU.c_in) ;
-    ALU_op.connect(ALU.op) ;
+    CU.ALU_op.connect(ALU.op) ;
     ALU.res.connect(ALU2D.data_in) ;
-    ALU_e.connect(ALU2D.enable) ;
+    CU.ALU_e.connect(ALU2D.enable) ;
     ALU2D.data_out.connect(DATA.data_in) ;
     ALU.n.connect(STATUS.n_in) ;
     ALU.v.connect(STATUS.v_in) ;
     ALU.z.connect(STATUS.z_in) ;
     ALU.c.connect(STATUS.c_in) ;
 
-    ST_NZ_s.connect(STATUS.nz_set) ;
-    ST_V_s.connect(STATUS.v_set) ;
-    ST_C_s.connect(STATUS.c_set) ;
-    ST_ALU_C_s.connect(STATUS.alu_c_set) ;
-    ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
-    ST_s.connect(STATUS.set) ;
-    ST_e.connect(STATUS.data_enable) ;
-    ST_src.connect(STATUS.src_data) ;
+    CU.ST_NZ_s.connect(STATUS.nz_set) ;
+    CU.ST_V_s.connect(STATUS.v_set) ;
+    CU.ST_C_s.connect(STATUS.c_set) ;
+    CU.ST_ALU_C_s.connect(STATUS.alu_c_set) ;
+    CU.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
+    CU.ST_s.connect(STATUS.set) ;
+    CU.ST_e.connect(STATUS.data_enable) ;
+    CU.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    INST_s.connect(INST.set) ;
+    CU.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 }
@@ -218,44 +208,121 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 
 
 int do_inst(){
-    uint8_t addr_start = 0, op_start = 0 ;
-    bool fetch_done = false, addr_done = false, op_done = false ;
+    #define MICROCODE  1
+
+    #if !MICROCODE
+        uint8_t addr_start = 0, op_start = 0 ;
+        bool fetch_done = false, addr_done = false, op_done = false ;
+    #endif
+
     int step = 0 ;
     for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            uint8_t tick = step << 4 | phase ;
-            if (! fetch_done){
-                if (fetch(tick)){
-                    continue ;
-                } 
-                fetch_done = true ;
-                addr_start = step << 4 ;
-            }
-            if (! addr_done){
-                if ((*addrtable[INST])(tick - addr_start)){
-                    continue ;
+            #if MICROCODE
+                uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                CU.apply_cw(cw) ;
+                assert(CU.make_cw() == cw) ;
+            #else
+                uint8_t tick = step << 4 | phase ;
+                if (! fetch_done){
+                    if (fetch(tick)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                        continue ;
+                    } 
+                    fetch_done = true ;
+                    addr_start = step << 4 ;
                 }
-                addr_done = true ;
-                op_start = step << 4 ;
-            }
-            if (! op_done){
-                if ((*optable[INST])(tick - op_start)){
-                    continue ;
+                if (! addr_done){
+                    if ((*addrtable[INST])(tick - addr_start)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                        continue ;
+                    }
+                    addr_done = true ;
+                    op_start = step << 4 ;
                 }
-                return step ;
-            }
+                if (! op_done){
+                    if ((*optable[INST])(tick - op_start)){
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        //if (CU.make_cw() != cw)
+                        //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
+                        //        CU.make_cw(), cw) ;
+                        assert(CU.make_cw() == cw) ;
+                        continue ;
+                    }
+                    // Optimization
+                    // return step ;
+                    else {
+                        uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
+                        assert(CU.make_cw() == cw) ;
+                    }
+                }
+            #endif
         }
+
+        // Normally here the control word should be back to the default value
+        assert(CU.make_cw() == CU.get_default_cw()) ;
     }
 
     return step ;
 }
 
 
+void generate_microcode(){
+    printf("uint64_t microcode[] = {\n") ;
+    for (int i = 0 ; i < 4096 ; i++){
+        uint8_t flags = i & 0b1111 ;
+        uint8_t inst = i >> 4 ;
+
+        uint8_t addr_start = 0, op_start = 0 ;
+        bool fetch_done = false, addr_done = false ;
+        int step = 0 ;
+        for (; step < 16 ; step++){
+            for (int phase = 0 ; phase < 4 ; phase++){
+                uint8_t tick = step << 4 | phase ;
+
+                // Set INST and FLAGS
+                INST = inst ;
+                STATUS.N = (flags >> 3) & 1 ;
+                STATUS.V = (flags >> 2) & 1 ;
+                STATUS.Z = (flags >> 1) & 1 ;
+                STATUS.C = (flags >> 0) & 1 ;
+
+                if (! fetch_done){
+                    if (fetch(tick)){
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                            CU.make_cw()) ;
+                        continue ;
+                    } 
+                    fetch_done = true ;
+                    addr_start = step << 4 ;
+                }
+                if (! addr_done){
+                    if ((*addrtable[inst])(tick - addr_start)){
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                            CU.make_cw()) ;
+                        continue ;
+                    }
+                    addr_done = true ;
+                    op_start = step << 4 ;
+                }
+                (*optable[inst])(tick - op_start) ;
+                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                    CU.make_cw()) ;
+            }
+        }
+    }
+    printf("} ;\n") ;
+}
+
+
 void reset6502(){
     PC_clear.pulse() ;
     DATA.data_out = 0x02 ; // RST instruction
-    PC_e.toggle() ; RAM_s.toggle() ;
-    PC_e.toggle() ; RAM_s.toggle() ;
+    CU.PC_e.toggle() ; 
+    CU.RAM_s.pulse() ;
+    CU.PC_e.toggle() ;
     DATA.data_out = 0 ;
     do_inst() ;
     PC_clear.pulse() ;
@@ -267,10 +334,11 @@ void load6502(uint8_t prog[], int prog_len){
     PC_clear.pulse() ;
     for (int i = 0 ; i < prog_len ; i++){
         DATA.data_out = prog[i] ;
-        PC_e.toggle() ; RAM_s.toggle() ;
-        PC_e.toggle() ; RAM_s.toggle() ;
+        CU.PC_e.toggle() ; 
+        CU.RAM_s.pulse() ;
+        CU.PC_e.toggle() ;
         DATA.data_out = 0 ;
-        PC_up.pulse() ;
+        CU.PC_up.pulse() ;
     }
     PC_clear.pulse() ;
     printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
@@ -283,10 +351,16 @@ int main(int argc, char *argv[]){
         exit(1) ;
     }
 
-    uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
-    printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
-
     init6502() ;
+ 
+    uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
+    if (SUCCESS_ADDR == 0){
+        generate_microcode() ;
+        exit(0) ; 
+    }
+    printf("Default control word is 0x%010lX\n", CU.get_default_cw()) ;
+    printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
+    
 
     // Here the reset sequence begins...
     reset6502() ;
@@ -300,13 +374,25 @@ int main(int argc, char *argv[]){
 
     // Start processing instructions.
     int nb_inst = 0, nb_step = 0 ;
+    uint16_t prev_pc = 0xFFFF ;
     while (1) {
-        if ((PCh.data_out << 8 | PCl.data_out) == SUCCESS_ADDR){
+        uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
+        //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X, X:%d\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)X) ;
+        if (pc == prev_pc){
+            printf("Trap detected at 0x%04X! STATUS:0x%02X\n", pc, (uint8_t)STATUS.sreg) ;
+            exit(1) ;
+        } 
+        prev_pc = pc ;
+
+        if (pc == SUCCESS_ADDR){
             printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_inst, nb_step) ;
             exit(0) ;
         }
 
         nb_step += do_inst() ;
         nb_inst++ ;
+        if ((nb_inst % 100000) == 0){
+            printf("%d instructions executed.\n", nb_inst) ;
+        }
     }
 }

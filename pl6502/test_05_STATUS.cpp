@@ -8,7 +8,7 @@ TEST(test_pl6502, STATUS){
     output<1> n_in, v_in, i_in, z_in, c_in ;
     output<1> nz_set, v_set, i_set, c_set, alu_c_set, alu_c_from_C ;
     output<8> data_in ;
-    output<1> data_enable, src_data, status_set ;
+    output<1> data_enable(1), src_data, status_set ;
     STATUS status ;
     n_in.connect(status.n_in) ;
     v_in.connect(status.v_in) ;
@@ -25,7 +25,7 @@ TEST(test_pl6502, STATUS){
     status_set.connect(status.set) ;
 
     // Normal operation mode, with data_enable
-    data_enable = 1 ;
+    data_enable = 0 ;
     for (int i = 0 ; i < 512 ; i++){
         uint32_t n_old = status.N ;
         uint32_t v_old = status.V ;

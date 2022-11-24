@@ -14,7 +14,7 @@ template <uint32_t W> class reg : public component {
         uint32_t _mem ;
 
     public:
-        reg() : set(this), enable(this) {
+        reg() : data_in(this), set(this), enable(this) {
             _mem = 0 ;
             data_out.drive(false) ;
         } ;

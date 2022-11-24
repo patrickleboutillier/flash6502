@@ -11,6 +11,8 @@ test: asm build
 	@date
 	./fake6502 `cat success.addr`
 
+mc: asm build
+	./fake6502 0 > microcode.h
 
 clean:
 	rm -f 6502_functional_test.bin 6502_functional_test.lst fake6502

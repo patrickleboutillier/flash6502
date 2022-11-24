@@ -14,7 +14,7 @@ class RAM : public component {
         uint8_t _mem[256][256] ;
 
     public:
-        RAM() : set(this), enable(this) {
+        RAM() : data_in(this), addrh(this), addrl(this), set(this), enable(this) {
             data_out.drive(false) ;
         } ;
 
