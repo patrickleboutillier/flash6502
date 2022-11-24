@@ -212,14 +212,14 @@ int do_inst(){
     bool fetch_done = false, addr_done = false, op_done = false ;
     
     fetch(0) ; fetch(1) ; fetch(2) ; fetch(3) ;
-    
+
     int step = 1 ;
     fetch_done = true ;
     addr_start = step << 4 ;
     
     for (; step < 16 ; step++){
         for (int phase = 0 ; phase < 4 ; phase++){
-            if (0){ // ((INST == 0xF0)&&(step <= 1)){
+            if (0){
                 uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
                 CU.apply_cw(cw) ;
                 assert(CU.make_cw() == cw) ;
