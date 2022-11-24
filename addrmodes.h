@@ -20,10 +20,10 @@ uint8_t imp(uint8_t tick) { //implied
 
 uint8_t acc(uint8_t tick) { // 1 cycle
     switch (tick){
-        case 0x00:  CU.ACC_e.toggle() ; break ;
+        case 0x00:  C1.ACC_e.toggle() ; break ;
         case 0x01:  CU.B_s.toggle() ; break ;
         case 0x02:  CU.B_s.toggle() ; break ;
-        case 0x03:  CU.ACC_e.toggle() ; break ;
+        case 0x03:  C1.ACC_e.toggle() ; break ;
         default:    return 0 ;
     }
     return 1 ;
@@ -72,10 +72,10 @@ uint8_t zpx(uint8_t tick) { // 5 cycles
         case 0x02:  CU.EAh_s.toggle() ; break ;
         case 0x03:  break ;
 
-        case 0x10:  CU.X_e.toggle() ; break ; 
+        case 0x10:  C1.X_e.toggle() ; break ; 
         case 0x11:  CU.A_s.toggle() ; break ;
         case 0x12:  CU.A_s.toggle() ; break ;
-        case 0x13:  CU.X_e.toggle() ; break ;
+        case 0x13:  C1.X_e.toggle() ; break ;
     
         case 0x20:  CU.PC_e.toggle() ; CU.RAM_e.toggle() ; break ;
         case 0x21:  CU.B_s.toggle() ; break ;
@@ -107,10 +107,10 @@ uint8_t zpy(uint8_t tick) { // 5 cycles
         case 0x02:  CU.EAh_s.toggle() ; break ;
         case 0x03:  break ;
 
-        case 0x10:  CU.Y_e.toggle() ; break ; 
+        case 0x10:  C1.Y_e.toggle() ; break ; 
         case 0x11:  CU.A_s.toggle() ; break ;
         case 0x12:  CU.A_s.toggle() ; break ;
-        case 0x13:  CU.Y_e.toggle() ; break ;
+        case 0x13:  C1.Y_e.toggle() ; break ;
     
         case 0x20:  CU.PC_e.toggle() ; CU.RAM_e.toggle() ; break ;
         case 0x21:  CU.B_s.toggle() ; break ;
@@ -209,10 +209,10 @@ uint8_t abso(uint8_t tick) { // 3 cycles
 
 uint8_t absx(uint8_t tick) { // 7 cycles
     switch(tick) {
-        case 0x00:  CU.X_e.toggle() ; break ;
+        case 0x00:  C1.X_e.toggle() ; break ;
         case 0x01:  CU.A_s.toggle() ; break ;
         case 0x02:  CU.A_s.toggle() ; break ;
-        case 0x03:  CU.X_e.toggle() ; break ;
+        case 0x03:  C1.X_e.toggle() ; break ;
         
         case 0x10:  CU.PC_e.toggle() ; CU.RAM_e.toggle() ; break ;
         case 0x11:  CU.B_s.toggle() ; break ;
@@ -256,10 +256,10 @@ uint8_t absx(uint8_t tick) { // 7 cycles
 
 uint8_t absy(uint8_t tick) { // 7 cycles
     switch(tick) {
-        case 0x00:  CU.Y_e.toggle() ; break ;
+        case 0x00:  C1.Y_e.toggle() ; break ;
         case 0x01:  CU.A_s.toggle() ; break ;
         case 0x02:  CU.A_s.toggle() ; break ;
-        case 0x03:  CU.Y_e.toggle() ; break ;
+        case 0x03:  C1.Y_e.toggle() ; break ;
         
         case 0x10:  CU.PC_e.toggle() ; CU.RAM_e.toggle() ; break ;
         case 0x11:  CU.B_s.toggle() ; break ;
@@ -362,10 +362,10 @@ uint8_t indx(uint8_t tick) { // 10 cycles
         case 0x02:  CU.B_s.toggle() ; CU.PC_up.toggle() ; break ;
         case 0x03:  CU.RAM_e.toggle() ; CU.PC_e.toggle() ; CU.PC_up.toggle() ; break ;
         
-        case 0x10:  CU.X_e.toggle() ; break ;
+        case 0x10:  C1.X_e.toggle() ; break ;
         case 0x11:  CU.A_s.toggle() ; break ;
         case 0x12:  CU.A_s.toggle() ; break ;
-        case 0x13:  CU.X_e.toggle() ; break ;
+        case 0x13:  C1.X_e.toggle() ; break ;
 
         case 0x20:  CU.ALU_op = ALU_ADD ; 
                     CU.ALU_e.toggle() ; break ;
@@ -428,10 +428,10 @@ uint8_t indy(uint8_t tick) { // 10 cycles
         case 0x02:  CU.B_s.toggle() ; CU.PC_up.toggle() ; break ;
         case 0x03:  CU.RAM_e.toggle() ; CU.PC_e.toggle() ; CU.PC_up.toggle() ; break ;
         
-        case 0x10:  CU.Y_e.toggle() ; break ;
+        case 0x10:  C1.Y_e.toggle() ; break ;
         case 0x11:  CU.A_s.toggle() ; break ;
         case 0x12:  CU.A_s.toggle() ; break ;
-        case 0x13:  CU.Y_e.toggle() ; break ;
+        case 0x13:  C1.Y_e.toggle() ; break ;
 
         case 0x20:  CU.ALU_op = ALU_INC ; 
                     CU.ALU_e.toggle() ; break ;

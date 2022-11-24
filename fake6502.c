@@ -12,8 +12,12 @@
 #include "ALU.h"
 #include "STATUS.h"
 #include "signals.h"
+#include "CONTROL_ROMS.h"
 
-CONTROL_UNIT CU ;
+
+CONTROL_1_ROM C1 ;
+CONTROL_2_ROM C2 ;
+CONTROL_UNIT CU(&C1, &C2) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -101,8 +105,8 @@ void init6502(){
     SPht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(ACC.data_in) ;
-    CU.ACC_e.connect(ACC.enable) ;
-    CU.ACC_s.connect(ACC.set) ;
+    C1.ACC_e.connect(ACC.enable) ;
+    C1.ACC_s.connect(ACC.set) ;
     ACC.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(A.data_in) ;
@@ -116,13 +120,13 @@ void init6502(){
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
-    CU.X_e.connect(X.enable) ;
-    CU.X_s.connect(X.set) ;
+    C1.X_e.connect(X.enable) ;
+    C1.X_s.connect(X.set) ;
     X.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(Y.data_in) ;
-    CU.Y_e.connect(Y.enable) ;
-    CU.Y_s.connect(Y.set) ;
+    C1.Y_e.connect(Y.enable) ;
+    C1.Y_s.connect(Y.set) ;
     Y.data_out.connect(DATA.data_in) ;
 
     A.data_out.connect(ALU.a) ;
@@ -161,6 +165,22 @@ void init6502(){
     PHASE.co.connect(STEP.up) ;
     PHASE.bo.connect(STEP.down) ;
     STEP_s.connect(STEP.load) ;
+
+    INST.data_out.connect(C1.inst) ;
+    STATUS.N.connect(C1.n) ;
+    STATUS.V.connect(C1.v) ;
+    STATUS.Z.connect(C1.z) ;
+    STATUS.C.connect(C1.c) ;
+    STEP.data_out.connect(C1.step) ;
+    PHASE.data_out.connect(C1.phase) ;
+
+    INST.data_out.connect(C2.inst) ;
+    STATUS.N.connect(C2.n) ;
+    STATUS.V.connect(C2.v) ;
+    STATUS.Z.connect(C2.z) ;
+    STATUS.C.connect(C2.c) ;
+    STEP.data_out.connect(C2.step) ;
+    PHASE.data_out.connect(C2.phase) ;
 }
 
 
@@ -232,10 +252,10 @@ int do_inst(){
         uint8_t step = STEP ;
         uint8_t phase = PHASE ;
 
-        if (phase == 0){
+        //if (phase == 0){
             // Normally here the control word should be back to the default value
-            assert(CU.make_cw() == CU.get_default_cw()) ;
-        }
+            //assert(CU.make_cw() == CU.get_default_cw()) ;
+        //}
 
         #if MICROCODE
             uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
