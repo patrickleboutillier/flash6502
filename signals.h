@@ -24,14 +24,14 @@ class CONTROL_UNIT {
         //output<4> ALU_op ; 
         //output<1> A_s, ALU_e, B_s ;
         // 4
-        output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s ;
+        //output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s ;
         // 5
         //output<1> ST_e, ST_src, ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
 
     CONTROL_UNIT(CONTROL_1_ROM *c1, CONTROL_2_ROM *c2, CONTROL_3_ROM *c3, CONTROL_4_ROM *c4, CONTROL_5_ROM *c5) :    
-                        SP_down(1), SP_e(1), EAl_e(1), PC_up(1), PC_e(1), 
+                        SP_down(1), SP_e(1), EAl_e(1), PC_up(1), PC_e(1)
                         //ALU_e(1),
-                        Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1)
+                        //Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1)
                         //ST_e(1)
                         {
 
@@ -83,14 +83,14 @@ class CONTROL_UNIT {
         //set_signal_1(B_s, 22) ;
         // 23
         // Chip 4
-        set_signal_1(Ah2D_e, 24) ;
-        set_signal_1(INST_s, 25) ;
-        set_signal_1(RAM_s, 26) ;
-        set_signal_1(RAM_e, 27) ;
-        set_signal_1(Al2D_e, 28) ;
-        set_signal_1(EAh_s, 29) ;
-        set_signal_1(EAh_e, 30) ;
-        set_signal_1(PCh_s, 31) ;
+        //set_signal_1(Ah2D_e, 24) ;
+        //set_signal_1(INST_s, 25) ;
+        //set_signal_1(RAM_s, 26) ;
+        //set_signal_1(RAM_e, 27) ;
+        //set_signal_1(Al2D_e, 28) ;
+        //set_signal_1(EAh_s, 29) ;
+        //set_signal_1(EAh_e, 30) ;
+        //set_signal_1(PCh_s, 31) ;
         // Chip 5
         //set_signal_1(ST_e, 32) ;
         //set_signal_1(ST_src, 33) ;
@@ -139,15 +139,16 @@ class CONTROL_UNIT {
             //ALU_e << 21 | 
             //B_s << 22 |
             // 23
+            _C4->make_cw() << 24 |
             // Chip 4
-            Ah2D_e << 24 |
-            INST_s << 25 |
-            RAM_s << 26 |
-            RAM_e << 27 |
-            Al2D_e << 28 |
-            EAh_s << 29 |
-            EAh_e << 30 |
-            PCh_s << 31 |
+            //Ah2D_e << 24 |
+            //INST_s << 25 |
+            //RAM_s << 26 |
+            //RAM_e << 27 |
+            //Al2D_e << 28 |
+            //EAh_s << 29 |
+            //EAh_e << 30 |
+            //PCh_s << 31 |
             (uint64_t)_C5->make_cw() << 32 ;
             // Chip 5
             //(uint64_t)ST_e << 32 |

@@ -56,29 +56,29 @@ output<1> boot_RAM_s ;
 output<8> boot_DATA ;
 
 
-void init6502(){
+void init6502(bool gen_mc){
     boot_RAM_s.connect(RAM_s.a) ;
     boot_DATA.drive(false) ;
     boot_DATA.connect(DATA.data_in) ;
 
     ADDRh.data_out.connect(Ah2D.data_in) ;
-    CU.Ah2D_e.connect(Ah2D.enable) ;
+    C4.Ah2D_e.connect(Ah2D.enable) ;
     Ah2D.data_out.connect(DATA.data_in) ;
     ADDRl.data_out.connect(Al2D.data_in) ;    
-    CU.Al2D_e.connect(Al2D.enable) ;
+    C4.Al2D_e.connect(Al2D.enable) ;
     Al2D.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    CU.RAM_e.connect(RAM.enable) ;
+    C4.RAM_e.connect(RAM.enable) ;
     RAM_s.c.connect(RAM.set) ;
-    CU.RAM_s.connect(RAM_s.b) ;
+    C4.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
-    CU.EAh_e.connect(EAh.enable) ;
-    CU.EAh_s.connect(EAh.set) ;
+    C4.EAh_e.connect(EAh.enable) ;
+    C4.EAh_s.connect(EAh.set) ;
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
@@ -96,7 +96,7 @@ void init6502(){
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
-    CU.PCh_s.connect(PCh.load) ;
+    C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
     PC_clr.connect(PCh.clear) ;
@@ -166,7 +166,7 @@ void init6502(){
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    CU.INST_s.connect(INST.set) ;
+    C4.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
@@ -179,45 +179,47 @@ void init6502(){
     PHASE.bo.connect(STEP.down) ;
     STEP_s.connect(STEP.load) ;
 
-    INST.data_out.connect(C1.inst) ;
-    STATUS.N.connect(C1.n) ;
-    STATUS.V.connect(C1.v) ;
-    STATUS.Z.connect(C1.z) ;
-    STATUS.C.connect(C1.c) ;
-    STEP.data_out.connect(C1.step) ;
-    PHASE.data_out.connect(C1.phase) ;
+    if (! gen_mc){
+        INST.data_out.connect(C1.inst) ;
+        STATUS.N.connect(C1.n) ;
+        STATUS.V.connect(C1.v) ;
+        STATUS.Z.connect(C1.z) ;
+        STATUS.C.connect(C1.c) ;
+        STEP.data_out.connect(C1.step) ;
+        PHASE.data_out.connect(C1.phase) ;
 
-    INST.data_out.connect(C2.inst) ;
-    STATUS.N.connect(C2.n) ;
-    STATUS.V.connect(C2.v) ;
-    STATUS.Z.connect(C2.z) ;
-    STATUS.C.connect(C2.c) ;
-    STEP.data_out.connect(C2.step) ;
-    PHASE.data_out.connect(C2.phase) ;
+        INST.data_out.connect(C2.inst) ;
+        STATUS.N.connect(C2.n) ;
+        STATUS.V.connect(C2.v) ;
+        STATUS.Z.connect(C2.z) ;
+        STATUS.C.connect(C2.c) ;
+        STEP.data_out.connect(C2.step) ;
+        PHASE.data_out.connect(C2.phase) ;
 
-    INST.data_out.connect(C3.inst) ;
-    STATUS.N.connect(C3.n) ;
-    STATUS.V.connect(C3.v) ;
-    STATUS.Z.connect(C3.z) ;
-    STATUS.C.connect(C3.c) ;
-    STEP.data_out.connect(C3.step) ;
-    PHASE.data_out.connect(C3.phase) ;
+        INST.data_out.connect(C3.inst) ;
+        STATUS.N.connect(C3.n) ;
+        STATUS.V.connect(C3.v) ;
+        STATUS.Z.connect(C3.z) ;
+        STATUS.C.connect(C3.c) ;
+        STEP.data_out.connect(C3.step) ;
+        PHASE.data_out.connect(C3.phase) ;
 
-    INST.data_out.connect(C4.inst) ;
-    STATUS.N.connect(C4.n) ;
-    STATUS.V.connect(C4.v) ;
-    STATUS.Z.connect(C4.z) ;
-    STATUS.C.connect(C4.c) ;
-    STEP.data_out.connect(C4.step) ;
-    PHASE.data_out.connect(C4.phase) ;
+        INST.data_out.connect(C4.inst) ;
+        STATUS.N.connect(C4.n) ;
+        STATUS.V.connect(C4.v) ;
+        STATUS.Z.connect(C4.z) ;
+        STATUS.C.connect(C4.c) ;
+        STEP.data_out.connect(C4.step) ;
+        PHASE.data_out.connect(C4.phase) ;
 
-    INST.data_out.connect(C5.inst) ;
-    STATUS.N.connect(C5.n) ;
-    STATUS.V.connect(C5.v) ;
-    STATUS.Z.connect(C5.z) ;
-    STATUS.C.connect(C5.c) ;
-    STEP.data_out.connect(C5.step) ;
-    PHASE.data_out.connect(C5.phase) ;
+        INST.data_out.connect(C5.inst) ;
+        STATUS.N.connect(C5.n) ;
+        STATUS.V.connect(C5.v) ;
+        STATUS.Z.connect(C5.z) ;
+        STATUS.C.connect(C5.c) ;
+        STEP.data_out.connect(C5.step) ;
+        PHASE.data_out.connect(C5.phase) ;
+    }
 }
 
 
@@ -344,6 +346,14 @@ int do_inst(){
 
 
 void generate_microcode(){
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ;
+    // At this point, INST is driving the control signals with whatever random value it contains at startup.
+    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
+    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
+
     printf("uint64_t microcode[] = {\n") ;
     for (int i = 0 ; i < 4096 ; i++){
         uint8_t flags = i & 0b1111 ;
@@ -400,6 +410,7 @@ void reset6502(){
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     PC_clr.pulse() ;
+
     boot_DATA.drive(true) ;
     boot_DATA = 0x02 ; // RST instruction
     CU.PC_e.toggle() ;
@@ -408,15 +419,23 @@ void reset6502(){
     boot_DATA.drive(false) ;
     // Reset step/phase to 0 and run the instruction.
     PHASE_clr.pulse() ;
-    STEP_clr.pulse() ; 
+    STEP_clr.pulse() ;
     do_inst() ;
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
 }
 
 
 void load6502(uint8_t prog[], int prog_len){
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ;
+    // Again, pulse the clock to the third phase to disable all control signals
+    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
     PC_clr.pulse() ;
+
     for (int i = 0 ; i < prog_len ; i++){
         boot_DATA.drive(true) ;
         boot_DATA = prog[i] ;
@@ -426,6 +445,9 @@ void load6502(uint8_t prog[], int prog_len){
         boot_DATA.drive(false) ;
         CU.PC_up.pulse() ;
     }
+
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
 }
@@ -437,9 +459,9 @@ int main(int argc, char *argv[]){
         exit(1) ;
     }
 
-    init6502() ;
- 
     uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
+    init6502(SUCCESS_ADDR == 0) ;
+ 
     if (SUCCESS_ADDR == 0){
         generate_microcode() ;
         exit(0) ; 
