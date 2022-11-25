@@ -53,29 +53,32 @@ output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHA
 
 or_<1> RAM_s ;
 output<1> boot_RAM_s ;
+output<8> boot_DATA ;
 
 
 void init6502(){
     boot_RAM_s.connect(RAM_s.a) ;
+    boot_DATA.drive(false) ;
+    boot_DATA.connect(DATA.data_in) ;
 
     ADDRh.data_out.connect(Ah2D.data_in) ;
-    CU.Ah2D_e.connect(Ah2D.enable) ;
+    C4.Ah2D_e.connect(Ah2D.enable) ;
     Ah2D.data_out.connect(DATA.data_in) ;
     ADDRl.data_out.connect(Al2D.data_in) ;    
-    CU.Al2D_e.connect(Al2D.enable) ;
+    C4.Al2D_e.connect(Al2D.enable) ;
     Al2D.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    CU.RAM_e.connect(RAM.enable) ;
+    C4.RAM_e.connect(RAM.enable) ;
     RAM_s.c.connect(RAM.set) ;
-    CU.RAM_s.connect(RAM_s.b) ;
+    C4.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
-    CU.EAh_e.connect(EAh.enable) ;
-    CU.EAh_s.connect(EAh.set) ;
+    C4.EAh_e.connect(EAh.enable) ;
+    C4.EAh_s.connect(EAh.set) ;
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
@@ -93,7 +96,7 @@ void init6502(){
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
-    CU.PCh_s.connect(PCh.load) ;
+    C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
     PC_clr.connect(PCh.clear) ;
@@ -163,7 +166,7 @@ void init6502(){
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    CU.INST_s.connect(INST.set) ;
+    C4.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
@@ -391,12 +394,21 @@ void generate_microcode(){
 void reset6502(){
     PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
+    // At this point, INST is driving the control signals with whatever random value it contains at startup.
+    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
+    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
     PC_clr.pulse() ;
-    DATA.data_out = 0x02 ; // RST instruction
-    CU.PC_e.toggle() ; 
+    boot_DATA.drive(true) ;
+    boot_DATA = 0x02 ; // RST instruction
+    CU.PC_e.toggle() ;
     boot_RAM_s.pulse() ;
     CU.PC_e.toggle() ;
-    DATA.data_out = 0 ;
+    boot_DATA.drive(false) ;
+    // Reset step/phase to 0 and run the instruction.
+    PHASE_clr.pulse() ;
+    STEP_clr.pulse() ; 
     do_inst() ;
     PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
@@ -406,11 +418,12 @@ void reset6502(){
 void load6502(uint8_t prog[], int prog_len){
     PC_clr.pulse() ;
     for (int i = 0 ; i < prog_len ; i++){
-        DATA.data_out = prog[i] ;
+        boot_DATA.drive(true) ;
+        boot_DATA = prog[i] ;
         CU.PC_e.toggle() ; 
         boot_RAM_s.pulse() ;
         CU.PC_e.toggle() ;
-        DATA.data_out = 0 ;
+        boot_DATA.drive(false) ;
         CU.PC_up.pulse() ;
     }
     PC_clr.pulse() ;
