@@ -18,7 +18,9 @@
 CONTROL_1_ROM C1 ;
 CONTROL_2_ROM C2 ;
 CONTROL_3_ROM C3 ;
-CONTROL_UNIT CU(&C1, &C2, &C3) ;
+CONTROL_4_ROM C4 ;
+CONTROL_5_ROM C5 ;
+CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -47,6 +49,9 @@ output<1> INST_e(1) ;
 counter<4> STEP ;
 counter<2> PHASE ;
 output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
+
+or_<1> RAM_s ;
+output<1> boot_RAM_s, ctrl_RAM_s
 
 
 void init6502(){
@@ -112,12 +117,12 @@ void init6502(){
 
     DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
-    CU.A_s.connect(A.set) ;
+    C3.A_s.connect(A.set) ;
     A_e = 0 ; // always enabled 
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
-    CU.B_s.connect(B.set) ;
+    C3.B_s.connect(B.set) ;
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
@@ -133,9 +138,9 @@ void init6502(){
     A.data_out.connect(ALU.a) ;
     B.data_out.connect(ALU.b) ;
     STATUS.alu_c.connect(ALU.c_in) ;
-    CU.ALU_op.connect(ALU.op) ;
+    C3.ALU_op.connect(ALU.op) ;
     ALU.res.connect(ALU2D.data_in) ;
-    CU.ALU_e.connect(ALU2D.enable) ;
+    C3.ALU_e.connect(ALU2D.enable) ;
     ALU2D.data_out.connect(DATA.data_in) ;
     ALU.n.connect(STATUS.n_in) ;
     ALU.v.connect(STATUS.v_in) ;
@@ -190,6 +195,22 @@ void init6502(){
     STATUS.C.connect(C3.c) ;
     STEP.data_out.connect(C3.step) ;
     PHASE.data_out.connect(C3.phase) ;
+
+    INST.data_out.connect(C4.inst) ;
+    STATUS.N.connect(C4.n) ;
+    STATUS.V.connect(C4.v) ;
+    STATUS.Z.connect(C4.z) ;
+    STATUS.C.connect(C4.c) ;
+    STEP.data_out.connect(C4.step) ;
+    PHASE.data_out.connect(C4.phase) ;
+
+    INST.data_out.connect(C5.inst) ;
+    STATUS.N.connect(C5.n) ;
+    STATUS.V.connect(C5.v) ;
+    STATUS.Z.connect(C5.z) ;
+    STATUS.C.connect(C5.c) ;
+    STEP.data_out.connect(C5.step) ;
+    PHASE.data_out.connect(C5.phase) ;
 }
 
 
