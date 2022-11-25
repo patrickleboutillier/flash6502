@@ -101,12 +101,14 @@ class CONTROL_UNIT {
         //set_signal_1(ST_ALU_C_from_C, 38) ;
         //set_signal_1(ST_s, 39) ;
 
+        /*
         cw = make_cw() ;
         assert((cw >> 0 & 0xFF) == _C1->make_cw()) ;
         assert((cw >> 8 & 0xFF) == _C2->make_cw()) ;
         assert((cw >> 16 & 0xFF) == _C3->make_cw()) ;
         assert((cw >> 24 & 0xFF) == _C4->make_cw()) ;
         assert((cw >> 32 & 0xFF) == _C5->make_cw()) ;
+        */
     }
 
     uint64_t make_cw(){
