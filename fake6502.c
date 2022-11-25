@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "circuit.h"
+#include "or.h"
 #include "reg.h"
 #include "bus.h"
 #include "tristate.h"
@@ -51,10 +52,12 @@ counter<2> PHASE ;
 output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
 
 or_<1> RAM_s ;
-output<1> boot_RAM_s, ctrl_RAM_s
+output<1> boot_RAM_s ;
 
 
 void init6502(){
+    boot_RAM_s.connect(RAM_s.a) ;
+
     ADDRh.data_out.connect(Ah2D.data_in) ;
     CU.Ah2D_e.connect(Ah2D.enable) ;
     Ah2D.data_out.connect(DATA.data_in) ;
@@ -66,7 +69,8 @@ void init6502(){
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
     CU.RAM_e.connect(RAM.enable) ;
-    CU.RAM_s.connect(RAM.set) ;
+    RAM_s.c.connect(RAM.set) ;
+    CU.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
@@ -390,7 +394,7 @@ void reset6502(){
     PC_clr.pulse() ;
     DATA.data_out = 0x02 ; // RST instruction
     CU.PC_e.toggle() ; 
-    CU.RAM_s.pulse() ;
+    boot_RAM_s.pulse() ;
     CU.PC_e.toggle() ;
     DATA.data_out = 0 ;
     do_inst() ;
@@ -404,7 +408,7 @@ void load6502(uint8_t prog[], int prog_len){
     for (int i = 0 ; i < prog_len ; i++){
         DATA.data_out = prog[i] ;
         CU.PC_e.toggle() ; 
-        CU.RAM_s.pulse() ;
+        boot_RAM_s.pulse() ;
         CU.PC_e.toggle() ;
         DATA.data_out = 0 ;
         CU.PC_up.pulse() ;
