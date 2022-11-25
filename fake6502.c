@@ -62,23 +62,23 @@ void init6502(){
     boot_DATA.connect(DATA.data_in) ;
 
     ADDRh.data_out.connect(Ah2D.data_in) ;
-    C4.Ah2D_e.connect(Ah2D.enable) ;
+    CU.Ah2D_e.connect(Ah2D.enable) ;
     Ah2D.data_out.connect(DATA.data_in) ;
     ADDRl.data_out.connect(Al2D.data_in) ;    
-    C4.Al2D_e.connect(Al2D.enable) ;
+    CU.Al2D_e.connect(Al2D.enable) ;
     Al2D.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    C4.RAM_e.connect(RAM.enable) ;
+    CU.RAM_e.connect(RAM.enable) ;
     RAM_s.c.connect(RAM.set) ;
-    C4.RAM_s.connect(RAM_s.b) ;
+    CU.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
-    C4.EAh_e.connect(EAh.enable) ;
-    C4.EAh_s.connect(EAh.set) ;
+    CU.EAh_e.connect(EAh.enable) ;
+    CU.EAh_s.connect(EAh.set) ;
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
@@ -96,7 +96,7 @@ void init6502(){
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
-    C4.PCh_s.connect(PCh.load) ;
+    CU.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
     PC_clr.connect(PCh.clear) ;
@@ -166,7 +166,7 @@ void init6502(){
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    C4.INST_s.connect(INST.set) ;
+    CU.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
