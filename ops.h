@@ -18,7 +18,7 @@ uint8_t adc(uint8_t tick) {
     return 1 ;
 }
 
-uint8_t and_(uint8_t tick) {
+uint8_t anda(uint8_t tick) {
     switch (tick) { 
         case 0x00:  C1.ACC_e.toggle() ; break ;
         case 0x01:  C3.A_s.toggle() ; break ;
@@ -1196,10 +1196,10 @@ uint8_t rst(uint8_t tick){
         case 0x03:  C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; break ;
 
         // Set ALU_c to 0 
-        case 0x10:  C5.ST_ALU_C_from_C.toggle() ; break ;
-        case 0x11:  C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x12:  C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x13:  C5.ST_ALU_C_from_C.toggle() ; break ;
+        case 0x10:  C5.ST_ALU_C_from_C.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case 0x11:  C5.ST_s.toggle() ; break ;
+        case 0x12:  C5.ST_s.toggle() ; break ;
+        case 0x13:  C5.ST_ALU_C_from_C.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
 
         // Decrement SP thrice to reach 0xFD
         case 0x20:  CU.SP_down.toggle() ; break ;

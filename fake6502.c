@@ -4,6 +4,7 @@
 
 #include "circuit.h"
 #include "or.h"
+#include "and.h"
 #include "reg.h"
 #include "bus.h"
 #include "tristate.h"
@@ -52,12 +53,15 @@ counter<2> PHASE ;
 output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
 
 or_<1> RAM_s ;
-output<1> boot_RAM_s ;
+and_<1> PC_e, PC_up ;
+output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1) ;
 output<8> boot_DATA ;
 
 
 void init6502(bool gen_mc){
     boot_RAM_s.connect(RAM_s.a) ;
+    boot_PC_e.connect(PC_e.a) ;
+    boot_PC_up.connect(PC_up.a) ;
     boot_DATA.drive(false) ;
     boot_DATA.connect(DATA.data_in) ;
 
@@ -88,11 +92,13 @@ void init6502(bool gen_mc){
 
     DATA.data_out.connect(PCl.data_in) ;
     CU.PCl_s.connect(PCl.load) ;
-    CU.PC_up.connect(PCl.up) ;
+    CU.PC_up.connect(PC_up.b) ;
+    PC_up.c.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
     PC_clr.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
-    CU.PC_e.connect(PClt.enable) ;
+    CU.PC_e.connect(PC_e.b) ;
+    PC_e.c.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
@@ -101,7 +107,7 @@ void init6502(bool gen_mc){
     PCl.bo.connect(PCh.down) ;
     PC_clr.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
-    CU.PC_e.connect(PCht.enable) ;
+    PC_e.c.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
@@ -262,8 +268,8 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
 /* 0 */      brk,  ora,  rst,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
 /* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
-/* 2 */      jsr,  and_,  nop,  rla,  bit,  and_,  rol,  rla,  plp,  and_,  rol,  nop,  bit,  and_,  rol,  rla, /* 2 */
-/* 3 */      bmi,  and_,  nop,  rla,  nop,  and_,  rol,  rla,  sec,  and_,  nop,  rla,  nop,  and_,  rol,  rla, /* 3 */
+/* 2 */      jsr,  anda,  nop,  rla,  bit,  anda,  rol,  rla,  plp,  anda,  rol,  nop,  bit,  anda,  rol,  rla, /* 2 */
+/* 3 */      bmi,  anda,  nop,  rla,  nop,  anda,  rol,  rla,  sec,  anda,  nop,  rla,  nop,  anda,  rol,  rla, /* 3 */
 /* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
 /* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  cli,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
 /* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
