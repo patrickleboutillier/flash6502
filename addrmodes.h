@@ -155,11 +155,11 @@ uint8_t rel(uint8_t tick){ // 7 cycles
         case 0x23:  CU.Al2D_e.toggle() ; CU.PC_e.toggle() ; break ;
     
         case 0x30:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
-        case 0x31:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
-        case 0x32:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case 0x31:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case 0x32:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
         case 0x33:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
     
         case 0x40:  CU.EAh_e.toggle() ; CU.Ah2D_e.toggle() ; break ;
         case 0x41:  C3.A_s.toggle() ; break ;
@@ -220,11 +220,11 @@ uint8_t absx(uint8_t tick) { // 7 cycles
         case 0x13:  CU.RAM_e.toggle() ; CU.PC_e.toggle() ; CU.PC_up.toggle() ; break ;
         
         case 0x20:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
-        case 0x21:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
-        case 0x22:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case 0x21:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case 0x22:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
         case 0x23:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
         case 0x30:  break ;
         case 0x31:  C3.A_s.toggle() ; break ;
@@ -267,11 +267,11 @@ uint8_t absy(uint8_t tick) { // 7 cycles
         case 0x13:  CU.RAM_e.toggle() ; CU.PC_e.toggle() ; CU.PC_up.toggle() ; break ;
         
         case 0x20:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
-        case 0x21:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
-        case 0x22:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case 0x21:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case 0x22:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
         case 0x23:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
         case 0x30:  break ;
         case 0x31:  C3.A_s.toggle() ; break ;
@@ -458,11 +458,11 @@ uint8_t indy(uint8_t tick) { // 10 cycles
         case 0x53:  CU.RAM_e.toggle() ; CU.EAl_e.toggle() ; break ;
         
         case 0x60:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
-        case 0x61:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
-        case 0x62:  CU.EAl_s.toggle() ; CU.ST_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case 0x61:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case 0x62:  CU.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
         case 0x63:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; CU.ST_ALU_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
         case 0x70:  break ;
         case 0x71:  C3.A_s.toggle() ; break ;

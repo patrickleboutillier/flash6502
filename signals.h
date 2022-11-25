@@ -26,13 +26,14 @@ class CONTROL_UNIT {
         // 4
         output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s ;
         // 5
-        output<1> ST_e, ST_src, ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
+        //output<1> ST_e, ST_src, ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
 
     CONTROL_UNIT(CONTROL_1_ROM *c1, CONTROL_2_ROM *c2, CONTROL_3_ROM *c3, CONTROL_4_ROM *c4, CONTROL_5_ROM *c5) :    
                         SP_down(1), SP_e(1), EAl_e(1), PC_up(1), PC_e(1), 
                         //ALU_e(1),
-                        Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1),
-                        ST_e(1){
+                        Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1)
+                        //ST_e(1)
+                        {
 
         _C1 = c1 ;
         _C2 = c2 ;
@@ -91,14 +92,14 @@ class CONTROL_UNIT {
         set_signal_1(EAh_e, 30) ;
         set_signal_1(PCh_s, 31) ;
         // Chip 5
-        set_signal_1(ST_e, 32) ;
-        set_signal_1(ST_src, 33) ;
-        set_signal_1(ST_NZ_s, 34) ;
-        set_signal_1(ST_V_s, 35) ;
-        set_signal_1(ST_C_s, 36) ;
-        set_signal_1(ST_ALU_C_s, 37) ;
-        set_signal_1(ST_ALU_C_from_C, 38) ;
-        set_signal_1(ST_s, 39) ;
+        //set_signal_1(ST_e, 32) ;
+        //set_signal_1(ST_src, 33) ;
+        //set_signal_1(ST_NZ_s, 34) ;
+        //set_signal_1(ST_V_s, 35) ;
+        //set_signal_1(ST_C_s, 36) ;
+        //set_signal_1(ST_ALU_C_s, 37) ;
+        //set_signal_1(ST_ALU_C_from_C, 38) ;
+        //set_signal_1(ST_s, 39) ;
 
         cw = make_cw() ;
         assert((cw >> 0 & 0xFF) == _C1->make_cw()) ;
@@ -145,14 +146,15 @@ class CONTROL_UNIT {
             EAh_s << 29 |
             EAh_e << 30 |
             PCh_s << 31 |
+            (uint64_t)_C5->make_cw() << 32 ;
             // Chip 5
-            (uint64_t)ST_e << 32 |
-            (uint64_t)ST_src << 33 |
-            (uint64_t)ST_NZ_s << 34 |
-            (uint64_t)ST_V_s << 35 |
-            (uint64_t)ST_C_s << 36 |
-            (uint64_t)ST_ALU_C_s << 37 |
-            (uint64_t)ST_ALU_C_from_C << 38 |
-            (uint64_t)ST_s << 39 ;
+            //(uint64_t)ST_e << 32 |
+            //(uint64_t)ST_src << 33 |
+            //(uint64_t)ST_NZ_s << 34 |
+            //(uint64_t)ST_V_s << 35 |
+            //(uint64_t)ST_C_s << 36 |
+            //(uint64_t)ST_ALU_C_s << 37 |
+            //(uint64_t)ST_ALU_C_from_C << 38 |
+            //(uint64_t)ST_s << 39 ;
     }
 } ;
