@@ -27,7 +27,7 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 
 reg<8> EAh, EAl ;
-counter<8> SP, PCh, PCl ;
+counter_updown<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v(0x01) ;
 output<1> PC_down(1), SP_up(1), SP_clr, PC_clr ; // the signals are not used by the CU 
@@ -47,14 +47,16 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-counter<4> STEP ;
-counter<2> PHASE ;
-output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
+// TODO: replace with 2 4-bit counters. Maybe?
+counter<6> STEP ;
+output<1> STEP_clk(1), STEP_s(1), STEP_cnt_e, CLK(1) ; 
 
 or_<1> RAM_s ;
 and_<1> PC_e, PC_up ;
-output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1) ;
+output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
 output<8> boot_DATA ;
+
+output<1> GND(0) ;
 
 
 void init6502(bool gen_mc){
@@ -74,9 +76,9 @@ void init6502(bool gen_mc){
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    C4.RAM_e.connect(RAM.enable) ;
+    C2.RAM_e.connect(RAM.enable) ;
     RAM_s.c.connect(RAM.set) ;
-    C4.RAM_s.connect(RAM_s.b) ;
+    C2.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
@@ -85,12 +87,12 @@ void init6502(bool gen_mc){
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
-    C2.EAl_e.connect(EAl.enable) ;
-    C2.EAl_s.connect(EAl.set) ;
+    C4.EAl_e.connect(EAl.enable) ;
+    C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCl.data_in) ;
-    C2.PCl_s.connect(PCl.load) ;
+    C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PC_up.b) ;
     PC_up.c.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
@@ -171,43 +173,37 @@ void init6502(bool gen_mc){
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    C4.INST_s.connect(INST.set) ;
+    C2.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    PHASE_clr.connect(PHASE.clear) ;
-    CLK.connect(PHASE.up) ;
-    PHASE_down.connect(PHASE.down) ;
-    PHASE_s.connect(PHASE.load) ;
-    STEP_clr.connect(STEP.clear) ;
-    PHASE.co.connect(STEP.up) ;
-    PHASE.bo.connect(STEP.down) ;
+    CLK.connect(STEP.clk) ;
+    C1.STEP_clr.connect(STEP.clear) ;
     STEP_s.connect(STEP.load) ;
+    STEP_cnt_e.connect(STEP.enable) ;
+    STEP_cnt_e = 1 ;
 
     if (! gen_mc){
         INST.data_out.connect(C1.inst) ;
-        STATUS.N.connect(C1.n) ;
-        STATUS.V.connect(C1.v) ;
-        STATUS.Z.connect(C1.z) ;
-        STATUS.C.connect(C1.c) ;
+        boot_STEP_clr.connect(C1.n) ;
+        GND.connect(C1.v) ;
+        GND.connect(C1.z) ;
+        GND.connect(C1.c) ;
         STEP.data_out.connect(C1.step) ;
-        PHASE.data_out.connect(C1.phase) ;
 
         INST.data_out.connect(C2.inst) ;
-        STATUS.N.connect(C2.n) ;
-        STATUS.V.connect(C2.v) ;
-        STATUS.Z.connect(C2.z) ;
-        STATUS.C.connect(C2.c) ;
+        GND.connect(C2.n) ;
+        GND.connect(C2.v) ;
+        GND.connect(C2.z) ;
+        GND.connect(C2.c) ;
         STEP.data_out.connect(C2.step) ;
-        PHASE.data_out.connect(C2.phase) ;
 
         INST.data_out.connect(C3.inst) ;
-        STATUS.N.connect(C3.n) ;
-        STATUS.V.connect(C3.v) ;
-        STATUS.Z.connect(C3.z) ;
-        STATUS.C.connect(C3.c) ;
+        GND.connect(C3.n) ;
+        GND.connect(C3.v) ;
+        GND.connect(C3.z) ;
+        GND.connect(C3.c) ;
         STEP.data_out.connect(C3.step) ;
-        PHASE.data_out.connect(C3.phase) ;
 
         INST.data_out.connect(C4.inst) ;
         STATUS.N.connect(C4.n) ;
@@ -215,16 +211,15 @@ void init6502(bool gen_mc){
         STATUS.Z.connect(C4.z) ;
         STATUS.C.connect(C4.c) ;
         STEP.data_out.connect(C4.step) ;
-        PHASE.data_out.connect(C4.phase) ;
 
         INST.data_out.connect(C5.inst) ;
-        STATUS.N.connect(C5.n) ;
-        STATUS.V.connect(C5.v) ;
-        STATUS.Z.connect(C5.z) ;
-        STATUS.C.connect(C5.c) ;
+        GND.connect(C5.n) ;
+        GND.connect(C5.v) ;
+        GND.connect(C5.z) ;
+        GND.connect(C5.c) ;
         STEP.data_out.connect(C5.step) ;
-        PHASE.data_out.connect(C5.phase) ;
     }
+
 }
 
 
@@ -285,62 +280,7 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 
 
 int do_inst(){
-    #define MICROCODE  1
-
-    #if !MICROCODE
-        uint8_t addr_start = 0, op_start = 0 ;
-        bool fetch_done = false, addr_done = false, op_done = false ;
-    #endif
-
     for (int i = 0 ; i < 16*4 ; i++){
-        /*
-        uint8_t step = STEP ;
-        uint8_t phase = PHASE ;
-
-        #if MICROCODE
-            uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-            CU.apply_cw(cw) ;
-            // TODO: why does this test fail?
-            //assert(CU.make_cw() == cw) ;
-        #else
-            uint8_t tick = step << 4 | phase ;
-            if (! fetch_done){
-                if (fetch(tick)){
-                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                    assert(CU.make_cw() == cw) ;
-                    continue ;
-                } 
-                fetch_done = true ;
-                addr_start = step << 4 ;
-            }
-            if (! addr_done){
-                if ((*addrtable[INST])(tick - addr_start)){
-                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                    assert(CU.make_cw() == cw) ;
-                    continue ;
-                }
-                addr_done = true ;
-                op_start = step << 4 ;
-            }
-            if (! op_done){
-                if ((*optable[INST])(tick - op_start)){
-                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                    //if (CU.make_cw() != cw)
-                    //    printf("INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X -> 0x%010lX != 0x%010lX\n", (uint8_t)INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase,
-                    //        CU.make_cw(), cw) ;
-                    assert(CU.make_cw() == cw) ;
-                    continue ;
-                }
-                // Optimization
-                // return step ;
-                else {
-                    uint64_t cw = CU.get_cw(INST, STATUS.N << 3 | STATUS.V << 2 | STATUS.Z << 1 | STATUS.C, step, phase) ;
-                    assert(CU.make_cw() == cw) ;
-                }
-            }
-        #endif
-        */
-
         CLK.pulse() ;
     }
 
@@ -349,11 +289,10 @@ int do_inst(){
 
 
 void generate_microcode(){
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
@@ -365,39 +304,35 @@ void generate_microcode(){
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false ;
         int step = 0 ;
-        for (; step < 16 ; step++){
-            for (int phase = 0 ; phase < 4 ; phase++){
-                uint8_t tick = step << 4 | phase ;
+        for (; step < 64 ; step++){
+            // Set INST and FLAGS
+            INST = inst ;
+            STATUS.N = (flags >> 3) & 1 ;
+            STATUS.V = (flags >> 2) & 1 ;
+            STATUS.Z = (flags >> 1) & 1 ;
+            STATUS.C = (flags >> 0) & 1 ;
 
-                // Set INST and FLAGS
-                INST = inst ;
-                STATUS.N = (flags >> 3) & 1 ;
-                STATUS.V = (flags >> 2) & 1 ;
-                STATUS.Z = (flags >> 1) & 1 ;
-                STATUS.C = (flags >> 0) & 1 ;
-
-                if (! fetch_done){
-                    if (fetch(tick)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
-                            CU.make_cw()) ;
-                        continue ;
-                    } 
-                    fetch_done = true ;
-                    addr_start = step << 4 ;
-                }
-                if (! addr_done){
-                    if ((*addrtable[inst])(tick - addr_start)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
-                            CU.make_cw()) ;
-                        continue ;
-                    }
-                    addr_done = true ;
-                    op_start = step << 4 ;
-                }
-                (*optable[inst])(tick - op_start) ;
-                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
-                    CU.make_cw()) ;
+            if (! fetch_done){
+                if (fetch(step)){
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                        CU.make_cw()) ;
+                    continue ;
+                } 
+                fetch_done = true ;
+                addr_start = step ;
             }
+            if (! addr_done){
+                if ((*addrtable[inst])(step - addr_start)){
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                        CU.make_cw()) ;
+                    continue ;
+                }
+                addr_done = true ;
+                op_start = step ;
+            }
+            (*optable[inst])(step - op_start) ;
+            printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                CU.make_cw()) ;
         }
     }
     printf("} ;\n") ;
@@ -405,11 +340,10 @@ void generate_microcode(){
 
 
 void reset6502(){
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     PC_clr.pulse() ;
@@ -421,19 +355,16 @@ void reset6502(){
     boot_PC_e.toggle() ;
     boot_DATA.drive(false) ;
     // Reset step/phase to 0 and run the instruction.
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     do_inst() ;
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
 }
 
 
 void load6502(uint8_t prog[], int prog_len){
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     // Again, pulse the clock to the third phase to disable all control signals
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
@@ -449,8 +380,7 @@ void load6502(uint8_t prog[], int prog_len){
         boot_PC_up.pulse() ;
     }
 
-    PHASE_clr.pulse() ;
-    STEP_clr.pulse() ;
+    boot_STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
 }
