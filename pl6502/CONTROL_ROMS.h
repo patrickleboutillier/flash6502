@@ -13,11 +13,10 @@ class CONTROL_1_ROM : public component {
     public:
         input<8> inst ;
         input<1> n, v, z, c ;
-        input<4> step ;
-        input<2> phase ;
+        input<6> step ;
         output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e ;
 
-        CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+        CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
                             X_e(1), Y_e(1), ACC_e(1) {
         } ;
 
@@ -33,7 +32,7 @@ class CONTROL_1_ROM : public component {
 
         void always(){
             uint8_t prev = make_cw() ;
-            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 0) & 0xFF ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 0) & 0xFF ;
 
             #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
 
@@ -51,11 +50,10 @@ class CONTROL_2_ROM : public component {
     public:
         input<8> inst ;
         input<1> n, v, z, c ;
-        input<4> step ;
-        input<2> phase ;
+        input<6> step ;
         output<1> SP_down, SP_s, SP_e, EAl_s, EAl_e, PC_up, PCl_s, PC_e ;
 
-        CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+        CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
                             SP_down(1), SP_s(1), SP_e(1), EAl_e(1), PC_up(1), PCl_s(1), PC_e(1) {
         } ;
 
@@ -73,7 +71,7 @@ class CONTROL_2_ROM : public component {
 
         void always(){
             uint8_t prev = make_cw() ;
-            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 8) & 0xFF ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 8) & 0xFF ;
 
             #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
 
@@ -93,12 +91,11 @@ class CONTROL_3_ROM : public component {
     public:
         input<8> inst ;
         input<1> n, v, z, c ;
-        input<4> step ;
-        input<2> phase ;
+        input<6> step ;
         output<4> ALU_op ; 
         output<1> A_s, ALU_e, B_s ;
 
-        CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+        CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
                             ALU_e(1)  {
         } ;
 
@@ -112,7 +109,7 @@ class CONTROL_3_ROM : public component {
 
         void always(){
             uint8_t prev = make_cw() ;
-            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 16) & 0xFF ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 16) & 0xFF ;
 
             #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
             #define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
@@ -129,11 +126,10 @@ class CONTROL_4_ROM : public component {
     public:
         input<8> inst ;
         input<1> n, v, z, c ;
-        input<4> step ;
-        input<2> phase ;
+        input<6> step ;
         output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s ;
 
-        CONTROL_4_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
+        CONTROL_4_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
                             Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1), PCh_s(1) {
         } ;
 
@@ -151,7 +147,7 @@ class CONTROL_4_ROM : public component {
 
         void always(){
             uint8_t prev = make_cw() ;
-            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 24) & 0xFF ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 24) & 0xFF ;
 
             #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
             #define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
@@ -172,12 +168,11 @@ class CONTROL_5_ROM : public component {
     public:
         input<8> inst ;
         input<1> n, v, z, c ;
-        input<4> step ;
-        input<2> phase ;
+        input<6> step ;
         output<1> ST_e, ST_src, ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
 
-        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), phase(this),
-                            ST_e(1)  {
+        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
+                            ST_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -194,7 +189,7 @@ class CONTROL_5_ROM : public component {
 
         void always(){
             uint8_t prev = make_cw() ;
-            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step << 2 | phase] >> 32) & 0xFF ;
+            uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 32) & 0xFF ;
 
             #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
             #define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
@@ -233,7 +228,7 @@ class CONTROL_UNIT {
     }
 
     uint64_t get_default_cw(){
-        return _default ; 
+        return _default ;
     }
 
     uint64_t get_cw(uint8_t inst, uint8_t flags, uint8_t step, uint8_t phase){
