@@ -2,8 +2,6 @@ Branch feature/split_counters:
 - Fix load signal for counter_updown: done
 - Create simple counter (161)
 - Replace STEP + PHASE counters for simple counters
-
-Branch:
 - Combine STEP and PHASE in a single (double) counters
 
 Branch:

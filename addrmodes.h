@@ -1,98 +1,63 @@
-uint8_t fetch(uint8_t tick) { // 1 cycle
-    switch (tick){
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C4.INST_s.toggle() ; break ;
-        case 0x02:  C4.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+uint8_t fetch(uint8_t step) { // 1 cycle
+    switch (step){
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C4.INST_s.toggle() ; break ;
+        case    2:  C4.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         default:    return 0 ;
     }
     return 1 ;
 }
 
 
-uint8_t imp(uint8_t tick) { //implied
-    switch (tick){
+uint8_t imp(uint8_t step) { //implied
+    switch (step){
         default:    return 0 ;
     }
     return 1 ;
 }
 
 
-uint8_t acc(uint8_t tick) { // 1 cycle
-    switch (tick){
-        case 0x00:  C1.ACC_e.toggle() ; break ;
-        case 0x01:  C3.B_s.toggle() ; break ;
-        case 0x02:  C3.B_s.toggle() ; break ;
-        case 0x03:  C1.ACC_e.toggle() ; break ;
+uint8_t acc(uint8_t step) { // 1 cycle
+    switch (step){
+        case    0:  C1.ACC_e.toggle() ; break ;
+        case    1:  C3.B_s.toggle() ; break ;
+        case    2:  C3.B_s.toggle() ; break ;
+        case    3:  C1.ACC_e.toggle() ; break ;
         default:    return 0 ;
     }
     return 1 ;
 }
 
 
-uint8_t imm(uint8_t tick) { // 1 cycle
-    switch (tick){
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C3.B_s.toggle() ; break ;
-        case 0x02:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ;  break ;
+uint8_t imm(uint8_t step) { // 1 cycle
+    switch (step){
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C3.B_s.toggle() ; break ;
+        case    2:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ;  break ;
         default:    return 0 ;
     }
     return 1 ;
 }
 
 
-uint8_t zp(uint8_t tick) { // 3 cycles
-    switch (tick){
-        case 0x00:  break ;
-        case 0x01:  C4.EAh_s.toggle() ; break ;
-        case 0x02:  C4.EAh_s.toggle() ; break ;
-        case 0x03:  break ;
+uint8_t zp(uint8_t step) { // 3 cycles
+    switch (step){
+        case    0:  break ;
+        case    1:  C4.EAh_s.toggle() ; break ;
+        case    2:  C4.EAh_s.toggle() ; break ;
+        case    3:  break ;
 
-        case 0x10:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x11:  C2.EAl_s.toggle() ; break ;
-        case 0x12:  C2.EAl_s.toggle() ; break ;
-        case 0x13:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
+        case    4:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    5:  C2.EAl_s.toggle() ; break ;
+        case    6:  C2.EAl_s.toggle() ; break ;
+        case    7:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
 
-        case 0x20:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x21:  C3.B_s.toggle() ; break ;
-        case 0x22:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x23:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
-
-        default:    return 0 ;
-    } 
-    return 1 ;
-}
-
-
-uint8_t zpx(uint8_t tick) { // 5 cycles
-    switch (tick){
-        case 0x00:  break ;
-        case 0x01:  C4.EAh_s.toggle() ; break ; 
-        case 0x02:  C4.EAh_s.toggle() ; break ;
-        case 0x03:  break ;
-
-        case 0x10:  C1.X_e.toggle() ; break ; 
-        case 0x11:  C3.A_s.toggle() ; break ;
-        case 0x12:  C3.A_s.toggle() ; break ;
-        case 0x13:  C1.X_e.toggle() ; break ;
-    
-        case 0x20:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x21:  C3.B_s.toggle() ; break ;
-        case 0x22:  C3.B_s.toggle() ; break ;
-        case 0x23:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
-    
-        case 0x30:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; break ;
-        case 0x31:  C2.EAl_s.toggle() ; break ;
-        case 0x32:  C2.EAl_s.toggle() ; break ;
-        case 0x33:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
-    
-        case 0x40:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ; 
-        case 0x41:  C3.B_s.toggle() ; break ;
-        case 0x42:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x43:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    8:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    9:  C3.B_s.toggle() ; break ;
+        case   10:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case   11:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -100,34 +65,34 @@ uint8_t zpx(uint8_t tick) { // 5 cycles
 }
 
 
-uint8_t zpy(uint8_t tick) { // 5 cycles
-    switch (tick){
-        case 0x00:  break ;
-        case 0x01:  C4.EAh_s.toggle() ; break ; 
-        case 0x02:  C4.EAh_s.toggle() ; break ;
-        case 0x03:  break ;
+uint8_t zpx(uint8_t step) { // 5 cycles
+    switch (step){
+        case    0:  break ;
+        case    1:  C4.EAh_s.toggle() ; break ; 
+        case    2:  C4.EAh_s.toggle() ; break ;
+        case    3:  break ;
 
-        case 0x10:  C1.Y_e.toggle() ; break ; 
-        case 0x11:  C3.A_s.toggle() ; break ;
-        case 0x12:  C3.A_s.toggle() ; break ;
-        case 0x13:  C1.Y_e.toggle() ; break ;
+        case    4:  C1.X_e.toggle() ; break ; 
+        case    5:  C3.A_s.toggle() ; break ;
+        case    6:  C3.A_s.toggle() ; break ;
+        case    7:  C1.X_e.toggle() ; break ;
     
-        case 0x20:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x21:  C3.B_s.toggle() ; break ;
-        case 0x22:  C3.B_s.toggle() ; break ;
-        case 0x23:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
+        case    8:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    9:  C3.B_s.toggle() ; break ;
+        case   10:  C3.B_s.toggle() ; break ;
+        case   11:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
     
-        case 0x30:  C3.ALU_op = ALU_ADD ; 
+        case   12:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x31:  C2.EAl_s.toggle() ; break ;
-        case 0x32:  C2.EAl_s.toggle() ; break ;
-        case 0x33:  C3.ALU_op = 0 ;
+        case   13:  C2.EAl_s.toggle() ; break ;
+        case   14:  C2.EAl_s.toggle() ; break ;
+        case   15:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
     
-        case 0x40:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ; 
-        case 0x41:  C3.B_s.toggle() ; break ;
-        case 0x42:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x43:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case   16:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ; 
+        case   17:  C3.B_s.toggle() ; break ;
+        case   18:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case   19:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -135,47 +100,82 @@ uint8_t zpy(uint8_t tick) { // 5 cycles
 }
 
 
-uint8_t rel(uint8_t tick){ // 7 cycles
-    switch (tick){
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C3.A_s.toggle() ; C3.B_s.toggle() ; break ;
-        case 0x02:  C3.A_s.toggle() ; C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+uint8_t zpy(uint8_t step) { // 5 cycles
+    switch (step){
+        case    0:  break ;
+        case    1:  C4.EAh_s.toggle() ; break ; 
+        case    2:  C4.EAh_s.toggle() ; break ;
+        case    3:  break ;
 
-        case 0x10:  C3.ALU_op = ALU_SXT ; 
+        case    4:  C1.Y_e.toggle() ; break ; 
+        case    5:  C3.A_s.toggle() ; break ;
+        case    6:  C3.A_s.toggle() ; break ;
+        case    7:  C1.Y_e.toggle() ; break ;
+    
+        case    8:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    9:  C3.B_s.toggle() ; break ;
+        case   10:  C3.B_s.toggle() ; break ;
+        case   11:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
+    
+        case   12:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x11:  C4.EAh_s.toggle() ; break ;
-        case 0x12:  C4.EAh_s.toggle() ; break ;
-        case 0x13:  C3.ALU_op = 0 ;
+        case   13:  C2.EAl_s.toggle() ; break ;
+        case   14:  C2.EAl_s.toggle() ; break ;
+        case   15:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
     
-        case 0x20:  C2.PC_e.toggle() ; C4.Al2D_e.toggle() ; break ;
-        case 0x21:  C3.B_s.toggle() ; break ;
-        case 0x22:  C3.B_s.toggle() ; break ;
-        case 0x23:  C4.Al2D_e.toggle() ; C2.PC_e.toggle() ; break ;
+        case   16:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ; 
+        case   17:  C3.B_s.toggle() ; break ;
+        case   18:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case   19:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
+
+        default:    return 0 ;
+    } 
+    return 1 ;
+}
+
+
+uint8_t rel(uint8_t step){ // 7 cycles
+    switch (step){
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C3.A_s.toggle() ; C3.B_s.toggle() ; break ;
+        case    2:  C3.A_s.toggle() ; C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+
+        case    4:  C3.ALU_op = ALU_SXT ; 
+                    C3.ALU_e.toggle() ; break ;
+        case    5:  C4.EAh_s.toggle() ; break ;
+        case    6:  C4.EAh_s.toggle() ; break ;
+        case    7:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; break ;
     
-        case 0x30:  C3.ALU_op = ALU_ADD ; 
+        case    8:  C2.PC_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case    9:  C3.B_s.toggle() ; break ;
+        case   10:  C3.B_s.toggle() ; break ;
+        case   11:  C4.Al2D_e.toggle() ; C2.PC_e.toggle() ; break ;
+    
+        case   12:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x31:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x32:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x33:  C3.ALU_op = 0 ;
+        case   13:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   14:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   15:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
     
-        case 0x40:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
-        case 0x41:  C3.A_s.toggle() ; break ;
-        case 0x42:  C3.A_s.toggle() ; break ;
-        case 0x43:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   16:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case   17:  C3.A_s.toggle() ; break ;
+        case   18:  C3.A_s.toggle() ; break ;
+        case   19:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ; break ;
     
-        case 0x50:  C2.PC_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
-        case 0x51:  C3.B_s.toggle() ; break ;
-        case 0x52:  C3.B_s.toggle() ; break ;
-        case 0x53:  C4.Ah2D_e.toggle() ; C2.PC_e.toggle() ; break ;
+        case   20:  C2.PC_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case   21:  C3.B_s.toggle() ; break ;
+        case   22:  C3.B_s.toggle() ; break ;
+        case   23:  C4.Ah2D_e.toggle() ; C2.PC_e.toggle() ; break ;
     
-        case 0x60:  C3.ALU_op = ALU_ADC ; 
+        case   24:  C3.ALU_op = ALU_ADC ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x61:  C4.EAh_s.toggle() ; break ;
-        case 0x62:  C4.EAh_s.toggle() ; break ;
-        case 0x63:  C3.ALU_op = 0 ;
+        case   25:  C4.EAh_s.toggle() ; break ;
+        case   26:  C4.EAh_s.toggle() ; break ;
+        case   27:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -184,69 +184,22 @@ uint8_t rel(uint8_t tick){ // 7 cycles
 }
 
 
-uint8_t abso(uint8_t tick) { // 3 cycles
-    switch(tick) {
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
-        case 0x01:  C2.EAl_s.toggle() ; break ; 
-        case 0x02:  C2.EAl_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+uint8_t abso(uint8_t step) { // 3 cycles
+    switch(step) {
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
+        case    1:  C2.EAl_s.toggle() ; break ; 
+        case    2:  C2.EAl_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x10:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x11:  C4.EAh_s.toggle() ; break ;
-        case 0x12:  C4.EAh_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x13:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    4:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    5:  C4.EAh_s.toggle() ; break ;
+        case    6:  C4.EAh_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    7:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
 
-        case 0x20:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x21:  C3.B_s.toggle() ; break ;
-        case 0x22:  C3.B_s.toggle() ; break ;
-        case 0x23:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
-
-        default:    return 0 ;
-    } 
-    return 1 ;
-}
-
-
-uint8_t absx(uint8_t tick) { // 7 cycles
-    switch(tick) {
-        case 0x00:  C1.X_e.toggle() ; break ;
-        case 0x01:  C3.A_s.toggle() ; break ;
-        case 0x02:  C3.A_s.toggle() ; break ;
-        case 0x03:  C1.X_e.toggle() ; break ;
-        
-        case 0x10:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x11:  C3.B_s.toggle() ; break ;
-        case 0x12:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x13:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
-        
-        case 0x20:  C3.ALU_op = ALU_ADD ; 
-                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x21:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x22:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x23:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
-        
-        case 0x30:  break ;
-        case 0x31:  C3.A_s.toggle() ; break ;
-        case 0x32:  C3.A_s.toggle() ; break ;
-        case 0x33:  break ;
-
-        case 0x40:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
-        case 0x41:  C3.B_s.toggle() ; break ;
-        case 0x42:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x43:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
-        
-        case 0x50:  C3.ALU_op = ALU_ADC ; 
-                    C3.ALU_e.toggle() ; break ;
-        case 0x51:  C4.EAh_s.toggle() ; break ;
-        case 0x52:  C4.EAh_s.toggle() ; break ;
-        case 0x53:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
-        
-        case 0x60:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x61:  C3.B_s.toggle() ; break ;
-        case 0x62:  C3.B_s.toggle() ; break ;
-        case 0x63:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case    8:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    9:  C3.B_s.toggle() ; break ;
+        case   10:  C3.B_s.toggle() ; break ;
+        case   11:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -254,46 +207,46 @@ uint8_t absx(uint8_t tick) { // 7 cycles
 }
 
 
-uint8_t absy(uint8_t tick) { // 7 cycles
-    switch(tick) {
-        case 0x00:  C1.Y_e.toggle() ; break ;
-        case 0x01:  C3.A_s.toggle() ; break ;
-        case 0x02:  C3.A_s.toggle() ; break ;
-        case 0x03:  C1.Y_e.toggle() ; break ;
+uint8_t absx(uint8_t step) { // 7 cycles
+    switch(step) {
+        case    0:  C1.X_e.toggle() ; break ;
+        case    1:  C3.A_s.toggle() ; break ;
+        case    2:  C3.A_s.toggle() ; break ;
+        case    3:  C1.X_e.toggle() ; break ;
         
-        case 0x10:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x11:  C3.B_s.toggle() ; break ;
-        case 0x12:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x13:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    4:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    5:  C3.B_s.toggle() ; break ;
+        case    6:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    7:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x20:  C3.ALU_op = ALU_ADD ; 
+        case    8:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x21:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x22:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x23:  C3.ALU_op = 0 ;
+        case    9:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   10:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   11:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
-        case 0x30:  break ;
-        case 0x31:  C3.A_s.toggle() ; break ;
-        case 0x32:  C3.A_s.toggle() ; break ;
-        case 0x33:  break ;
+        case   12:  break ;
+        case   13:  C3.A_s.toggle() ; break ;
+        case   14:  C3.A_s.toggle() ; break ;
+        case   15:  break ;
 
-        case 0x40:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
-        case 0x41:  C3.B_s.toggle() ; break ;
-        case 0x42:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x43:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case   16:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
+        case   17:  C3.B_s.toggle() ; break ;
+        case   18:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case   19:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x50:  C3.ALU_op = ALU_ADC ; 
+        case   20:  C3.ALU_op = ALU_ADC ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x51:  C4.EAh_s.toggle() ; break ;
-        case 0x52:  C4.EAh_s.toggle() ; break ;
-        case 0x53:  C3.ALU_op = 0 ;
+        case   21:  C4.EAh_s.toggle() ; break ;
+        case   22:  C4.EAh_s.toggle() ; break ;
+        case   23:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
         
-        case 0x60:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x61:  C3.B_s.toggle() ; break ;
-        case 0x62:  C3.B_s.toggle() ; break ;
-        case 0x63:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   24:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   25:  C3.B_s.toggle() ; break ;
+        case   26:  C3.B_s.toggle() ; break ;
+        case   27:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -301,52 +254,99 @@ uint8_t absy(uint8_t tick) { // 7 cycles
 }
 
 
-uint8_t ind(uint8_t tick) { // 8 cycles
-    switch(tick) {
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C2.EAl_s.toggle() ; C3.B_s.toggle() ; break ;
-        case 0x02:  C3.B_s.toggle() ; C2.EAl_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ; 
+uint8_t absy(uint8_t step) { // 7 cycles
+    switch(step) {
+        case    0:  C1.Y_e.toggle() ; break ;
+        case    1:  C3.A_s.toggle() ; break ;
+        case    2:  C3.A_s.toggle() ; break ;
+        case    3:  C1.Y_e.toggle() ; break ;
         
-        case 0x10:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x11:  C4.EAh_s.toggle() ; break ;
-        case 0x12:  C4.EAh_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x13:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    4:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    5:  C3.B_s.toggle() ; break ;
+        case    6:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    7:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x20:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x21:  C3.A_s.toggle() ; break ;
-        case 0x22:  C3.A_s.toggle() ; break ;
-        case 0x23:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ;break ;
+        case    8:  C3.ALU_op = ALU_ADD ; 
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
+        case    9:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   10:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   11:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
-        case 0x30:  C3.ALU_op = ALU_INC ; 
-                    C3.ALU_e.toggle() ; break ;
-        case 0x31:  C2.EAl_s.toggle() ; break ;
-        case 0x32:  C2.EAl_s.toggle() ; break ;
-        case 0x33:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
-        
-        case 0x40:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x41:  C3.B_s.toggle() ; break ;
-        case 0x42:  C3.B_s.toggle() ; break ;
-        case 0x43:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
-        
-        case 0x50:  C3.ALU_op = ALU_PASS ; 
-                    C3.ALU_e.toggle() ; break ;
-        case 0x51:  C4.EAh_s.toggle() ; break ;
-        case 0x52:  C4.EAh_s.toggle() ; break ;
-        case 0x53:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
-        
-        case 0x60:  break ;
-        case 0x61:  C3.B_s.toggle() ; break ;
-        case 0x62:  C3.B_s.toggle() ; break ; 
-        case 0x63:  break ;
+        case   12:  break ;
+        case   13:  C3.A_s.toggle() ; break ;
+        case   14:  C3.A_s.toggle() ; break ;
+        case   15:  break ;
 
-        case 0x70:  C3.ALU_op = ALU_ADD ; 
+        case   16:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ; 
+        case   17:  C3.B_s.toggle() ; break ;
+        case   18:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case   19:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        
+        case   20:  C3.ALU_op = ALU_ADC ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x71:  C2.EAl_s.toggle() ; break ;
-        case 0x72:  C2.EAl_s.toggle() ; break ;
-        case 0x73:  C3.ALU_op = 0 ;
+        case   21:  C4.EAh_s.toggle() ; break ;
+        case   22:  C4.EAh_s.toggle() ; break ;
+        case   23:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; break ;
+        
+        case   24:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   25:  C3.B_s.toggle() ; break ;
+        case   26:  C3.B_s.toggle() ; break ;
+        case   27:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+
+        default:    return 0 ;
+    } 
+    return 1 ;
+}
+
+
+uint8_t ind(uint8_t step) { // 8 cycles
+    switch(step) {
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C2.EAl_s.toggle() ; C3.B_s.toggle() ; break ;
+        case    2:  C3.B_s.toggle() ; C2.EAl_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ; 
+        
+        case    4:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    5:  C4.EAh_s.toggle() ; break ;
+        case    6:  C4.EAh_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    7:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        
+        case    8:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    9:  C3.A_s.toggle() ; break ;
+        case   10:  C3.A_s.toggle() ; break ;
+        case   11:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ;break ;
+        
+        case   12:  C3.ALU_op = ALU_INC ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   13:  C2.EAl_s.toggle() ; break ;
+        case   14:  C2.EAl_s.toggle() ; break ;
+        case   15:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; break ;
+        
+        case   16:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   17:  C3.B_s.toggle() ; break ;
+        case   18:  C3.B_s.toggle() ; break ;
+        case   19:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        
+        case   20:  C3.ALU_op = ALU_PASS ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   21:  C4.EAh_s.toggle() ; break ;
+        case   22:  C4.EAh_s.toggle() ; break ;
+        case   23:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; break ;
+        
+        case   24:  break ;
+        case   25:  C3.B_s.toggle() ; break ;
+        case   26:  C3.B_s.toggle() ; break ; 
+        case   27:  break ;
+
+        case   28:  C3.ALU_op = ALU_ADD ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   29:  C2.EAl_s.toggle() ; break ;
+        case   30:  C2.EAl_s.toggle() ; break ;
+        case   31:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -355,65 +355,65 @@ uint8_t ind(uint8_t tick) { // 8 cycles
 }
 
 
-uint8_t indx(uint8_t tick) { // 10 cycles
-    switch(tick) {
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C3.B_s.toggle() ; break ;
-        case 0x02:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+uint8_t indx(uint8_t step) { // 10 cycles
+    switch(step) {
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C3.B_s.toggle() ; break ;
+        case    2:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x10:  C1.X_e.toggle() ; break ;
-        case 0x11:  C3.A_s.toggle() ; break ;
-        case 0x12:  C3.A_s.toggle() ; break ;
-        case 0x13:  C1.X_e.toggle() ; break ;
+        case    4:  C1.X_e.toggle() ; break ;
+        case    5:  C3.A_s.toggle() ; break ;
+        case    6:  C3.A_s.toggle() ; break ;
+        case    7:  C1.X_e.toggle() ; break ;
 
-        case 0x20:  C3.ALU_op = ALU_ADD ; 
+        case    8:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x21:  C2.EAl_s.toggle() ; break ;
-        case 0x22:  C2.EAl_s.toggle() ; break ;
-        case 0x23:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
-
-        case 0x30:  C2.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
-        case 0x31:  C3.B_s.toggle() ; break ;
-        case 0x32:  C3.B_s.toggle() ; break ;
-        case 0x33:  C4.Al2D_e.toggle() ; C2.EAl_e.toggle() ; break ;
-
-        case 0x40:  C3.ALU_op = ALU_INC ; 
-                    C3.ALU_e.toggle() ; break ;
-        case 0x41:  C2.EAl_s.toggle() ; break ;
-        case 0x42:  C2.EAl_s.toggle() ; break ;
-        case 0x43:  C3.ALU_op = 0 ;
+        case    9:  C2.EAl_s.toggle() ; break ;
+        case   10:  C2.EAl_s.toggle() ; break ;
+        case   11:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case 0x50:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x51:  C4.EAh_s.toggle() ; break ;
-        case 0x52:  C4.EAh_s.toggle() ; break ;
-        case 0x53:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
+        case   12:  C2.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case   13:  C3.B_s.toggle() ; break ;
+        case   14:  C3.B_s.toggle() ; break ;
+        case   15:  C4.Al2D_e.toggle() ; C2.EAl_e.toggle() ; break ;
+
+        case   16:  C3.ALU_op = ALU_INC ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   17:  C2.EAl_s.toggle() ; break ;
+        case   18:  C2.EAl_s.toggle() ; break ;
+        case   19:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ; break ;
+
+        case   20:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   21:  C4.EAh_s.toggle() ; break ;
+        case   22:  C4.EAh_s.toggle() ; break ;
+        case   23:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
         
-        case 0x60:  C3.ALU_op = ALU_PASS ; 
+        case   24:  C3.ALU_op = ALU_PASS ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x61:  C2.EAl_s.toggle() ; break ;
-        case 0x62:  C2.EAl_s.toggle() ; break ;
-        case 0x63:  C3.ALU_op = 0 ;
+        case   25:  C2.EAl_s.toggle() ; break ;
+        case   26:  C2.EAl_s.toggle() ; break ;
+        case   27:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case 0x70:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x71:  C3.B_s.toggle() ; break ;
-        case 0x72:  C3.B_s.toggle() ; break ;
-        case 0x73:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
+        case   28:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   29:  C3.B_s.toggle() ; break ;
+        case   30:  C3.B_s.toggle() ; break ;
+        case   31:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
         
-        case 0x80:  C3.ALU_op = ALU_PASS ; 
+        case   32:  C3.ALU_op = ALU_PASS ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x81:  C2.EAl_s.toggle() ; break ;
-        case 0x82:  C2.EAl_s.toggle() ; break ;
-        case 0x83:  C3.ALU_op = 0 ;
+        case   33:  C2.EAl_s.toggle() ; break ;
+        case   34:  C2.EAl_s.toggle() ; break ;
+        case   35:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case 0x90:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x91:  C3.B_s.toggle() ; break ;
-        case 0x92:  C3.B_s.toggle() ; break ;
-        case 0x93:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   36:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   37:  C3.B_s.toggle() ; break ;
+        case   38:  C3.B_s.toggle() ; break ;
+        case   39:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -421,70 +421,70 @@ uint8_t indx(uint8_t tick) { // 10 cycles
 }
 
 
-uint8_t indy(uint8_t tick) { // 10 cycles
-    switch(tick) {
-        case 0x00:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x01:  C3.B_s.toggle() ; break ;
-        case 0x02:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case 0x03:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+uint8_t indy(uint8_t step) { // 10 cycles
+    switch(step) {
+        case    0:  C2.PC_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case    1:  C3.B_s.toggle() ; break ;
+        case    2:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    3:  C4.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
         
-        case 0x10:  C1.Y_e.toggle() ; break ;
-        case 0x11:  C3.A_s.toggle() ; break ;
-        case 0x12:  C3.A_s.toggle() ; break ;
-        case 0x13:  C1.Y_e.toggle() ; break ;
+        case    4:  C1.Y_e.toggle() ; break ;
+        case    5:  C3.A_s.toggle() ; break ;
+        case    6:  C3.A_s.toggle() ; break ;
+        case    7:  C1.Y_e.toggle() ; break ;
 
-        case 0x20:  C3.ALU_op = ALU_INC ; 
+        case    8:  C3.ALU_op = ALU_INC ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x21:  C2.EAl_s.toggle() ; break ;
-        case 0x22:  C2.EAl_s.toggle() ; break ;
-        case 0x23:  C3.ALU_op = 0 ;
+        case    9:  C2.EAl_s.toggle() ; break ;
+        case   10:  C2.EAl_s.toggle() ; break ;
+        case   11:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case 0x30:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x31:  C4.EAh_s.toggle() ; break ;
-        case 0x32:  C4.EAh_s.toggle() ; break ;
-        case 0x33:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
+        case   12:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   13:  C4.EAh_s.toggle() ; break ;
+        case   14:  C4.EAh_s.toggle() ; break ;
+        case   15:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
 
-        case 0x40:  C3.ALU_op = ALU_PASS ; 
+        case   16:  C3.ALU_op = ALU_PASS ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x41:  C2.EAl_s.toggle() ; break ;
-        case 0x42:  C2.EAl_s.toggle() ; break ;
-        case 0x43:  C3.ALU_op = 0 ;
+        case   17:  C2.EAl_s.toggle() ; break ;
+        case   18:  C2.EAl_s.toggle() ; break ;
+        case   19:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ; 
         
-        case 0x50:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0x51:  C3.B_s.toggle() ; break ;
-        case 0x52:  C3.B_s.toggle() ; break ;
-        case 0x53:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
+        case   20:  C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   21:  C3.B_s.toggle() ; break ;
+        case   22:  C3.B_s.toggle() ; break ;
+        case   23:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; break ;
         
-        case 0x60:  C3.ALU_op = ALU_ADD ; 
+        case   24:  C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
-        case 0x61:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x62:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case 0x63:  C3.ALU_op = 0 ;
+        case   25:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   26:  C2.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   27:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
-        case 0x70:  break ;
-        case 0x71:  C3.A_s.toggle() ; break ;
-        case 0x72:  C3.A_s.toggle() ; break ;
-        case 0x73:  break ;
+        case   28:  break ;
+        case   29:  C3.A_s.toggle() ; break ;
+        case   30:  C3.A_s.toggle() ; break ;
+        case   31:  break ;
         
-        case 0x80:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
-        case 0x81:  C3.B_s.toggle() ; break ;
-        case 0x82:  C3.B_s.toggle() ; break ;
-        case 0x83:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   32:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case   33:  C3.B_s.toggle() ; break ;
+        case   34:  C3.B_s.toggle() ; break ;
+        case   35:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
-        case 0x90:  C3.ALU_op = ALU_ADC ; 
+        case   36:  C3.ALU_op = ALU_ADC ; 
                     C3.ALU_e.toggle() ; break ;
-        case 0x91:  C4.EAh_s.toggle() ; break ;
-        case 0x92:  C4.EAh_s.toggle() ; break ;
-        case 0x93:  C3.ALU_op = 0 ;
+        case   37:  C4.EAh_s.toggle() ; break ;
+        case   38:  C4.EAh_s.toggle() ; break ;
+        case   39:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case 0xA0:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
-        case 0xA1:  C3.B_s.toggle() ; break ;
-        case 0xA2:  C3.B_s.toggle() ; break ;
-        case 0xA3:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   40:  C4.EAh_e.toggle() ; C2.EAl_e.toggle() ; C4.RAM_e.toggle() ; break ;
+        case   41:  C3.B_s.toggle() ; break ;
+        case   42:  C3.B_s.toggle() ; break ;
+        case   43:  C4.RAM_e.toggle() ; C2.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
         default:    return 0 ;
     } 

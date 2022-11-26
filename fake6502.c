@@ -49,7 +49,7 @@ output<1> INST_e(1) ;
 
 // TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> STEP_clk(1), STEP_clr, STEP_s(1), STEP_cnt_e, CLK(1) ; 
+output<1> STEP_clk(1), STEP_clr(1), STEP_s(1), STEP_cnt_e, CLK(1) ; 
 
 or_<1> RAM_s ;
 and_<1> PC_e, PC_up ;
@@ -359,39 +359,35 @@ void generate_microcode(){
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false ;
         int step = 0 ;
-        for (; step < 16 ; step++){
-            for (int phase = 0 ; phase < 4 ; phase++){
-                uint8_t tick = step << 4 | phase ;
+        for (; step < 64 ; step++){
+            // Set INST and FLAGS
+            INST = inst ;
+            STATUS.N = (flags >> 3) & 1 ;
+            STATUS.V = (flags >> 2) & 1 ;
+            STATUS.Z = (flags >> 1) & 1 ;
+            STATUS.C = (flags >> 0) & 1 ;
 
-                // Set INST and FLAGS
-                INST = inst ;
-                STATUS.N = (flags >> 3) & 1 ;
-                STATUS.V = (flags >> 2) & 1 ;
-                STATUS.Z = (flags >> 1) & 1 ;
-                STATUS.C = (flags >> 0) & 1 ;
-
-                if (! fetch_done){
-                    if (fetch(tick)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
-                            CU.make_cw()) ;
-                        continue ;
-                    } 
-                    fetch_done = true ;
-                    addr_start = step << 4 ;
-                }
-                if (! addr_done){
-                    if ((*addrtable[inst])(tick - addr_start)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
-                            CU.make_cw()) ;
-                        continue ;
-                    }
-                    addr_done = true ;
-                    op_start = step << 4 ;
-                }
-                (*optable[inst])(tick - op_start) ;
-                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
-                    CU.make_cw()) ;
+            if (! fetch_done){
+                if (fetch(step)){
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                        CU.make_cw()) ;
+                    continue ;
+                } 
+                fetch_done = true ;
+                addr_start = step ;
             }
+            if (! addr_done){
+                if ((*addrtable[inst])(step - addr_start)){
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                        CU.make_cw()) ;
+                    continue ;
+                }
+                addr_done = true ;
+                op_start = step ;
+            }
+            (*optable[inst])(step - op_start) ;
+            printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                CU.make_cw()) ;
         }
     }
     printf("} ;\n") ;

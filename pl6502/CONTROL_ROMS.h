@@ -14,10 +14,10 @@ class CONTROL_1_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e ;
+        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, STEP_clr ;
 
         CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            X_e(1), Y_e(1), ACC_e(1) {
+                            X_e(1), Y_e(1), ACC_e(1), STEP_clr(1) {
         } ;
 
         uint8_t make_cw(){
@@ -27,7 +27,8 @@ class CONTROL_1_ROM : public component {
                 Y_s << 2 |
                 Y_e << 3 |
                 ACC_s << 4 |
-                ACC_e << 5 ;
+                ACC_e << 5 |
+                STEP_clr << 6 ;
         }
 
         void always(){
@@ -42,6 +43,7 @@ class CONTROL_1_ROM : public component {
             set_signal_1(Y_e, 3) ;
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
+            set_signal_1(STEP_clr, 6) ;
         } ;
 } ;
 

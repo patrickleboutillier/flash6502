@@ -91,7 +91,7 @@ template <uint32_t W> class counter : public component {
         }
 
         void always(){
-            if (clear){
+            if (! clear){
                 _cnt = 0 ;
             }
             
