@@ -47,7 +47,7 @@ template <uint32_t W> class counter_updown : public component {
                 _cnt = 0 ;
             }
             
-            if (load){
+            if (! load){
                 _cnt = data_in ;
             }
 

@@ -49,7 +49,7 @@ output<1> INST_e(1) ;
 
 counter_updown<4> STEP ;
 counter_updown<2> PHASE ;
-output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
+output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s(1), CLK(1), PHASE_down(1), PHASE_clr, PHASE_s(1) ; 
 
 or_<1> RAM_s ;
 and_<1> PC_e, PC_up ;
