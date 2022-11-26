@@ -13,7 +13,6 @@
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
-#include "signals.h"
 #include "CONTROL_ROMS.h"
 
 
