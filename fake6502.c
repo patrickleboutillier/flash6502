@@ -88,7 +88,7 @@ void init6502(bool gen_mc){
 
     DATA.data_out.connect(EAl.data_in) ;
     C4.EAl_e.connect(EAl.enable) ;
-    C2.EAl_s.connect(EAl.set) ;
+    C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCl.data_in) ;
@@ -173,7 +173,7 @@ void init6502(bool gen_mc){
     STATUS.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(INST.data_in) ;
-    C4.INST_s.connect(INST.set) ;
+    C2.INST_s.connect(INST.set) ;
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
