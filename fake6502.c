@@ -192,10 +192,10 @@ void init6502(bool gen_mc){
         STEP.data_out.connect(C1.step) ;
 
         INST.data_out.connect(C2.inst) ;
-        STATUS.N.connect(C2.n) ;
-        STATUS.V.connect(C2.v) ;
-        STATUS.Z.connect(C2.z) ;
-        STATUS.C.connect(C2.c) ;
+        GND.connect(C2.n) ;
+        GND.connect(C2.v) ;
+        GND.connect(C2.z) ;
+        GND.connect(C2.c) ;
         STEP.data_out.connect(C2.step) ;
 
         INST.data_out.connect(C3.inst) ;
