@@ -16,6 +16,13 @@ class RAM : public component {
     public:
         RAM() : data_in(this), addrh(this), addrl(this), set(this), enable(this) {
             data_out.drive(false) ;
+
+            // Fill RAM with garbage
+            for (int i = 0 ; i < 256 ; i++){
+                for (int j = 0 ; j < 256 ; j++){
+                    _mem[i][j] = rand() & 0xFF ;
+                }
+            }
         } ;
 
         void always(){

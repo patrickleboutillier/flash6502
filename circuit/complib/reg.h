@@ -15,7 +15,7 @@ template <uint32_t W> class reg : public component {
 
     public:
         reg() : data_in(this), set(this), enable(this) {
-            _mem = 0 ;
+            _mem = rand() ; // Initialize with random value
             data_out.drive(false) ;
         } ;
 
