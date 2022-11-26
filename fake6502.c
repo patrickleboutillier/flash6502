@@ -27,7 +27,7 @@ bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
 
 reg<8> EAh, EAl ;
-counter<8> SP, PCh, PCl ;
+counter_updown<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v(0x01) ;
 output<1> PC_down(1), SP_up(1), SP_clr, PC_clr ; // the signals are not used by the CU 
@@ -47,8 +47,8 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-counter<4> STEP ;
-counter<2> PHASE ;
+counter_updown<4> STEP ;
+counter_updown<2> PHASE ;
 output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s, CLK(1), PHASE_down(1), PHASE_clr, PHASE_s ; 
 
 or_<1> RAM_s ;

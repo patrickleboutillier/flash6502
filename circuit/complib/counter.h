@@ -5,7 +5,7 @@
 #include "circuit.h"
 
 /* 
-SN74HC193N
+SN74HC193N (up/down)
 - Negative LOAD
 - The outputs of the four flip-flops are triggered on a low-to-high-level transition of either count (clock) input (UP
 or DOWN). The direction of counting is determined by which count input is pulsed while the other count input
@@ -19,7 +19,7 @@ SN74HC161
 - Both ENP and ENT must be high to count
 */
     
-template <uint32_t W> class counter : public component {
+template <uint32_t W> class counter_updown : public component {
     public:
         input<1> up, down, load, clear ;
         input<W> data_in ;
@@ -30,7 +30,7 @@ template <uint32_t W> class counter : public component {
         uint8_t _prev_up, _prev_down ;
 
     public:
-        counter() : up(this), down(this), load(this), clear(this), data_in(this) {
+        counter_updown() : up(this), down(this), load(this), clear(this), data_in(this) {
             _cnt = 0 ;
             co = 1 ;
             bo = 1 ;
