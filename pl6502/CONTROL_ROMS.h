@@ -42,10 +42,14 @@ class CONTROL_1_ROM : public component {
             set_signal_1(Y_e, 3) ;
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
-            // TODO: if n is low, set STEP_clr to low, or else do below.
-            set_signal_1(STEP_clr, 6) ;
 
-            
+            // STEP_clr for reset sequence.
+            if (! n){
+                STEP_clr = 0 ;
+            }
+            else {
+                set_signal_1(STEP_clr, 6) ;
+            }
         } ;
 } ;
 
@@ -55,10 +59,10 @@ class CONTROL_2_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> SP_down, SP_s, SP_e, EAl_s, EAl_e, PC_up, PCl_s, PC_e ;
+        output<1> SP_down, SP_s, SP_e, EAl_s, EAl_e, PC_up, PCl_s, PC_e, RAM_s, RAM_e ;
 
         CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            SP_down(1), SP_s(1), SP_e(1), EAl_e(1), PC_up(1), PCl_s(1), PC_e(1) {
+                            SP_down(1), SP_s(1), SP_e(1), EAl_e(1), PC_up(1), PCl_s(1), PC_e(1), RAM_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -71,6 +75,8 @@ class CONTROL_2_ROM : public component {
                 PC_up << 5 |
                 PCl_s << 6 |
                 PC_e  << 7 ;
+                //RAM_s << 2 |
+                //RAM_e << 3 |
         }
 
         void always(){
@@ -126,10 +132,10 @@ class CONTROL_4_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s ;
+        output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s, EAl_e, PCl_s ;
 
         CONTROL_4_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
-                            Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1), PCh_s(1) {
+                            Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1), PCh_s(1), EAl_e(1), PCl_s(1) {
         } ;
 
         uint8_t make_cw(){
@@ -142,6 +148,8 @@ class CONTROL_4_ROM : public component {
                 EAh_s << 5 |
                 EAh_e << 6 |
                 PCh_s << 7 ;
+                //EAl_e << 4 |
+                //PCl_s << 6 |                
         }
 
         void always(){
