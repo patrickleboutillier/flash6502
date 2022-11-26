@@ -56,6 +56,8 @@ and_<1> PC_e, PC_up ;
 output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1) ;
 output<8> boot_DATA ;
 
+output<1> GND(0) ;
+
 
 void init6502(bool gen_mc){
     boot_RAM_s.connect(RAM_s.a) ;
@@ -186,10 +188,10 @@ void init6502(bool gen_mc){
 
     if (! gen_mc){
         INST.data_out.connect(C1.inst) ;
-        STATUS.N.connect(C1.n) ;
-        STATUS.V.connect(C1.v) ;
-        STATUS.Z.connect(C1.z) ;
-        STATUS.C.connect(C1.c) ;
+        GND.connect(C1.n) ;
+        GND.connect(C1.v) ;
+        GND.connect(C1.z) ;
+        GND.connect(C1.c) ;
         STEP.data_out.connect(C1.step) ;
         PHASE.data_out.connect(C1.phase) ;
 
@@ -202,10 +204,10 @@ void init6502(bool gen_mc){
         PHASE.data_out.connect(C2.phase) ;
 
         INST.data_out.connect(C3.inst) ;
-        STATUS.N.connect(C3.n) ;
-        STATUS.V.connect(C3.v) ;
-        STATUS.Z.connect(C3.z) ;
-        STATUS.C.connect(C3.c) ;
+        GND.connect(C3.n) ;
+        GND.connect(C3.v) ;
+        GND.connect(C3.z) ;
+        GND.connect(C3.c) ;
         STEP.data_out.connect(C3.step) ;
         PHASE.data_out.connect(C3.phase) ;
 
@@ -218,13 +220,14 @@ void init6502(bool gen_mc){
         PHASE.data_out.connect(C4.phase) ;
 
         INST.data_out.connect(C5.inst) ;
-        STATUS.N.connect(C5.n) ;
-        STATUS.V.connect(C5.v) ;
-        STATUS.Z.connect(C5.z) ;
-        STATUS.C.connect(C5.c) ;
+        GND.connect(C5.n) ;
+        GND.connect(C5.v) ;
+        GND.connect(C5.z) ;
+        GND.connect(C5.c) ;
         STEP.data_out.connect(C5.step) ;
         PHASE.data_out.connect(C5.phase) ;
     }
+
 }
 
 
