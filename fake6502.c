@@ -53,7 +53,7 @@ output<1> STEP_clk(1), STEP_clr(1), STEP_s(1), STEP_cnt_e, CLK(1) ;
 
 or_<1> RAM_s ;
 and_<1> PC_e, PC_up ;
-output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1) ;
+output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
 output<8> boot_DATA ;
 
 output<1> GND(0) ;
@@ -185,7 +185,7 @@ void init6502(bool gen_mc){
 
     if (! gen_mc){
         INST.data_out.connect(C1.inst) ;
-        GND.connect(C1.n) ;
+        boot_STEP_clr.connect(C1.n) ;
         GND.connect(C1.v) ;
         GND.connect(C1.z) ;
         GND.connect(C1.c) ;

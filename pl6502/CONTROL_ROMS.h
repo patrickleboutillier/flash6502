@@ -13,7 +13,7 @@
 class CONTROL_1_ROM : public component {
     public:
         input<8> inst ;
-        input<1> n, v, z, c ;
+        input<1> n, v, z, c ; // n here is used to enable STEP_clr
         input<6> step ;
         output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, STEP_clr ;
 
@@ -42,7 +42,10 @@ class CONTROL_1_ROM : public component {
             set_signal_1(Y_e, 3) ;
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
+            // TODO: if n is low, set STEP_clr to low, or else do below.
             set_signal_1(STEP_clr, 6) ;
+
+            
         } ;
 } ;
 
