@@ -47,9 +47,9 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-counter_updown<4> STEP ;
-counter_updown<2> PHASE ;
-output<1> STEP_up(1), STEP_down(1), STEP_clr, STEP_s(1), CLK(1), PHASE_down(1), PHASE_clr, PHASE_s(1) ; 
+// TODO: replace with 2 4-bit counters. Maybe?
+counter<6> STEP ;
+output<1> STEP_clk(1), STEP_clr, STEP_s(1), STEP_cnt_e, CLK(1) ; 
 
 or_<1> RAM_s ;
 and_<1> PC_e, PC_up ;
@@ -177,14 +177,11 @@ void init6502(bool gen_mc){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    PHASE_clr.connect(PHASE.clear) ;
-    CLK.connect(PHASE.up) ;
-    PHASE_down.connect(PHASE.down) ;
-    PHASE_s.connect(PHASE.load) ;
+    CLK.connect(STEP.clk) ;
     STEP_clr.connect(STEP.clear) ;
-    PHASE.co.connect(STEP.up) ;
-    PHASE.bo.connect(STEP.down) ;
     STEP_s.connect(STEP.load) ;
+    STEP_cnt_e.connect(STEP.enable) ;
+    STEP_cnt_e = 1 ;
 
     if (! gen_mc){
         INST.data_out.connect(C1.inst) ;
@@ -193,7 +190,6 @@ void init6502(bool gen_mc){
         GND.connect(C1.z) ;
         GND.connect(C1.c) ;
         STEP.data_out.connect(C1.step) ;
-        PHASE.data_out.connect(C1.phase) ;
 
         INST.data_out.connect(C2.inst) ;
         STATUS.N.connect(C2.n) ;
@@ -201,7 +197,6 @@ void init6502(bool gen_mc){
         STATUS.Z.connect(C2.z) ;
         STATUS.C.connect(C2.c) ;
         STEP.data_out.connect(C2.step) ;
-        PHASE.data_out.connect(C2.phase) ;
 
         INST.data_out.connect(C3.inst) ;
         GND.connect(C3.n) ;
@@ -209,7 +204,6 @@ void init6502(bool gen_mc){
         GND.connect(C3.z) ;
         GND.connect(C3.c) ;
         STEP.data_out.connect(C3.step) ;
-        PHASE.data_out.connect(C3.phase) ;
 
         INST.data_out.connect(C4.inst) ;
         STATUS.N.connect(C4.n) ;
@@ -217,7 +211,6 @@ void init6502(bool gen_mc){
         STATUS.Z.connect(C4.z) ;
         STATUS.C.connect(C4.c) ;
         STEP.data_out.connect(C4.step) ;
-        PHASE.data_out.connect(C4.phase) ;
 
         INST.data_out.connect(C5.inst) ;
         GND.connect(C5.n) ;
@@ -225,7 +218,6 @@ void init6502(bool gen_mc){
         GND.connect(C5.z) ;
         GND.connect(C5.c) ;
         STEP.data_out.connect(C5.step) ;
-        PHASE.data_out.connect(C5.phase) ;
     }
 
 }
@@ -352,11 +344,10 @@ int do_inst(){
 
 
 void generate_microcode(){
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
@@ -381,7 +372,7 @@ void generate_microcode(){
 
                 if (! fetch_done){
                     if (fetch(tick)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
                             CU.make_cw()) ;
                         continue ;
                     } 
@@ -390,7 +381,7 @@ void generate_microcode(){
                 }
                 if (! addr_done){
                     if ((*addrtable[inst])(tick - addr_start)){
-                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                        printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
                             CU.make_cw()) ;
                         continue ;
                     }
@@ -398,7 +389,7 @@ void generate_microcode(){
                     op_start = step << 4 ;
                 }
                 (*optable[inst])(tick - op_start) ;
-                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%X PHASE:0x%X */ 0x%010lX,\n", inst, flags, step, phase,
+                printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step << 2 | phase,
                     CU.make_cw()) ;
             }
         }
@@ -408,11 +399,10 @@ void generate_microcode(){
 
 
 void reset6502(){
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to PHASE 3, where all the control signals have their default values.
+    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     PC_clr.pulse() ;
@@ -424,10 +414,8 @@ void reset6502(){
     boot_PC_e.toggle() ;
     boot_DATA.drive(false) ;
     // Reset step/phase to 0 and run the instruction.
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     do_inst() ;
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
@@ -435,7 +423,6 @@ void reset6502(){
 
 
 void load6502(uint8_t prog[], int prog_len){
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     // Again, pulse the clock to the third phase to disable all control signals
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
@@ -452,7 +439,6 @@ void load6502(uint8_t prog[], int prog_len){
         boot_PC_up.pulse() ;
     }
 
-    PHASE_clr.pulse() ;
     STEP_clr.pulse() ;
     PC_clr.pulse() ;
     printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
