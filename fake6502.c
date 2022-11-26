@@ -76,9 +76,9 @@ void init6502(bool gen_mc){
     DATA.data_out.connect(RAM.data_in) ;
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
-    C4.RAM_e.connect(RAM.enable) ;
+    C2.RAM_e.connect(RAM.enable) ;
     RAM_s.c.connect(RAM.set) ;
-    C4.RAM_s.connect(RAM_s.b) ;
+    C2.RAM_s.connect(RAM_s.b) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
@@ -87,12 +87,12 @@ void init6502(bool gen_mc){
     EAh.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(EAl.data_in) ;
-    C2.EAl_e.connect(EAl.enable) ;
+    C4.EAl_e.connect(EAl.enable) ;
     C2.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCl.data_in) ;
-    C2.PCl_s.connect(PCl.load) ;
+    C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PC_up.b) ;
     PC_up.c.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;

@@ -59,10 +59,10 @@ class CONTROL_2_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> SP_down, SP_s, SP_e, EAl_s, EAl_e, PC_up, PCl_s, PC_e, RAM_s, RAM_e ;
+        output<1> SP_down, SP_s, SP_e, EAl_s, PC_up, PC_e, RAM_s, RAM_e ;
 
         CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            SP_down(1), SP_s(1), SP_e(1), EAl_e(1), PC_up(1), PCl_s(1), PC_e(1), RAM_e(1) {
+                            SP_down(1), SP_s(1), SP_e(1), PC_up(1), PC_e(1), RAM_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -71,12 +71,10 @@ class CONTROL_2_ROM : public component {
                 SP_s << 1 |
                 SP_e << 2 |
                 EAl_s << 3 |
-                EAl_e << 4 |
-                PC_up << 5 |
-                PCl_s << 6 |
-                PC_e  << 7 ;
-                //RAM_s << 2 |
-                //RAM_e << 3 |
+                PC_up << 4 |
+                PC_e  << 5 |
+                RAM_s << 6 |
+                RAM_e << 7 ;
         }
 
         void always(){
@@ -87,10 +85,10 @@ class CONTROL_2_ROM : public component {
             set_signal_1(SP_s, 1) ;
             set_signal_1(SP_e, 2) ;
             set_signal_1(EAl_s, 3) ;
-            set_signal_1(EAl_e, 4) ;
-            set_signal_1(PC_up, 5) ;
-            set_signal_1(PCl_s, 6) ;
-            set_signal_1(PC_e, 7) ;
+            set_signal_1(PC_up, 4) ;
+            set_signal_1(PC_e, 5) ;
+            set_signal_1(RAM_s, 6) ;
+            set_signal_1(RAM_e, 7) ;
         } ;
 } ;
 
@@ -132,24 +130,24 @@ class CONTROL_4_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> Ah2D_e, INST_s, RAM_s, RAM_e, Al2D_e, EAh_s, EAh_e, PCh_s, EAl_e, PCl_s ;
+        output<1> Ah2D_e, INST_s, Al2D_e, EAh_s, EAh_e, PCh_s, EAl_e, PCl_s ;
 
         CONTROL_4_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
-                            Ah2D_e(1), RAM_e(1), Al2D_e(1), EAh_e(1), PCh_s(1), EAl_e(1), PCl_s(1) {
+                            Ah2D_e(1), Al2D_e(1), EAh_e(1), PCh_s(1), EAl_e(1), PCl_s(1) {
         } ;
 
         uint8_t make_cw(){
             return 
                 Ah2D_e << 0 |
                 INST_s << 1 |
-                RAM_s << 2 |
-                RAM_e << 3 |
+                //RAM_s << 2 |
+                //RAM_e << 3 |
+                EAl_e << 2 |
+                PCl_s << 3 |
                 Al2D_e << 4 |
                 EAh_s << 5 |
                 EAh_e << 6 |
-                PCh_s << 7 ;
-                //EAl_e << 4 |
-                //PCl_s << 6 |                
+                PCh_s << 7 ;               
         }
 
         void always(){
@@ -158,8 +156,10 @@ class CONTROL_4_ROM : public component {
 
             set_signal_1(Ah2D_e, 0) ;
             set_signal_1(INST_s, 1) ;
-            set_signal_1(RAM_s, 2) ;
-            set_signal_1(RAM_e, 3) ;
+            //set_signal_1(RAM_s, 2) ;
+            //set_signal_1(RAM_e, 3) ;
+            set_signal_1(EAl_e, 2) ;
+            set_signal_1(PCl_s, 3) ;
             set_signal_1(Al2D_e, 4) ;
             set_signal_1(EAh_s, 5) ;
             set_signal_1(EAh_e, 6) ;
