@@ -59,7 +59,7 @@ class CONTROL_2_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> SP_down, SP_s, SP_e, EAl_s, PC_up, PC_e, RAM_s, RAM_e ;
+        output<1> SP_down, SP_s, SP_e, INST_s, PC_up, PC_e, RAM_s, RAM_e ;
 
         CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
                             SP_down(1), SP_s(1), SP_e(1), PC_up(1), PC_e(1), RAM_e(1) {
@@ -70,9 +70,9 @@ class CONTROL_2_ROM : public component {
                 SP_down << 0 |
                 SP_s << 1 |
                 SP_e << 2 |
-                EAl_s << 3 |
-                PC_up << 4 |
-                PC_e  << 5 |
+                PC_up << 3 |
+                PC_e  << 4 |
+                INST_s << 5 |
                 RAM_s << 6 |
                 RAM_e << 7 ;
         }
@@ -84,9 +84,9 @@ class CONTROL_2_ROM : public component {
             set_signal_1(SP_down, 0) ;
             set_signal_1(SP_s, 1) ;
             set_signal_1(SP_e, 2) ;
-            set_signal_1(EAl_s, 3) ;
-            set_signal_1(PC_up, 4) ;
-            set_signal_1(PC_e, 5) ;
+            set_signal_1(PC_up, 3) ;
+            set_signal_1(PC_e, 4) ;
+            set_signal_1(INST_s, 5) ;
             set_signal_1(RAM_s, 6) ;
             set_signal_1(RAM_e, 7) ;
         } ;
@@ -130,18 +130,17 @@ class CONTROL_4_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> Ah2D_e, INST_s, Al2D_e, EAh_s, EAh_e, PCh_s, EAl_e, PCl_s ;
+        output<1> Ah2D_e, EAl_s, Al2D_e, EAh_s, EAh_e, PCh_s, EAl_e, PCl_s ;
 
         CONTROL_4_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
                             Ah2D_e(1), Al2D_e(1), EAh_e(1), PCh_s(1), EAl_e(1), PCl_s(1) {
         } ;
 
+        // TODO: Rearrange signal order for optimal layout.
         uint8_t make_cw(){
             return 
                 Ah2D_e << 0 |
-                INST_s << 1 |
-                //RAM_s << 2 |
-                //RAM_e << 3 |
+                EAl_s << 1 |
                 EAl_e << 2 |
                 PCl_s << 3 |
                 Al2D_e << 4 |
@@ -155,9 +154,7 @@ class CONTROL_4_ROM : public component {
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 24) & 0xFF ;
 
             set_signal_1(Ah2D_e, 0) ;
-            set_signal_1(INST_s, 1) ;
-            //set_signal_1(RAM_s, 2) ;
-            //set_signal_1(RAM_e, 3) ;
+            set_signal_1(EAl_s, 1) ;
             set_signal_1(EAl_e, 2) ;
             set_signal_1(PCl_s, 3) ;
             set_signal_1(Al2D_e, 4) ;
