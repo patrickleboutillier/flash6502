@@ -301,6 +301,9 @@ void generate_microcode(){
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
+    // Disable the step counter so it doesn't mess up our sequencing
+    STEP_cnt_e = 0 ;
+    
     printf("uint64_t microcode[] = {\n") ;
     for (int i = 0 ; i < 4096 ; i++){
         uint8_t flags = i & 0b1111 ;
@@ -335,9 +338,10 @@ void generate_microcode(){
                 addr_done = true ;
                 op_start = step ;
             }
-            (*optable[inst])(step - op_start) ;
+            uint8_t more = (*optable[inst])(step - op_start) ;
+            uint64_t cw = (more ? CU.make_cw() : CU.get_default_cw()) ;
             printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
-                CU.make_cw()) ;
+                cw) ;
         }
     }
     printf("} ;\n") ;
