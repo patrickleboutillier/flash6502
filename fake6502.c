@@ -276,15 +276,20 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 /* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
 /* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
 /* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
-};
+} ;
 
 
 int do_inst(){
-    for (int i = 0 ; i < 16*4 ; i++){
+    int nb_steps = 1 ;
+    while (1){
         CLK.pulse() ;
+        if (STEP == 0){
+            break ;
+        }
+        nb_steps++ ;
     }
 
-    return 16*4 ;
+    return nb_steps ;
 }
 
 
