@@ -102,9 +102,25 @@ uint8_t bcc(uint8_t step){
             
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -164,9 +180,25 @@ uint8_t beq(uint8_t step){
 
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -209,9 +241,25 @@ uint8_t bmi(uint8_t step){
 
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -232,9 +280,25 @@ uint8_t bne(uint8_t step){
 
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -255,9 +319,25 @@ uint8_t bpl(uint8_t step){
 
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -287,9 +367,25 @@ uint8_t bvc(uint8_t step){
 
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -310,9 +406,25 @@ uint8_t bvs(uint8_t step){
             
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
@@ -600,7 +712,7 @@ uint8_t jmp(uint8_t step) {
         case    6:  C4.PCl_s.toggle() ; break ;
         case    7:  C4.Al2D_e.toggle() ; C4.EAl_e.toggle() ; break ;
         
-        case    8:  C1.STEP_clr = 0 ;
+        case    8:  C1.STEP_clr = 0 ; break ;
         
         default:    return 0 ;
     }
@@ -806,7 +918,7 @@ uint8_t php(uint8_t step) {
         case    2:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
         case    3:  C2.SP_e.toggle() ; C5.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
         
-        case    4:  C1.STEP_clr = 0 ;        
+        case    4:  C1.STEP_clr = 0 ; break ;       
         
         default:    return 0 ;
     }

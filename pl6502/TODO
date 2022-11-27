@@ -9,4 +9,6 @@ Branch feature/step_shortcut:
 - Add step shortcuts
 - Count max steps
 - Finish fixing branch instruction (C4.STEP_clr is not in C4...)
+
+
 - Compact steps

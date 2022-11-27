@@ -289,6 +289,8 @@ int do_inst(){
         nb_steps++ ;
     }
 
+    // printf("INST:0x%02X, steps:%d\n", (uint8_t)INST, nb_steps) ;
+
     return nb_steps ;
 }
 
