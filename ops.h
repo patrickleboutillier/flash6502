@@ -102,14 +102,9 @@ uint8_t bcc(uint8_t step){
             
             default:    return 0 ;
         }
+        return 1 ;
     }
-    else {
-        switch (step) {
-            case    0:  C1.STEP_clr = 0 ; break ;
-            default:    return 0 ;
-        }
-    }
-    return 1 ;
+    return 0 ;
 }
 
 
@@ -130,9 +125,25 @@ uint8_t bcs(uint8_t step) {
             
             default:    return 0 ;
         }
-        return 1 ;
     }
-    return 0 ;
+    else {
+        switch (step) { 
+            case    0:  break ;
+            case    1:  break ;
+            case    2:  break ;
+            case    3:  break ;
+            
+            case    4:  break ;
+            case    5:  break ;
+            case    6:  break ;
+            case    7:  break ;
+
+            case    8:  C1.STEP_clr = 0 ; break ;
+            
+            default:    return 0 ;
+        }
+    }
+    return 1 ;
 }
 
 
