@@ -419,8 +419,10 @@ int main(int argc, char *argv[]){
     load6502(prog, prog_len) ;
 
     // Start processing instructions.
-    int nb_inst = 0, nb_step = 0 ;
+    int nb_insts = 0, nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
+    int max_steps = 0 ; 
+    uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
@@ -431,14 +433,20 @@ int main(int argc, char *argv[]){
         prev_pc = pc ;
 
         if (pc == SUCCESS_ADDR){
-            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_inst, nb_step) ;
+            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_insts, nb_steps) ;
+            printf("  Largest instruction (0x%02X) has %d steps.\n", max_inst, max_steps) ;
             exit(0) ;
         }
 
-        nb_step += do_inst() ;
-        nb_inst++ ;
-        if ((nb_inst % 100000) == 0){
-            printf("%d instructions executed.\n", nb_inst) ;
+        int inst_steps = do_inst() ; 
+        nb_steps += inst_steps ;
+        if (inst_steps > max_steps){
+            max_steps = inst_steps ;
+            max_inst = INST ;
+        }
+        nb_insts++ ;
+        if ((nb_insts % 100000) == 0){
+            printf("%d instructions executed.\n", nb_insts) ;
         }
     }
 }

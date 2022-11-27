@@ -6,6 +6,6 @@ Branch feature/split_counters:
 - Implement STEP_clr at the CU level to shortcut the instruction cycle
 
 Branch feature/step_shortcut:
-- Move fetch, add post_exec
-- Add step shortcut
+- Add step shortcuts
+- Count max steps
 - Compact steps
