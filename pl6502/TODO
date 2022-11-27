@@ -1,11 +1,15 @@
-Branch feature/split_counters:
+Branch feature/split_counters: PR merged
 - Fix load signal for counter_updown: done
 - Create simple counter (161)
 - Replace STEP + PHASE counters for simple counters
 - Combine STEP and PHASE in a single (double) counters
 - Implement STEP_clr at the CU level to shortcut the instruction cycle
 
-Branch feature/step_shortcut:
-- Move fetch, add post_exec
-- Add step shortcut
+Branch feature/step_shortcut: PR merged
+- Add step shortcuts
+- Count max steps
+- Finish fixing branch instruction (C4.STEP_clr is not in C4...)
+
+
+Backlog:
 - Compact steps

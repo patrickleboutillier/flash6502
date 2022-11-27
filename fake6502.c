@@ -276,15 +276,22 @@ static uint8_t (*optable[256])(uint8_t tick) = {
 /* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
 /* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
 /* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
-};
+} ;
 
 
 int do_inst(){
-    for (int i = 0 ; i < 16*4 ; i++){
+    int nb_steps = 1 ;
+    while (1){
         CLK.pulse() ;
+        if (STEP == 0){
+            break ;
+        }
+        nb_steps++ ;
     }
 
-    return 16*4 ;
+    // printf("INST:0x%02X, steps:%d\n", (uint8_t)INST, nb_steps) ;
+
+    return nb_steps ;
 }
 
 
@@ -296,6 +303,9 @@ void generate_microcode(){
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
+    // Disable the step counter so it doesn't mess up our sequencing
+    STEP_cnt_e = 0 ;
+    
     printf("uint64_t microcode[] = {\n") ;
     for (int i = 0 ; i < 4096 ; i++){
         uint8_t flags = i & 0b1111 ;
@@ -314,7 +324,7 @@ void generate_microcode(){
 
             if (! fetch_done){
                 if (fetch(step)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
                         CU.make_cw()) ;
                     continue ;
                 } 
@@ -323,16 +333,17 @@ void generate_microcode(){
             }
             if (! addr_done){
                 if ((*addrtable[inst])(step - addr_start)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
                         CU.make_cw()) ;
                     continue ;
                 }
                 addr_done = true ;
                 op_start = step ;
             }
-            (*optable[inst])(step - op_start) ;
-            printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
-                CU.make_cw()) ;
+            uint8_t more = (*optable[inst])(step - op_start) ;
+            uint64_t cw = (more ? CU.make_cw() : CU.get_default_cw()) ;
+            printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
+                cw) ;
         }
     }
     printf("} ;\n") ;
@@ -414,8 +425,10 @@ int main(int argc, char *argv[]){
     load6502(prog, prog_len) ;
 
     // Start processing instructions.
-    int nb_inst = 0, nb_step = 0 ;
+    int nb_insts = 0, nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
+    int max_steps = 0 ; 
+    uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
@@ -426,14 +439,20 @@ int main(int argc, char *argv[]){
         prev_pc = pc ;
 
         if (pc == SUCCESS_ADDR){
-            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_inst, nb_step) ;
+            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_insts, nb_steps) ;
+            printf("  Largest instruction (0x%02X) has %d steps.\n", max_inst, max_steps) ;
             exit(0) ;
         }
 
-        nb_step += do_inst() ;
-        nb_inst++ ;
-        if ((nb_inst % 100000) == 0){
-            printf("%d instructions executed.\n", nb_inst) ;
+        int inst_steps = do_inst() ; 
+        nb_steps += inst_steps ;
+        if (inst_steps > max_steps){
+            max_steps = inst_steps ;
+            max_inst = INST ;
+        }
+        nb_insts++ ;
+        if ((nb_insts % 100000) == 0){
+            printf("%d instructions executed.\n", nb_insts) ;
         }
     }
 }
