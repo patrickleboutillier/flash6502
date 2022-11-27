@@ -319,7 +319,7 @@ void generate_microcode(){
 
             if (! fetch_done){
                 if (fetch(step)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
                         CU.make_cw()) ;
                     continue ;
                 } 
@@ -328,7 +328,7 @@ void generate_microcode(){
             }
             if (! addr_done){
                 if ((*addrtable[inst])(step - addr_start)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
                         CU.make_cw()) ;
                     continue ;
                 }
@@ -336,7 +336,7 @@ void generate_microcode(){
                 op_start = step ;
             }
             (*optable[inst])(step - op_start) ;
-            printf("  /* INST:0x%02X FLAGS:0x%X STEP:0x%02X */ 0x%010lX,\n", inst, flags, step,
+            printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
                 CU.make_cw()) ;
         }
     }
