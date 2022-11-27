@@ -51,8 +51,7 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
 output<1> STEP_clk(1), STEP_s(1), STEP_cnt_e, CLK(1) ; 
 
-or_<1> RAM_s ;
-and_<1> PC_e, PC_up ;
+
 output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
 output<8> boot_DATA ;
 
@@ -60,9 +59,6 @@ output<1> GND(0) ;
 
 
 void init6502(bool gen_mc){
-    boot_RAM_s.connect(RAM_s.a) ;
-    boot_PC_e.connect(PC_e.a) ;
-    boot_PC_up.connect(PC_up.a) ;
     boot_DATA.drive(false) ;
     boot_DATA.connect(DATA.data_in) ;
 
@@ -77,8 +73,7 @@ void init6502(bool gen_mc){
     ADDRh.data_out.connect(RAM.addrh) ;
     ADDRl.data_out.connect(RAM.addrl) ;
     C2.RAM_e.connect(RAM.enable) ;
-    RAM_s.c.connect(RAM.set) ;
-    C2.RAM_s.connect(RAM_s.b) ;
+    C2.RAM_s.connect(RAM.set) ;
     RAM.data_out.connect(DATA.data_in) ;
 
     DATA.data_out.connect(EAh.data_in) ;
@@ -93,13 +88,11 @@ void init6502(bool gen_mc){
 
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
-    C2.PC_up.connect(PC_up.b) ;
-    PC_up.c.connect(PCl.up) ;
+    C2.PC_up.connect(PCl.up) ;
     PC_down.connect(PCl.down) ;
     PC_clr.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
-    C2.PC_e.connect(PC_e.b) ;
-    PC_e.c.connect(PClt.enable) ;
+    C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
 
     DATA.data_out.connect(PCh.data_in) ;
@@ -108,7 +101,7 @@ void init6502(bool gen_mc){
     PCl.bo.connect(PCh.down) ;
     PC_clr.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
-    PC_e.c.connect(PCht.enable) ;
+    C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
@@ -192,9 +185,9 @@ void init6502(bool gen_mc){
         STEP.data_out.connect(C1.step) ;
 
         INST.data_out.connect(C2.inst) ;
-        GND.connect(C2.n) ;
-        GND.connect(C2.v) ;
-        GND.connect(C2.z) ;
+        boot_PC_up.connect(C2.n) ;
+        boot_PC_e.connect(C2.v) ;
+        boot_RAM_s.connect(C2.z) ;
         GND.connect(C2.c) ;
         STEP.data_out.connect(C2.step) ;
 
