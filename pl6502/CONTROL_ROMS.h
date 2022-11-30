@@ -84,9 +84,33 @@ class CONTROL_2_ROM : public component {
             set_signal_1(SP_down, 0) ;
             set_signal_1(SP_s, 1) ;
             set_signal_1(SP_e, 2) ;
-            set_signal_1(PC_up, 3) ;
-            set_signal_1(PC_e, 4) ;
+            
+            // PC_up for reset sequence.
+            if (! n){
+                PC_up = 0 ;
+            }
+            else {
+                set_signal_1(PC_up, 3) ;
+            }
+
+            // PC_e for reset sequence.
+            if (! v){
+                PC_e = 0 ;
+            }
+            else {
+                set_signal_1(PC_e, 4) ;
+            }
+
             set_signal_1(INST_s, 5) ;
+
+            // RAM_s for reset sequence.
+            if (z){
+                RAM_s = 1 ;
+            }
+            else {
+                set_signal_1(RAM_s, 6) ;
+            }
+            
             set_signal_1(RAM_s, 6) ;
             set_signal_1(RAM_e, 7) ;
         } ;
