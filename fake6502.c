@@ -213,6 +213,9 @@ void init6502(bool gen_mc){
         STEP.data_out.connect(C5.step) ;
     }
 
+    // Disabled for now
+    GND.connect(STATUS.i_set) ;
+    GND.connect(STATUS.i_in) ;
 }
 
 
