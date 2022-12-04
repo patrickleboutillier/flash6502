@@ -17,4 +17,4 @@ mc: build
 	./fake6502 0 > microcode.h
 
 clean:
-	rm -f 6502_functional_test.bin 6502_functional_test.lst fake6502
+	rm -f 6502_functional_test.bin 6502_functional_test.lst fake6502 success.addr

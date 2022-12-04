@@ -1,8 +1,4 @@
-#6502_65C02_functional_tests
 fake6502
 6502_functional_test.bin
 6502_functional_test.lst
-pl6502/pl6502_unittests
 success.addr
-pl6502/STATUS_unittests
-pl6502/ALU_unittests
