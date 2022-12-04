@@ -135,11 +135,10 @@ TEST(test_complib, mux2){
     EXPECT_EQ(m.c.get_value(), 1) ;
 }
 
-TEST(test_complib, counter){
-    output<1> up, down, load1, load2, clear1, clear2 ;
+TEST(test_complib, counter_updown){
+    output<1> up(1), down(1), load1(1), load2(1), clear1, clear2 ;
     output<4> data_in1, data_in2 ;
-    counter<4> c1, c2 ;
-    up = 1 ; down = 1 ;
+    counter_updown<4> c1, c2 ;
     up.connect(c1.up) ;
     down.connect(c1.down) ;
     load1.connect(c1.load) ;
@@ -153,15 +152,15 @@ TEST(test_complib, counter){
     
     EXPECT_EQ(c1.data_out.get_value(), 0) ;
     EXPECT_EQ(c2.data_out.get_value(), 0) ;
-    up = 0 ; up = 1 ;
+    up.pulse() ;
     EXPECT_EQ(c1.data_out.get_value(), 1) ;
-    down = 0 ; down = 1 ;
+    down.pulse() ;
     EXPECT_EQ(c1.data_out.get_value(), 0) ;
     down = 0 ; down = 1 ;
     EXPECT_EQ(c1.data_out.get_value(), 15) ;
     EXPECT_EQ(c2.data_out.get_value(), 15) ;
     data_in1 = 8 ;
-    load1 = 1 ; load1 = 0 ;
+    load1.pulse() ;
     EXPECT_EQ(c1.data_out.get_value(), 8) ;
     up = 0 ; up = 1 ;
     EXPECT_EQ(c1.data_out.get_value(), 9) ;
