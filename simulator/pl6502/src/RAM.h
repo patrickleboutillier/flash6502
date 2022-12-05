@@ -26,7 +26,7 @@ class RAM : public component {
         } ;
 
         void always(){
-            if (set){
+            if (! set){
                 _mem[addrh][addrl] = data_in ;
             }
             if (! enable){ // negative logic

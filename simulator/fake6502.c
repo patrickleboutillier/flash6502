@@ -52,7 +52,7 @@ counter<6> STEP ;
 output<1> STEP_clk(1), STEP_s(1), STEP_cnt_e, CLK(1) ; 
 
 
-output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
+output<1> boot_RAM_s(1), boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
 output<8> boot_DATA ;
 
 output<1> GND(0) ;

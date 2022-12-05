@@ -62,7 +62,7 @@ class CONTROL_2_ROM : public component {
         output<1> SP_down, SP_s, SP_e, INST_s, PC_up, PC_e, RAM_s, RAM_e ;
 
         CONTROL_2_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            SP_down(1), SP_s(1), SP_e(1), PC_up(1), PC_e(1), RAM_e(1) {
+                            SP_down(1), SP_s(1), SP_e(1), PC_up(1), PC_e(1), RAM_s(1), RAM_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -104,8 +104,8 @@ class CONTROL_2_ROM : public component {
             set_signal_1(INST_s, 5) ;
 
             // RAM_s for reset sequence.
-            if (z){
-                RAM_s = 1 ;
+            if (! z){
+                RAM_s = 0 ;
             }
             else {
                 set_signal_1(RAM_s, 6) ;
