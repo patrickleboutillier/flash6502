@@ -1423,12 +1423,14 @@ uint8_t tya(uint8_t step) {
 }
 
 
-uint8_t rst(uint8_t step){
+uint8_t rst1(uint8_t step){
     switch (step) {
         // Set SP and STATUS to 0
         case    0:  ST_src.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; ST_C_s.toggle() ; break ;
-        case    1:  SP_s.toggle() ; ST_s.toggle() ; break ;
-        case    2:  SP_s.toggle() ; ST_s.toggle() ; break ;
+        case    1:  ACC_s.toggle() ; X_s.toggle() ; Y_s.toggle() ; A_s.toggle() ; B_s.toggle() ;
+                    SP_s.toggle() ; ST_s.toggle() ; break ;
+        case    2:  ACC_s.toggle() ; X_s.toggle() ; Y_s.toggle() ; A_s.toggle() ; B_s.toggle() ;
+                    SP_s.toggle() ; ST_s.toggle() ; break ;
         case    3:  ST_src.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; ST_C_s.toggle() ; break ;
 
         // Set ALU_c to 0 

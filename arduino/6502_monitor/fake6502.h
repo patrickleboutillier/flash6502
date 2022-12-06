@@ -2,6 +2,19 @@
 #include "ops.h"
 
 
+void monitor6502(bool idle) ;
+
+  
+uint8_t stp(uint8_t step) {
+  HALTED = true ;
+  Serial.println(F("HALT  -> System halted by STP instruction.")) ;
+  Serial.print(F("HALT  -> ")) ;
+  monitor6502(true) ;
+  Serial.println() ;
+  return 0 ;  
+}
+
+
 //undocumented instructions
 #define lax nop
 #define sax nop
@@ -16,7 +29,7 @@ typedef uint8_t (*func6502)(uint8_t step) ;
 
 PROGMEM const func6502 addrtable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-/* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
+/* 0 */     imp, indx,  imp,  imp,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
 /* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
 /* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
 /* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
@@ -29,7 +42,7 @@ PROGMEM const func6502 addrtable[256] = {
 /* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
 /* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
 /* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
-/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* D */
+/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, absx, /* D */
 /* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
 /* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
 } ;
@@ -37,10 +50,10 @@ PROGMEM const func6502 addrtable[256] = {
 
 PROGMEM const func6502 optable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
+/* 0 */      brk,  ora,  rst1, slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
 /* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
-/* 2 */      jsr,  and_,  nop,  rla,  bit_,  and_,  rol,  rla,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  rla, /* 2 */
-/* 3 */      bmi,  and_,  nop,  rla,  nop,  and_,  rol,  rla,  sec,  and_,  nop,  rla,  nop,  and_,  rol,  rla, /* 3 */
+/* 2 */      jsr,  and_, nop,  rla,  bit_,  and_,  rol,  rla,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  rla, /* 2 */
+/* 3 */      bmi,  and_, nop,  rla,  nop,  and_,  rol,  rla,  sec,  and_,  nop,  rla,  nop,  and_,  rol,  rla, /* 3 */
 /* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
 /* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  cli_,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
 /* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
@@ -50,7 +63,7 @@ PROGMEM const func6502 optable[256] = {
 /* A */      ldy,  lda,  ldx,  lax,  ldy,  lda,  ldx,  lax,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  lax, /* A */
 /* B */      bcs,  lda,  nop,  lax,  ldy,  lda,  ldx,  lax,  clv,  lda,  tsx,  lax,  ldy,  lda,  ldx,  lax, /* B */
 /* C */      cpy,  cmp,  nop,  dcp,  cpy,  cmp,  dec,  dcp,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  dcp, /* C */
-/* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp, /* D */
+/* D */      bne,  cmp,  nop,  dcp,  nop,  cmp,  dec,  dcp,  cld,  cmp,  nop,  stp,  nop,  cmp,  dec,  dcp, /* D */
 /* E */      cpx,  sbc,  nop,  isb,  cpx,  sbc,  inc,  isb,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  isb, /* E */
 /* F */      beq,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb,  sed,  sbc,  nop,  isb,  nop,  sbc,  inc,  isb  /* F */
 } ;
@@ -59,21 +72,45 @@ PROGMEM const func6502 optable[256] = {
 uint16_t get_pc(){
   PC_e.toggle() ; 
   Al2D_e.toggle() ;
-  uint8_t sp = DATA.read() ;
+  uint16_t pc = DATA.read() ;
+  Al2D_e.toggle() ; 
+  Ah2D_e.toggle() ;
+  pc |= DATA.read() << 8 ;
+  Ah2D_e.toggle() ; 
+  PC_e.toggle() ;   
+  return pc ;  
+}
+
+
+uint16_t get_ea(){
+  EAl_e.toggle() ; Al2D_e.toggle() ;
+  uint16_t ea = DATA.read() ;
+  EAl_e.toggle() ; Al2D_e.toggle() ; 
+  EAh_e.toggle() ; Ah2D_e.toggle() ;
+  ea |= DATA.read() << 8 ;
+  EAh_e.toggle() ; Ah2D_e.toggle() ;   
+  return ea ; 
+}
+
+
+uint16_t get_sp(){
+  SP_e.toggle() ; 
+  Al2D_e.toggle() ;
+  uint16_t sp = DATA.read() ;
   Al2D_e.toggle() ; 
   Ah2D_e.toggle() ;
   sp |= DATA.read() << 8 ;
   Ah2D_e.toggle() ; 
-  PC_e.toggle() ;   
+  SP_e.toggle() ; 
   return sp ;  
 }
 
 
-uint8_t get_sp(){
-  SP_e.toggle() ; Al2D_e.toggle() ;
-  uint8_t sp = DATA.read() ;
-  SP_e.toggle() ; Al2D_e.toggle() ; 
-  return sp ;  
+uint8_t get_acc(){
+  ACC_e.toggle() ;
+  uint8_t acc = DATA.read() ;
+  ACC_e.toggle() ; 
+  return acc ;  
 }
 
 
@@ -94,35 +131,56 @@ uint8_t set_status(uint8_t s){
 }
 
 
-void step6502(const char *msg, int step){
-  Serial.print(F("STEP  -> ")) ;
+void monitor6502(bool idle){
+  static char buf[128] ;
+  // TODO: use sprintf here, add EA
+  sprintf(buf, "INST:0x%02X", INST) ;
+  Serial.print(buf) ;
+  if (idle){
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%2d",
+        get_pc(), get_ea(), get_sp(), get_status(), get_acc()) ;
+      Serial.print(buf) ;
+  }
+    /*
   Serial.print(F("INST:0x")) ;
   Serial.print(INST, HEX) ;
-  Serial.print(F(" ")) ;
-  Serial.print(msg) ;
-  Serial.print(F(" ")) ;
-  Serial.print(step) ;
-  if (step == -1){
+  if (idle){
     Serial.print(F(" PC:0x")) ;
     Serial.print(get_pc(), HEX) ;
     Serial.print(F(" SP:0x")) ;
     Serial.print(get_sp(), HEX) ;
+    Serial.print(F(" ACC:")) ;
+    Serial.print(get_acc()) ;
   }
-  Serial.println(F("...")) ;
+  Serial.println() ;
+  */
+}
+
+
+void step6502(const char *msg, int step, bool idle = false){
+  Serial.print(F("STEP  -> ")) ;
+  monitor6502(idle) ;
+  Serial.print(F(" ")) ;
+  Serial.print(msg) ;
+  Serial.print(F(" ")) ;
+  if (step < 0){
+    Serial.print("X") ;    
+  }
+  else {
+    Serial.print(step) ;
+  }
+  Serial.println() ;
   while (! STEP_button_pressed()){} ;
 }
 
 
-void do_inst(bool q = false){
-    if (! q){
-      step6502("inst", -1) ;
-    }
+void inst6502(bool debug = false){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
     for (int step = 0 ; step < 64 ; step++){
         if (! fetch_done){
             if (fetch(step)){
-                if (! q){
+                if (debug){
                     // step6502("fetch", step) ;
                 }
                 continue ;
@@ -133,7 +191,7 @@ void do_inst(bool q = false){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
-                if (! q){
+                if (debug){
                   step6502("addr", step - addr_start) ;
                 }
                 continue ;
@@ -144,7 +202,7 @@ void do_inst(bool q = false){
         if (! op_done){
             func6502 f = pgm_read_word(&(optable[INST])) ;
             if (f(step - op_start)){
-                if (! q){
+                if (debug){
                   step6502("oper", step - op_start) ;
                 }
                 continue ;
@@ -152,25 +210,6 @@ void do_inst(bool q = false){
             return ;
         }
     }
-}
-
-
-void reset6502(){
-    PC_clr.pulse() ;
-    DATA.write(0x02) ; // RST instruction
-    PC_e.toggle() ;
-    RAM_s.pulse() ;
-    PC_e.toggle() ;
-    DATA.reset() ;
-    // Reset step/phase to 0 and run the instruction.
-    do_inst(true) ;
-    PC_clr.pulse() ;
-    Serial.print(F("RESET -> PC:0x")) ;
-    Serial.print(get_pc(), HEX) ;
-    Serial.print(F(", SP:0x")) ;
-    Serial.print(get_sp(), HEX) ;
-    Serial.print(F(", STATUS:0x")) ;
-    Serial.println(get_status(), HEX) ;
 }
 
 
@@ -188,9 +227,27 @@ void load6502(uint8_t prog[], int prog_len){
     }
 
     PC_clr.pulse() ;
-    Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog_len) ;
-    Serial.print(F(" bytes loaded starting at address 0x0000 (PC is now 0x")) ;
-    Serial.print(get_pc(), HEX) ;
-    Serial.print(F(")\n")) ;
+    Serial.println(F(" program bytes loaded starting at address 0x0000")) ;
+    Serial.print(F("LOAD  -> ")) ;
+    monitor6502(true) ;
+    Serial.println() ;
+}
+
+
+void reset6502(uint8_t prog[], int prog_len){
+    PC_clr.pulse() ;
+    DATA.write(0x02) ; // RST instruction
+    PC_e.toggle() ;
+    RAM_s.pulse() ;
+    PC_e.toggle() ;
+    DATA.reset() ;
+    // Reset step/phase to 0 and run the instruction.
+    inst6502(false) ;
+    PC_clr.pulse() ;
+    Serial.print(F("RESET -> ")) ;
+    monitor6502(true) ;
+    Serial.println() ;
+
+    load6502(prog, prog_len) ;
 }

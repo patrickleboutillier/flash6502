@@ -7,6 +7,7 @@
 
 // Push button
 #define STEP 10
+#define DEBUG 1
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG PC_clr(NULL, 11) ;
@@ -36,8 +37,11 @@ CTRLSIG ST_e(&E3, 9, true) ;
 CTRLSIG PCh_s(&E3, 10, true), EAh_e(&E3, 11, true), EAh_s(&E3, 12) ; 
 STATUS STATUS(&E3, A0, A1, A2, A3) ;
 
+bool HALTED = false ;
 byte STEP_clr = 1 ;
 byte INST = 0 ;
+
+
 
 
 bool STEP_button_pressed() ;
@@ -48,8 +52,8 @@ bool STEP_button_pressed() ;
 void setup() {
   Serial.begin(9600) ;
   Serial.println(F("Starting Flash6502.")) ;
-  Serial.print(CTRLSIG::count()) ;
-  Serial.println(F(" control signals defined.")) ;
+  //Serial.print(CTRLSIG::count()) ;
+  //Serial.println(F(" control signals defined.")) ;
 
   DATA.setup() ;
   PC_clr.setup() ;
@@ -81,19 +85,23 @@ void setup() {
   //reset() ;
   //test_ram() ;
   
-  reset6502() ;
-  load6502(prog42, sizeof(prog42)) ;
+  reset6502(prog42, sizeof(prog42)) ;
+  // load6502(prog42, sizeof(prog42)) ;
 
   //Serial.println("Press button to start...") ;
   //while (! STEP_button_pressed()){} ;
 
   //test() ;
 
-  Serial.println(F("DONE")) ;
+  // Serial.println(F("DONE")) ;
 }
 
 void loop(){
-  do_inst() ;
+  if (! HALTED){
+    step6502("inst", -1, true) ;
+    inst6502(false) ;
+  }
+  
   //byte data = DATA.read() ;
   //Serial.print("DATA:0x") ;
   //Serial.println(data, HEX) ; 
