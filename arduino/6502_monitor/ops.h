@@ -1447,8 +1447,10 @@ uint8_t rst(uint8_t step){
         case   12:  SP_down.toggle() ; break ;
         case   13:  SP_down.toggle() ; break ;
 
+        // TODO (in simulator): Set EA to 0xFFFC/D?
+        
         case   14:  STEP_clr = 0 ; break ;
-
+        
         default:    return 0 ;
     }
     return 1 ;    

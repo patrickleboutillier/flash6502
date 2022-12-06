@@ -56,20 +56,6 @@ PROGMEM const func6502 optable[256] = {
 } ;
 
 
-// TODO: Add PC and SP here?
-void step6502(const char *msg, int tick){
-  Serial.print(F("STEP  -> ")) ;
-  Serial.print(F("INST:0x")) ;
-  Serial.print(INST, HEX) ;
-  Serial.print(F(" ")) ;
-  Serial.print(msg) ;
-  Serial.print(F(" ")) ;
-  Serial.print(tick) ;
-  Serial.println(F("...")) ;
-  while (! STEP_button_pressed()){} ;
-}
-
-
 uint16_t get_pc(){
   PC_e.toggle() ; 
   Al2D_e.toggle() ;
@@ -108,13 +94,37 @@ uint8_t set_status(uint8_t s){
 }
 
 
-void do_inst(){
+void step6502(const char *msg, int step){
+  Serial.print(F("STEP  -> ")) ;
+  Serial.print(F("INST:0x")) ;
+  Serial.print(INST, HEX) ;
+  Serial.print(F(" ")) ;
+  Serial.print(msg) ;
+  Serial.print(F(" ")) ;
+  Serial.print(step) ;
+  if (step == -1){
+    Serial.print(F(" PC:0x")) ;
+    Serial.print(get_pc(), HEX) ;
+    Serial.print(F(" SP:0x")) ;
+    Serial.print(get_sp(), HEX) ;
+  }
+  Serial.println(F("...")) ;
+  while (! STEP_button_pressed()){} ;
+}
+
+
+void do_inst(bool q = false){
+    if (! q){
+      step6502("inst", -1) ;
+    }
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
     for (int step = 0 ; step < 64 ; step++){
         if (! fetch_done){
             if (fetch(step)){
-                step6502("fetch", step) ;
+                if (! q){
+                    // step6502("fetch", step) ;
+                }
                 continue ;
             } 
             fetch_done = true ;
@@ -123,7 +133,9 @@ void do_inst(){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
-                step6502("addr", step - addr_start) ;
+                if (! q){
+                  step6502("addr", step - addr_start) ;
+                }
                 continue ;
             }
             addr_done = true ;
@@ -132,7 +144,9 @@ void do_inst(){
         if (! op_done){
             func6502 f = pgm_read_word(&(optable[INST])) ;
             if (f(step - op_start)){
-                step6502("op", step - op_start) ;
+                if (! q){
+                  step6502("oper", step - op_start) ;
+                }
                 continue ;
             }
             return ;
@@ -149,7 +163,7 @@ void reset6502(){
     PC_e.toggle() ;
     DATA.reset() ;
     // Reset step/phase to 0 and run the instruction.
-    do_inst() ;
+    do_inst(true) ;
     PC_clr.pulse() ;
     Serial.print(F("RESET -> PC:0x")) ;
     Serial.print(get_pc(), HEX) ;
@@ -168,7 +182,7 @@ void load6502(uint8_t prog[], int prog_len){
         PC_e.toggle() ; 
         RAM_s.pulse() ;
         PC_e.toggle() ;
-        step6502("load", i) ;
+        //step6502("load", i) ;
         DATA.reset() ;
         PC_up.pulse() ;
     }
