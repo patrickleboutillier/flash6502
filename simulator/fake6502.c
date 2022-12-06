@@ -385,20 +385,21 @@ void reset6502(uint8_t prog[], int prog_len){
     boot_PC_clr.pulse() ;
     load6502(prog, prog_len) ;
 
-    /*
-    boot_DATA.drive(true) ;
-    boot_DATA = 0x03 ; // RST2 instruction
-    boot_PC_e.toggle() ;
-    boot_RAM_s.pulse() ;
-    boot_PC_e.toggle() ;
-    boot_DATA.drive(false) ;
-    // Reset step/phase to 0 and run the instruction.
-    boot_STEP_clr.pulse() ;
-    do_inst() ;
-    */
+    #if 0 // For now we start PC at 0, not at the value in the reset vector
+        boot_DATA.drive(true) ;
+        boot_DATA = 0x03 ; // RST2 instruction
+        boot_PC_e.toggle() ;
+        boot_RAM_s.pulse() ;
+        boot_PC_e.toggle() ;
+        boot_DATA.drive(false) ;
+        // Reset step/phase to 0 and run the instruction.
+        boot_STEP_clr.pulse() ;
+        do_inst() ;
+    #else
+        boot_PC_clr.pulse() ;
+    #endif
 
     boot_STEP_clr.pulse() ;
-    boot_PC_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
 }
