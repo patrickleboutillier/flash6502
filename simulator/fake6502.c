@@ -399,7 +399,7 @@ void reset6502(uint8_t prog[], int prog_len){
 
     boot_STEP_clr.pulse() ;
     boot_PC_clr.pulse() ;
-    printf("RESET -> PC:0x%02X%02X  SP:0x%X  STATUSreg:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+    printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
 }
 
