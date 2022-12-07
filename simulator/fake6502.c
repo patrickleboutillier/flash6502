@@ -30,7 +30,6 @@ reg<8> EAh, EAl ;
 counter_updown<8> SP, PCh, PCl ;
 tristate<8> SPht, SPlt, PCht, PClt ;
 output<8> SPh_v(0x01) ;
-output<1> PC_down(1), SP_up(1), SP_clr, PC_clr ; // the signals are not used by the CU 
 
 RAM RAM ;
 
@@ -49,13 +48,13 @@ output<1> INST_e(1) ;
 
 // TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> STEP_clk(1), STEP_s(1), STEP_cnt_e, CLK(1) ; 
+output<1> CLK(1) ; 
 
 
-output<1> boot_RAM_s, boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1) ;
+output<1> boot_RAM_s(1), boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1), boot_PC_clr, boot_STEP_cnt_e ;
 output<8> boot_DATA ;
 
-output<1> GND(0) ;
+output<1> GND(0), VCC(1) ;
 
 
 void init6502(bool gen_mc){
@@ -89,8 +88,8 @@ void init6502(bool gen_mc){
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
-    PC_down.connect(PCl.down) ;
-    PC_clr.connect(PCl.clear) ;
+    VCC.connect(PCl.down) ;
+    boot_PC_clr.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -99,16 +98,16 @@ void init6502(bool gen_mc){
     C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    PC_clr.connect(PCh.clear) ;
+    boot_PC_clr.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
 
     DATA.data_out.connect(SP.data_in) ;
     C2.SP_s.connect(SP.load) ;
-    SP_up.connect(SP.up) ;
+    VCC.connect(SP.up) ;
     C2.SP_down.connect(SP.down) ;
-    SP_clr.connect(SP.clear) ;
+    GND.connect(SP.clear) ;
     SP.data_out.connect(SPlt.data_in) ;
     C2.SP_e.connect(SPlt.enable) ;
     SPlt.data_out.connect(ADDRl.data_in) ;
@@ -172,9 +171,9 @@ void init6502(bool gen_mc){
 
     CLK.connect(STEP.clk) ;
     C1.STEP_clr.connect(STEP.clear) ;
-    STEP_s.connect(STEP.load) ;
-    STEP_cnt_e.connect(STEP.enable) ;
-    STEP_cnt_e = 1 ;
+    VCC.connect(STEP.load) ;
+    boot_STEP_cnt_e.connect(STEP.enable) ;
+    boot_STEP_cnt_e = 1 ;
 
     if (! gen_mc){
         INST.data_out.connect(C1.inst) ;
@@ -233,7 +232,7 @@ void init6502(bool gen_mc){
 
 static uint8_t (*addrtable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-/* 0 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
+/* 0 */     imp, indx,  imp, imp,    zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
 /* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
 /* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
 /* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
@@ -253,10 +252,10 @@ static uint8_t (*addrtable[256])(uint8_t tick) = {
 
 static uint8_t (*optable[256])(uint8_t tick) = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst,  slo,  nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
+/* 0 */      brk,  ora,  rst1, rst2, nop,  ora,  asl,  slo,  php,  ora,  asl,  nop,  nop,  ora,  asl,  slo, /* 0 */
 /* 1 */      bpl,  ora,  nop,  slo,  nop,  ora,  asl,  slo,  clc,  ora,  nop,  slo,  nop,  ora,  asl,  slo, /* 1 */
-/* 2 */      jsr,  anda,  nop,  rla,  bit,  anda,  rol,  rla,  plp,  anda,  rol,  nop,  bit,  anda,  rol,  rla, /* 2 */
-/* 3 */      bmi,  anda,  nop,  rla,  nop,  anda,  rol,  rla,  sec,  anda,  nop,  rla,  nop,  anda,  rol,  rla, /* 3 */
+/* 2 */      jsr,  anda,  nop, rla,  bit,  anda,  rol,  rla,  plp,  anda,  rol,  nop,  bit,  anda,  rol,  rla, /* 2 */
+/* 3 */      bmi,  anda,  nop, rla,  nop,  anda,  rol,  rla,  sec,  anda,  nop,  rla,  nop,  anda,  rol,  rla, /* 3 */
 /* 4 */      rti,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  sre, /* 4 */
 /* 5 */      bvc,  eor,  nop,  sre,  nop,  eor,  lsr,  sre,  cli,  eor,  nop,  sre,  nop,  eor,  lsr,  sre, /* 5 */
 /* 6 */      rts,  adc,  nop,  rra,  nop,  adc,  ror,  rra,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  rra, /* 6 */
@@ -297,7 +296,7 @@ void generate_microcode(){
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
     // Disable the step counter so it doesn't mess up our sequencing
-    STEP_cnt_e = 0 ;
+    boot_STEP_cnt_e = 0 ;
     
     printf("uint64_t microcode[] = {\n") ;
     for (int i = 0 ; i < 4096 ; i++){
@@ -343,37 +342,7 @@ void generate_microcode(){
 }
 
 
-void reset6502(){
-    boot_STEP_clr.pulse() ;
-    // At this point, INST is driving the control signals with whatever random value it contains at startup.
-    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
-    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
-    assert(CU.make_cw() == CU.get_default_cw()) ;
-    PC_clr.pulse() ;
-
-    boot_DATA.drive(true) ;
-    boot_DATA = 0x02 ; // RST instruction
-    boot_PC_e.toggle() ;
-    boot_RAM_s.pulse() ;
-    boot_PC_e.toggle() ;
-    boot_DATA.drive(false) ;
-    // Reset step/phase to 0 and run the instruction.
-    boot_STEP_clr.pulse() ;
-    do_inst() ;
-    boot_STEP_clr.pulse() ;
-    PC_clr.pulse() ;
-    printf("RESET -> PC:0x%02X%02X, SP:0x%X, STATUS:0x%02X\n", (uint8_t)PCh, (uint8_t)PCl, (uint8_t)SP, (uint8_t)STATUS.sreg) ;
-}
-
-
 void load6502(uint8_t prog[], int prog_len){
-    boot_STEP_clr.pulse() ;
-    // Again, pulse the clock to the third phase to disable all control signals
-    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
-    assert(CU.make_cw() == CU.get_default_cw()) ;
-    PC_clr.pulse() ;
-
     for (int i = 0 ; i < prog_len ; i++){
         boot_DATA.drive(true) ;
         boot_DATA = prog[i] ;
@@ -384,9 +353,55 @@ void load6502(uint8_t prog[], int prog_len){
         boot_PC_up.pulse() ;
     }
 
+    //boot_STEP_clr.pulse() ;
+    //boot_PC_clr.pulse() ;
+    printf("LOAD  -> %d program bytes loaded\n", prog_len) ;
+}
+
+
+void reset6502(uint8_t prog[], int prog_len){
     boot_STEP_clr.pulse() ;
-    PC_clr.pulse() ;
-    printf("LOAD  -> %d bytes loaded starting at address 0x00 (PC is now 0x%02X%02X)\n", prog_len, (uint8_t)PCh, (uint8_t)PCl) ;
+    // At this point, INST is driving the control signals with whatever random value it contains at startup.
+    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
+    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
+    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
+    boot_PC_clr.pulse() ;
+
+    boot_DATA.drive(true) ;
+    boot_DATA = 0x02 ; // RST1 instruction
+    boot_PC_e.toggle() ;
+    boot_RAM_s.pulse() ;
+    boot_PC_e.toggle() ;
+    boot_DATA.drive(false) ;
+    // Reset step/phase to 0 and run the instruction.
+    boot_STEP_clr.pulse() ;
+    do_inst() ;
+
+    boot_STEP_clr.pulse() ;
+    // Again, pulse the clock to the third phase to disable all control signals
+    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
+    boot_PC_clr.pulse() ;
+    load6502(prog, prog_len) ;
+
+    #if 0 // For now we start PC at 0, not at the value in the reset vector
+        boot_DATA.drive(true) ;
+        boot_DATA = 0x03 ; // RST2 instruction
+        boot_PC_e.toggle() ;
+        boot_RAM_s.pulse() ;
+        boot_PC_e.toggle() ;
+        boot_DATA.drive(false) ;
+        // Reset step/phase to 0 and run the instruction.
+        boot_STEP_clr.pulse() ;
+        do_inst() ;
+    #else
+        boot_PC_clr.pulse() ;
+    #endif
+
+    boot_STEP_clr.pulse() ;
+    printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+        (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
 }
 
 
@@ -406,16 +421,14 @@ int main(int argc, char *argv[]){
     printf("Default control word is 0x%010lX\n", CU.get_default_cw()) ;
     printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
     
-
-    // Here the reset sequence begins...
-    reset6502() ;
-
     // Load the program to RAM
     FILE *file = fopen("6502_functional_test.bin", "rb") ; 
     uint8_t prog[0x10000] ;
     int prog_len = fread(prog, 1, 0x10000, file) ;
     fclose(file) ;
-    load6502(prog, prog_len) ;
+
+    // Here the reset sequence begins...
+    reset6502(prog, prog_len) ;
 
     // Start processing instructions.
     int nb_insts = 0, nb_steps = 0 ;
