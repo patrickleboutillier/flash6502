@@ -11,6 +11,7 @@ uint8_t stp(uint8_t step) {
   Serial.print(F("HALT  -> ")) ;
   monitor6502(true) ;
   Serial.println() ;
+  Serial.println() ;
   return 0 ;  
 }
 
@@ -175,6 +176,8 @@ void step6502(const char *msg, int step, bool idle = false){
 
 
 void inst6502(bool debug = false){
+    // Update the flags values for use in branch instructions. 
+    STATUS.latch() ;
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false, op_done = false ;
     for (int step = 0 ; step < 64 ; step++){

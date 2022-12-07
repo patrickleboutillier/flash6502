@@ -101,6 +101,11 @@ void loop(){
     step6502("inst", -1, true) ;
     inst6502(false) ;
   }
+  else {
+    while (! STEP_button_pressed()){} ;
+    HALTED = false ;
+    reset6502(prog42, sizeof(prog42)) ;
+  }
   
   //byte data = DATA.read() ;
   //Serial.print("DATA:0x") ;
