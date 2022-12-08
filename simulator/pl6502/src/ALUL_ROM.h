@@ -1,5 +1,5 @@
-#ifndef ALUL_H
-#define ALUL_H
+#ifndef ALUL_ROM_H
+#define ALUL_ROM_H
 
 
 #include "circuit.h"

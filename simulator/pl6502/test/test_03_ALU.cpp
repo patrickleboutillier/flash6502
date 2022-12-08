@@ -11,13 +11,14 @@ static int calc_v(int a, int b, uint32_t res){
 
 TEST(test_pl6502, ALU){
     output<8> a, b ;
-    output<1> cy ;
+    output<1> cy, ena ;
     output<4> op ;
     ALU alu ;
     a.connect(alu.a) ;
     b.connect(alu.b) ;
     cy.connect(alu.c_in) ;
     op.connect(alu.op) ;
+    ena.connect(alu.enable) ;
 
     op = ALU_ADC ;
     for (int k = 0 ; k < 2 ; k++){
