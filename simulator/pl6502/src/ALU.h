@@ -3,9 +3,8 @@
 
 
 #include "circuit.h"
-#include "buffer.h"
-#include "ALUl.h"
-#include "ALUh.h"
+#include "ALUL_ROM.h"
+#include "ALUH_ROM.h"
 
 
 class ALU : public component {
@@ -13,6 +12,7 @@ class ALU : public component {
         input<1> c_in ;
         input<8> a, b ;
         input<4> op ;
+        input<1> enable ;
         output<8> res ;
         output<1> n, z, c, v ;
     private:
@@ -24,7 +24,7 @@ class ALU : public component {
         output<4> aluh_a, aluh_b ;
 
     public:
-        ALU() : c_in(this), a(this), b(this), op(this) {
+        ALU() : c_in(this), a(this), b(this), op(this), enable(this) {
             alul_c_in.connect(alul.c_in) ;
             alul_s_in.connect(alul.s_in) ;
             alul_n_in.connect(alul.n_in) ;
@@ -35,6 +35,12 @@ class ALU : public component {
             aluh_z_in.connect(aluh.z_in) ;
             aluh_a.connect(aluh.a) ;
             aluh_b.connect(aluh.b) ;
+            
+            res.drive(false) ;
+            n.drive(false) ;
+            z.drive(false) ;
+            c.drive(false) ;
+            v.drive(false) ;
         } ;
 
         void always(){
@@ -50,12 +56,28 @@ class ALU : public component {
             aluh_s_in = alul.s ;    // ALUL.DQ4 -> A17
             aluh_z_in = alul.z ;    // ALUL.DQ6 -> A14
             alul_n_in = b >> 7 ;    // B[7]     -> A14
+
             // ...
-            res = aluh.res << 4 | alul.res ;
-            n = aluh.n ;
-            z = aluh.z ;
-            c = aluh.c ;
-            v = aluh.v ;
+            if (! enable){ // negative logic
+                res.drive(true) ;
+                n.drive(true) ;
+                z.drive(true) ;
+                c.drive(true) ;
+                v.drive(true) ;
+
+                res = aluh.res << 4 | alul.res ;
+                n = aluh.n ;
+                z = aluh.z ;
+                c = aluh.c ;
+                v = aluh.v ;
+            }
+            else {
+                res.drive(false) ;
+                n.drive(false) ;
+                z.drive(false) ;
+                c.drive(false) ;
+                v.drive(false) ;
+            }
         } ;
 } ;
 

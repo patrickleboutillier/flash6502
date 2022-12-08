@@ -39,8 +39,7 @@ output<1> A_e(1), B_e(1) ;
 reg<8> X, Y ;
 
 ALU ALU ;
-tristate<8> ALU2D ;
-
+bus<1> ALU_n, ALU_v, ALU_z, ALU_c ;
 STATUS STATUS ;
 
 reg<8> INST ;
@@ -145,13 +144,16 @@ void init6502(bool gen_mc){
     B.data_out.connect(ALU.b) ;
     STATUS.alu_c.connect(ALU.c_in) ;
     C3.ALU_op.connect(ALU.op) ;
-    ALU.res.connect(ALU2D.data_in) ;
-    C3.ALU_e.connect(ALU2D.enable) ;
-    ALU2D.data_out.connect(DATA.data_in) ;
-    ALU.n.connect(STATUS.n_in) ;
-    ALU.v.connect(STATUS.v_in) ;
-    ALU.z.connect(STATUS.z_in) ;
-    ALU.c.connect(STATUS.c_in) ;
+    ALU.res.connect(DATA.data_in) ;
+    C3.ALU_e.connect(ALU.enable) ;
+    ALU.n.connect(ALU_n.data_in) ;
+    ALU.v.connect(ALU_v.data_in) ;
+    ALU.z.connect(ALU_z.data_in) ;
+    ALU.c.connect(ALU_c.data_in) ;
+    ALU_n.data_out.connect(STATUS.n_in) ;
+    ALU_v.data_out.connect(STATUS.v_in) ;
+    ALU_z.data_out.connect(STATUS.z_in) ;
+    ALU_c.data_out.connect(STATUS.c_in) ;
 
     C5.ST_NZ_s.connect(STATUS.nz_set) ;
     C5.ST_V_s.connect(STATUS.v_set) ;

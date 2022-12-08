@@ -1,7 +1,7 @@
 // unittest_SimpleMath.cpp : Defines the entry point for the console application.
 
 #include "gtest/gtest.h"
-#include "ALUh.h"
+#include "ALUH_ROM.h"
 
 
 static int calc_v(int a, int b, uint32_t res){
