@@ -48,7 +48,7 @@ class CTRLSIG {
         digitalWrite(_pin, v) ;
       }     
       // We have to wait a bit for the signal to reach the slave and be processed
-      delayMicroseconds(25) ;
+      //delayMicroseconds(25) ;
     }
 
     void toggle(){

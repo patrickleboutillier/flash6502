@@ -1,3 +1,5 @@
+uint16_t get_ea() ;
+
 #include "addrmodes.h"
 #include "ops.h"
 
@@ -83,6 +85,16 @@ uint16_t get_pc(){
 }
 
 
+void set_pc(uint16_t pc){
+  DATA.write(pc >> 8) ;
+  PCh_s.pulse() ;
+  DATA.reset() ;
+  DATA.write(pc & 0xFF) ;
+  PCl_s.pulse() ;
+  DATA.reset() ;
+}
+
+  
 uint16_t get_ea(){
   EAl_e.toggle() ; Al2D_e.toggle() ;
   uint16_t ea = DATA.read() ;
@@ -155,23 +167,10 @@ void monitor6502(bool idle){
   sprintf(buf, "INST:0x%02X", INST) ;
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%3d  X:%3d  Y:%3d %8d",
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%3u  X:%3u  Y:%3u %8lu",
         get_pc(), get_ea(), get_sp(), get_status(), get_acc(), get_x(), get_y(), inst_cnt) ;
       Serial.print(buf) ;
   }
-    /*
-  Serial.print(F("INST:0x")) ;
-  Serial.print(INST, HEX) ;
-  if (idle){
-    Serial.print(F(" PC:0x")) ;
-    Serial.print(get_pc(), HEX) ;
-    Serial.print(F(" SP:0x")) ;
-    Serial.print(get_sp(), HEX) ;
-    Serial.print(F(" ACC:")) ;
-    Serial.print(get_acc()) ;
-  }
-  Serial.println() ;
-  */
 }
 
 
@@ -260,7 +259,7 @@ void load6502(uint8_t prog[], int prog_len, Extension *e = NULL){
 }
 
 
-void reset6502(uint8_t prog[], int prog_len, Extension *e = NULL){
+void reset6502(uint8_t prog[], int prog_len, uint16_t pc, Extension *e = NULL){
     inst_cnt = 0 ;
     PC_clr.pulse() ;
     DATA.write(0x02) ; // RST instruction
@@ -276,4 +275,7 @@ void reset6502(uint8_t prog[], int prog_len, Extension *e = NULL){
     Serial.println() ;
 
     load6502(prog, prog_len, e) ;
+    if (pc != 0){
+      set_pc(pc) ;
+    }
 }

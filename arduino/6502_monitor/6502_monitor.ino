@@ -7,7 +7,6 @@
 
 // Push button
 #define STEP 10
-bool DEBUG = false ;
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG PC_clr(NULL, 11) ;
@@ -36,6 +35,10 @@ CTRLSIG ST_src(&E3, 8, true) ;
 CTRLSIG ST_e(&E3, 9, true) ;
 CTRLSIG PCh_s(&E3, 10, true), EAh_e(&E3, 11, true), EAh_s(&E3, 12) ; 
 STATUS STATUS(&E3, A0, A1, A2, A3) ;
+
+#define START_PC 0
+bool DEBUG_MON = false ;
+bool DEBUG_STEP = false ;
 
 bool HALTED = false ;
 byte STEP_clr = 1 ;
@@ -83,12 +86,9 @@ void setup() {
   //reset() ;
   //test_ram() ;
   
-  //reset6502(prog42, sizeof(prog42)) ;
-  reset6502(NULL, 14625, &E1) ;
+  //reset6502(prog42, sizeof(prog42), START_PC) ;
+  reset6502(NULL, 14625, START_PC, &E1) ;
   // load6502(prog42, sizeof(prog42)) ;
-
-  //Serial.println("Press button to start...") ;
-  //while (! STEP_button_pressed()){} ;
 
   //test() ;
 
@@ -97,16 +97,20 @@ void setup() {
 
 void loop(){
   if (! HALTED){
-    //step6502("inst", -1, true) ;
-    if ((inst_cnt % 100) == 0){
+    //if (get_pc() == 0x1814){
+    //  DEBUG_STEP = true ;
+    //}
+    
+    // step6502("inst", -1, true) ;
+    if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
       monitor6502(true) ; Serial.println() ;
     }
-    inst6502(DEBUG) ;
+    inst6502(DEBUG_STEP) ;
   }
   else {
     while (! STEP_button_pressed()){} ;
     HALTED = false ;
-    reset6502(prog42, sizeof(prog42)) ;
+    reset6502(prog42, sizeof(prog42), START_PC) ;
   }
   
   //byte data = DATA.read() ;
