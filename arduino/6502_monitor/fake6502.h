@@ -148,13 +148,14 @@ uint8_t set_status(uint8_t s){
 }
 
 
+unsigned long inst_cnt = 0 ;
 void monitor6502(bool idle){
   static char buf[128] ;
   // TODO: use sprintf here, add EA
   sprintf(buf, "INST:0x%02X", INST) ;
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%2d  X:%2d  Y:%2d %7d",
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%3d  X:%3d  Y:%3d %8d",
         get_pc(), get_ea(), get_sp(), get_status(), get_acc(), get_x(), get_y(), inst_cnt) ;
       Serial.print(buf) ;
   }
@@ -191,7 +192,8 @@ void step6502(const char *msg, int step, bool idle = false){
 }
 
 
-void inst6502(bool debug = false){
+
+unsigned long inst6502(bool debug = false){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
     uint8_t addr_start = 0, op_start = 0 ;
@@ -226,11 +228,12 @@ void inst6502(bool debug = false){
                 }
                 continue ;
             }
-            return ;
+            inst_cnt++ ;
+            return inst_cnt ;
         }
     }
 
-    inst_cnt++ ;
+    return inst_cnt ;
 }
 
 
@@ -258,6 +261,7 @@ void load6502(uint8_t prog[], int prog_len, Extension *e = NULL){
 
 
 void reset6502(uint8_t prog[], int prog_len, Extension *e = NULL){
+    inst_cnt = 0 ;
     PC_clr.pulse() ;
     DATA.write(0x02) ; // RST instruction
     PC_e.toggle() ;

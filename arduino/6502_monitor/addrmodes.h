@@ -4,7 +4,9 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     switch (step){
         case    0:  STEP_clr = 1 ; PC_e.toggle() ; RAM_e.toggle() ; break ;
         case    1:  INST_s.toggle() ; 
-                    INST = DATA.read() ;
+                    #ifdef ARDUINO
+                        INST = DATA.read() ;
+                    #endif
                     break ;
         case    2:  INST_s.toggle() ; PC_up.toggle() ; break ;
         case    3:  RAM_e.toggle() ; PC_e.toggle() ; PC_up.toggle() ; break ;

@@ -40,16 +40,15 @@ STATUS STATUS(&E3, A0, A1, A2, A3) ;
 bool HALTED = false ;
 byte STEP_clr = 1 ;
 byte INST = 0 ;
-unsigned long inst_cnt = 0 ;
 
-#define ARDUINO
+
 bool STEP_button_pressed() ;
 #include "fake6502.h"
 #include "PROGRAMS.h"
 
 
 void setup() {
-  Serial.begin(9600) ;
+  Serial.begin(115200) ;
   Serial.println(F("Starting Flash6502.")) ;
   //Serial.print(CTRLSIG::count()) ;
   //Serial.println(F(" control signals defined.")) ;
@@ -85,7 +84,6 @@ void setup() {
   //test_ram() ;
   
   //reset6502(prog42, sizeof(prog42)) ;
-  inst_cnt = 0 ;
   reset6502(NULL, 14625, &E1) ;
   // load6502(prog42, sizeof(prog42)) ;
 
@@ -100,7 +98,9 @@ void setup() {
 void loop(){
   if (! HALTED){
     //step6502("inst", -1, true) ;
-    monitor6502(true) ; Serial.println() ;
+    if ((inst_cnt % 100) == 0){
+      monitor6502(true) ; Serial.println() ;
+    }
     inst6502(DEBUG) ;
   }
   else {

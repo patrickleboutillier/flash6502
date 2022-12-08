@@ -1,5 +1,4 @@
 
-
 uint8_t adc(uint8_t step) {
     switch (step) { 
         case    0:  ST_ALU_C_from_C.toggle() ; ACC_e.toggle() ; ST_ALU_C_s.toggle() ; break ;
@@ -20,7 +19,6 @@ uint8_t adc(uint8_t step) {
     }
     return 1 ;
 }
-
 
 uint8_t and_(uint8_t step) {
     switch (step) { 
@@ -212,11 +210,11 @@ uint8_t bit_(uint8_t step) {
         case    3:  ACC_e.toggle() ; break ;
         
         case    4:  ALU_op = ALU_BIT ; 
-                    ST_NZ_s.toggle() ; ST_V_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_NZ_s.toggle() ; ST_V_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; break ;
 
         case    8:  STEP_clr = 0 ; break ;
 
@@ -438,11 +436,11 @@ uint8_t clc(uint8_t step) {
         case    3:  break ;
 
         case    4:  ALU_op = ALU_PASS ; 
-                    ST_C_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_C_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; break ;
         
         case    8:  STEP_clr = 0 ; break ;
 
@@ -478,11 +476,11 @@ uint8_t clv(uint8_t step) {
         case    3:  break ;
 
         case    4:  ALU_op = ALU_PASS ; 
-                    ST_V_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_V_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_V_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_V_s.toggle() ; break ;
 
         case    8:  STEP_clr = 0 ; break ;
 
@@ -522,11 +520,11 @@ uint8_t cpx(uint8_t step) {
         case    3:  X_e.toggle() ; break ;
         
         case    4:  ALU_op = ALU_CMP ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ; 
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ; 
 
         case    8:  STEP_clr = 0 ; break ;
 
@@ -544,11 +542,11 @@ uint8_t cpy(uint8_t step) {
         case    3:  Y_e.toggle() ; break ;
         
         case    4:  ALU_op = ALU_CMP ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
 
         case    8:  STEP_clr = 0 ; break ;
 
@@ -1215,11 +1213,11 @@ uint8_t sec(uint8_t step) {
         case    3:  ST_e.toggle() ; break ;
 
         case    4:  ALU_op = ALU_DEC ; 
-                    ST_C_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_C_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; break ;
 
         case    8:  STEP_clr = 0 ; break ;
 
@@ -1425,7 +1423,7 @@ uint8_t tya(uint8_t step) {
 
 uint8_t rst1(uint8_t step){
     switch (step) {
-        // Set SP and STATUS to 0
+        // Set registers, SP and STATUS to 0
         case    0:  ST_src.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; ST_C_s.toggle() ; break ;
         case    1:  ACC_s.toggle() ; X_s.toggle() ; Y_s.toggle() ; A_s.toggle() ; B_s.toggle() ;
                     SP_s.toggle() ; ST_s.toggle() ; break ;
@@ -1439,21 +1437,67 @@ uint8_t rst1(uint8_t step){
         case    6:  ST_s.toggle() ; break ;
         case    7:  ST_ALU_C_from_C.toggle() ; ST_ALU_C_s.toggle() ; break ;
 
-        // Decrement SP thrice to reach 0xFD
+        // Decrement SP once to reach 0xFF
         case    8:  SP_down.toggle() ; break ;
         case    9:  SP_down.toggle() ; break ;
-        case   10:  SP_down.toggle() ; break ;
-        case   11:  SP_down.toggle() ; break ;
 
-        // Decrement SP thrice to reach 0xFD
-        case   12:  SP_down.toggle() ; break ;
-        case   13:  SP_down.toggle() ; break ;
+        // While SP == 0xFF, copy it to EAh in prep for reset vector
+        case   10:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
+        case   11:  EAh_s.toggle() ;  break ;
+        case   12:  EAh_s.toggle() ;  break ;
+        case   13:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
 
-        // TODO (in simulator): Set EA to 0xFFFC/D?
-        
-        case   14:  STEP_clr = 0 ; break ;
-        
+        // Decrement SP twice again to reach 0xFD
+        case   14:  SP_down.toggle() ; break ;
+        case   15:  SP_down.toggle() ; break ;
+        case   16:  SP_down.toggle() ; break ;
+        case   17:  SP_down.toggle() ; break ;
+
+        // Copy SP to EAl
+        case   18:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
+        case   19:  EAl_s.toggle() ;  break ;
+        case   20:  EAl_s.toggle() ;  break ;
+        case   21:  SP_e.toggle() ; Al2D_e.toggle() ; break ;
+
+        case   22:  STEP_clr = 0 ; break ;
+
         default:    return 0 ;
     }
     return 1 ;    
+}
+
+
+uint8_t rst2(uint8_t step){
+    switch (step) {
+        // RAM[EA] to PCh
+        case    0:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        case    1:  PCh_s.toggle() ; break ;
+        case    2:  PCh_s.toggle() ; break ;
+        case    3:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        
+        // Send EAl to B
+        case    4:  EAl_e.toggle() ; Al2D_e.toggle() ; break ;
+        case    5:  B_s.toggle() ; break ;
+        case    6:  B_s.toggle() ; break ;
+        case    7:  Al2D_e.toggle() ; EAl_e.toggle() ; break ;
+        
+        // Decrement to EAl (will be 0xFC)
+        case    8:  ALU_op = ALU_DEC ; 
+                    ALU_e.toggle() ; break ;
+        case    9:  EAl_s.toggle() ; break ;
+        case   10:  EAl_s.toggle() ; break ;
+        case   11:  ALU_op = 0 ; 
+                    ALU_e.toggle() ; break ;
+
+        // RAM[EA] to PCl
+        case   12:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        case   13:  PCl_s.toggle() ; break ;
+        case   14:  PCl_s.toggle() ; break ;
+        case   15:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+
+        case   16:  STEP_clr = 0 ; break ;
+        
+        default:    return 0 ;
+    }
+    return 1 ;
 }
