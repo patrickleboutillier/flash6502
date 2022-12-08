@@ -7,7 +7,7 @@
 
 // Push button
 #define STEP 10
-#define DEBUG 1
+bool DEBUG = false ;
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG PC_clr(NULL, 11) ;
@@ -40,10 +40,9 @@ STATUS STATUS(&E3, A0, A1, A2, A3) ;
 bool HALTED = false ;
 byte STEP_clr = 1 ;
 byte INST = 0 ;
+unsigned long inst_cnt = 0 ;
 
-
-
-
+#define ARDUINO
 bool STEP_button_pressed() ;
 #include "fake6502.h"
 #include "PROGRAMS.h"
@@ -85,7 +84,9 @@ void setup() {
   //reset() ;
   //test_ram() ;
   
-  reset6502(prog42, sizeof(prog42)) ;
+  //reset6502(prog42, sizeof(prog42)) ;
+  inst_cnt = 0 ;
+  reset6502(NULL, 14625, &E1) ;
   // load6502(prog42, sizeof(prog42)) ;
 
   //Serial.println("Press button to start...") ;
@@ -98,8 +99,9 @@ void setup() {
 
 void loop(){
   if (! HALTED){
-    step6502("inst", -1, true) ;
-    inst6502(false) ;
+    //step6502("inst", -1, true) ;
+    monitor6502(true) ; Serial.println() ;
+    inst6502(DEBUG) ;
   }
   else {
     while (! STEP_button_pressed()){} ;

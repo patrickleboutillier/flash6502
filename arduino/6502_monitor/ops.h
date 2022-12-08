@@ -500,11 +500,11 @@ uint8_t cmp(uint8_t step) {
         case    3:  ACC_e.toggle() ; break ;
         
         case    4:  ALU_op = ALU_CMP ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
         case    5:  ST_s.toggle() ; break ;
         case    6:  ST_s.toggle() ; break ;
         case    7:  ALU_op = 0 ; 
-                    ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
+                    ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ; break ;
 
         case    8:  STEP_clr = 0 ; break ;
 

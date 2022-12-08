@@ -115,6 +115,22 @@ uint8_t get_acc(){
 }
 
 
+uint8_t get_x(){
+  X_e.toggle() ;
+  uint8_t x = DATA.read() ;
+  X_e.toggle() ; 
+  return x ;  
+}
+
+
+uint8_t get_y(){
+  Y_e.toggle() ;
+  uint8_t y = DATA.read() ;
+  Y_e.toggle() ; 
+  return y ;  
+}
+
+
 uint8_t get_status(){
   ST_e.toggle() ;
   uint8_t status = DATA.read() ;
@@ -138,8 +154,8 @@ void monitor6502(bool idle){
   sprintf(buf, "INST:0x%02X", INST) ;
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%2d",
-        get_pc(), get_ea(), get_sp(), get_status(), get_acc()) ;
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%2d  X:%2d  Y:%2d %7d",
+        get_pc(), get_ea(), get_sp(), get_status(), get_acc(), get_x(), get_y(), inst_cnt) ;
       Serial.print(buf) ;
   }
     /*
@@ -213,14 +229,17 @@ void inst6502(bool debug = false){
             return ;
         }
     }
+
+    inst_cnt++ ;
 }
 
 
-void load6502(uint8_t prog[], int prog_len){
+void load6502(uint8_t prog[], int prog_len, Extension *e = NULL){
     PC_clr.pulse() ;
 
     for (int i = 0 ; i < prog_len ; i++){
-        DATA.write(prog[i]) ;
+        byte inst = (e == NULL ? prog[i] : e->pgm_read_byte_(i)) ;
+        DATA.write(inst) ;
         PC_e.toggle() ; 
         RAM_s.pulse() ;
         PC_e.toggle() ;
@@ -229,16 +248,16 @@ void load6502(uint8_t prog[], int prog_len){
         PC_up.pulse() ;
     }
 
-    PC_clr.pulse() ;
     Serial.print(prog_len) ;
     Serial.println(F(" program bytes loaded starting at address 0x0000")) ;
     Serial.print(F("LOAD  -> ")) ;
     monitor6502(true) ;
     Serial.println() ;
+    PC_clr.pulse() ;
 }
 
 
-void reset6502(uint8_t prog[], int prog_len){
+void reset6502(uint8_t prog[], int prog_len, Extension *e = NULL){
     PC_clr.pulse() ;
     DATA.write(0x02) ; // RST instruction
     PC_e.toggle() ;
@@ -252,5 +271,5 @@ void reset6502(uint8_t prog[], int prog_len){
     monitor6502(true) ;
     Serial.println() ;
 
-    load6502(prog, prog_len) ;
+    load6502(prog, prog_len, e) ;
 }
