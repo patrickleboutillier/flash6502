@@ -90,7 +90,7 @@ class STATUS : public component {
             srom_alu_c_set = alu_c_set ;
             srom_alu_c_from_C = alu_c_from_C ;
 
-            // This can be implemented using a 2-1 multiplexer
+            // This can be implemented using a SN74HC157 multiplexer
             if (src_data){
                 // Drive srom_*_in from the data bus
                 srom_n_in = data_in >> 7 ;
