@@ -210,11 +210,11 @@ uint8_t bit(uint8_t step) {
         case    3:  C1.ACC_e.toggle() ; break ;
         
         case    4:  C3.ALU_op = ALU_BIT ; 
-                    C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; break ;
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -436,11 +436,11 @@ uint8_t clc(uint8_t step) {
         case    3:  break ;
 
         case    4:  C3.ALU_op = ALU_PASS ; 
-                    C5.ST_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; break ;
         
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -476,11 +476,11 @@ uint8_t clv(uint8_t step) {
         case    3:  break ;
 
         case    4:  C3.ALU_op = ALU_PASS ; 
-                    C5.ST_V_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_V_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_V_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_V_s.toggle() ; break ;
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -498,11 +498,11 @@ uint8_t cmp(uint8_t step) {
         case    3:  C1.ACC_e.toggle() ; break ;
         
         case    4:  C3.ALU_op = ALU_CMP ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -520,11 +520,11 @@ uint8_t cpx(uint8_t step) {
         case    3:  C1.X_e.toggle() ; break ;
         
         case    4:  C3.ALU_op = ALU_CMP ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ; 
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ; 
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -542,11 +542,11 @@ uint8_t cpy(uint8_t step) {
         case    3:  C1.Y_e.toggle() ; break ;
         
         case    4:  C3.ALU_op = ALU_CMP ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
@@ -1213,11 +1213,11 @@ uint8_t sec(uint8_t step) {
         case    3:  C5.ST_e.toggle() ; break ;
 
         case    4:  C3.ALU_op = ALU_DEC ; 
-                    C5.ST_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
         case    6:  C5.ST_s.toggle() ; break ;
         case    7:  C3.ALU_op = 0 ; 
-                    C5.ST_C_s.toggle() ; break ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; break ;
 
         case    8:  C1.STEP_clr = 0 ; break ;
 
