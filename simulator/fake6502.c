@@ -12,6 +12,10 @@
 #include "ALU.h"
 #include "STATUS.h"
 #include "CONTROL_ROMS.h"
+#include "vectors.h"
+#include "io.h"
+#include "prog.h"
+#include "programs.h"
 
 
 CONTROL_1_ROM C1 ;
@@ -47,14 +51,16 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
 output<1> CLK(1) ; 
 
-
 output<1> boot_RAM_s(1), boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1), boot_PC_clr, boot_STEP_cnt_e ;
 output<8> boot_DATA ;
 
 output<1> GND(0), VCC(1) ;
 
+VECTORS VECTORS ;
+IO IO ;
 
-void init6502(bool gen_mc){
+
+void init6502(){
     boot_DATA.drive(false) ;
     boot_DATA.connect(DATA.data_in) ;
 
@@ -175,92 +181,72 @@ void init6502(bool gen_mc){
     boot_STEP_cnt_e.connect(STEP.enable) ;
     boot_STEP_cnt_e = 1 ;
 
-    if (! gen_mc){
-        INST.data_out.connect(C1.inst) ;
-        boot_STEP_clr.connect(C1.n) ;
-        GND.connect(C1.v) ;
-        GND.connect(C1.z) ;
-        GND.connect(C1.c) ;
-        STEP.data_out.connect(C1.step) ;
+    // Connect control unit.
+    INST.data_out.connect(C1.inst) ;
+    boot_STEP_clr.connect(C1.n) ;
+    GND.connect(C1.v) ;
+    GND.connect(C1.z) ;
+    GND.connect(C1.c) ;
+    STEP.data_out.connect(C1.step) ;
 
-        INST.data_out.connect(C2.inst) ;
-        boot_PC_up.connect(C2.n) ;
-        boot_PC_e.connect(C2.v) ;
-        boot_RAM_s.connect(C2.z) ;
-        GND.connect(C2.c) ;
-        STEP.data_out.connect(C2.step) ;
+    INST.data_out.connect(C2.inst) ;
+    boot_PC_up.connect(C2.n) ;
+    boot_PC_e.connect(C2.v) ;
+    boot_RAM_s.connect(C2.z) ;
+    GND.connect(C2.c) ;
+    STEP.data_out.connect(C2.step) ;
 
-        INST.data_out.connect(C3.inst) ;
-        GND.connect(C3.n) ;
-        GND.connect(C3.v) ;
-        GND.connect(C3.z) ;
-        GND.connect(C3.c) ;
-        STEP.data_out.connect(C3.step) ;
+    INST.data_out.connect(C3.inst) ;
+    GND.connect(C3.n) ;
+    GND.connect(C3.v) ;
+    GND.connect(C3.z) ;
+    GND.connect(C3.c) ;
+    STEP.data_out.connect(C3.step) ;
 
-        INST.data_out.connect(C4.inst) ;
-        STATUS.N.connect(C4.n) ;
-        STATUS.V.connect(C4.v) ;
-        STATUS.Z.connect(C4.z) ;
-        STATUS.C.connect(C4.c) ;
-        STEP.data_out.connect(C4.step) ;
+    INST.data_out.connect(C4.inst) ;
+    STATUS.N.connect(C4.n) ;
+    STATUS.V.connect(C4.v) ;
+    STATUS.Z.connect(C4.z) ;
+    STATUS.C.connect(C4.c) ;
+    STEP.data_out.connect(C4.step) ;
 
-        INST.data_out.connect(C5.inst) ;
-        GND.connect(C5.n) ;
-        GND.connect(C5.v) ;
-        GND.connect(C5.z) ;
-        GND.connect(C5.c) ;
-        STEP.data_out.connect(C5.step) ;
-    }
-
+    INST.data_out.connect(C5.inst) ;
+    GND.connect(C5.n) ;
+    GND.connect(C5.v) ;
+    GND.connect(C5.z) ;
+    GND.connect(C5.c) ;
+    STEP.data_out.connect(C5.step) ;
 }
 
 
-#include "addrmodes.h"
-#include "ops.h"
+void process_ctrl(){
+    uint8_t addr = ADDRl.data_out & 0xF ;
+    if (! C2.RAM_e){
+        // read from vectors or IO
+        boot_DATA.drive(true) ;
+        if (addr < 0xA){
+            boot_DATA = IO.get_byte(addr) ;
+        }
+        else {
+            boot_DATA = VECTORS.get_byte(addr) ;
+        }
+    }
+    else {
+        boot_DATA.drive(false) ;
+    }
+    if (! C2.RAM_s){
+        // write to vectors or IO
+        if (addr < 0xA){
+            IO.set_byte(addr, (uint8_t)boot_DATA) ;
+        }
+        else {
+            VECTORS.set_byte(addr, (uint8_t)boot_DATA) ;
+        }
+    }
+}
 
 
-static uint8_t (*addrtable[256])(uint8_t tick) = {
-/*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-/* 0 */     imp, indx,  imp, imp,    zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
-/* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
-/* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
-/* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
-/* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 4 */
-/* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 5 */
-/* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, abso, /* 6 */
-/* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 7 */
-/* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* 8 */
-/* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* 9 */
-/* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
-/* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
-/* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
-/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* D */
-/* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
-/* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx  /* F */
-};
-
-static uint8_t (*optable[256])(uint8_t tick) = {
-/*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst1, rst2, nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  nop, /* 0 */
-/* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  nop, /* 1 */
-/* 2 */      jsr,  and_,  nop, nop,  bit_,  and_,  rol,  nop,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  nop, /* 2 */
-/* 3 */      bmi,  and_,  nop, nop,  nop,  and_,  rol,  nop,  sec,  and_,  nop,  nop,  nop,  and_,  rol,  nop, /* 3 */
-/* 4 */      rti,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  nop, /* 4 */
-/* 5 */      bvc,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  cli_,  eor,  nop,  nop,  nop,  eor,  lsr,  nop, /* 5 */
-/* 6 */      rts,  adc,  nop,  nop,  nop,  adc,  ror,  nop,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  nop, /* 6 */
-/* 7 */      bvs,  adc,  nop,  nop,  nop,  adc,  ror,  nop,  sei_,  adc,  nop,  nop,  nop,  adc,  ror,  nop, /* 7 */
-/* 8 */      nop,  sta,  nop,  nop,  sty,  sta,  stx,  nop,  dey,  nop,  txa,  nop,  sty,  sta,  stx,  nop, /* 8 */
-/* 9 */      bcc,  sta,  nop,  nop,  sty,  sta,  stx,  nop,  tya,  sta,  txs,  nop,  nop,  sta,  nop,  nop, /* 9 */
-/* A */      ldy,  lda,  ldx,  nop,  ldy,  lda,  ldx,  nop,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  nop, /* A */
-/* B */      bcs,  lda,  nop,  nop,  ldy,  lda,  ldx,  nop,  clv,  lda,  tsx,  nop,  ldy,  lda,  ldx,  nop, /* B */
-/* C */      cpy,  cmp,  nop,  nop,  cpy,  cmp,  dec,  nop,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  nop, /* C */
-/* D */      bne,  cmp,  nop,  nop,  nop,  cmp,  dec,  nop,  cld,  cmp,  nop,  nop,  nop,  cmp,  dec,  nop, /* D */
-/* E */      cpx,  sbc,  nop,  nop,  cpx,  sbc,  inc,  nop,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  nop, /* E */
-/* F */      beq,  sbc,  nop,  nop,  nop,  sbc,  inc,  nop,  sed,  sbc,  nop,  nop,  nop,  sbc,  inc,  nop  /* F */
-} ;
-
-
-int do_inst(){
+int process_inst(){
     int nb_steps = 1 ;
     while (1){
         CLK.pulse() ;
@@ -268,6 +254,11 @@ int do_inst(){
             break ;
         }
         nb_steps++ ;
+
+        // Check if the controller needs to do something
+        if (RAM.ctrl.get_value()){
+            process_ctrl() ;
+        }
     }
 
     // printf("INST:0x%02X, steps:%d\n", (uint8_t)INST, nb_steps) ;
@@ -276,79 +267,7 @@ int do_inst(){
 }
 
 
-void generate_microcode(){
-    boot_STEP_clr.pulse() ;
-    // At this point, INST is driving the control signals with whatever random value it contains at startup.
-    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
-    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
-    assert(CU.make_cw() == CU.get_default_cw()) ;
-
-    // Disable the step counter so it doesn't mess up our sequencing
-    boot_STEP_cnt_e = 0 ;
-    
-    printf("uint64_t microcode[] = {\n") ;
-    for (int i = 0 ; i < 4096 ; i++){
-        uint8_t flags = i & 0b1111 ;
-        uint8_t inst = i >> 4 ;
-
-        uint8_t addr_start = 0, op_start = 0 ;
-        bool fetch_done = false, addr_done = false ;
-        int step = 0 ;
-        for (; step < 64 ; step++){
-            // Set INST and FLAGS
-            INST = inst ;
-            STATUS.N = (flags >> 3) & 1 ;
-            STATUS.V = (flags >> 2) & 1 ;
-            STATUS.Z = (flags >> 1) & 1 ;
-            STATUS.C = (flags >> 0) & 1 ;
-
-            if (! fetch_done){
-                if (fetch(step)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
-                        CU.make_cw()) ;
-                    continue ;
-                } 
-                fetch_done = true ;
-                addr_start = step ;
-            }
-            if (! addr_done){
-                if ((*addrtable[inst])(step - addr_start)){
-                    printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
-                        CU.make_cw()) ;
-                    continue ;
-                }
-                addr_done = true ;
-                op_start = step ;
-            }
-            uint8_t more = (*optable[inst])(step - op_start) ;
-            uint64_t cw = (more ? CU.make_cw() : CU.get_default_cw()) ;
-            printf("  /* INST:0x%02X FLAGS:0x%X STEP:%2d */ 0x%010lX,\n", inst, flags, step,
-                cw) ;
-        }
-    }
-    printf("} ;\n") ;
-}
-
-
-void load6502(uint8_t prog[], int prog_len){
-    for (int i = 0 ; i < prog_len ; i++){
-        boot_DATA.drive(true) ;
-        boot_DATA = prog[i] ;
-        boot_PC_e.toggle() ; 
-        boot_RAM_s.pulse() ;
-        boot_PC_e.toggle() ;
-        boot_DATA.drive(false) ;
-        boot_PC_up.pulse() ;
-    }
-
-    //boot_STEP_clr.pulse() ;
-    //boot_PC_clr.pulse() ;
-    printf("LOAD  -> %d program bytes loaded\n", prog_len) ;
-}
-
-
-void reset6502(uint8_t prog[], int prog_len){
+void reset6502(PROG *prog){
     boot_STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
@@ -365,14 +284,24 @@ void reset6502(uint8_t prog[], int prog_len){
     boot_DATA.drive(false) ;
     // Reset step/phase to 0 and run the instruction.
     boot_STEP_clr.pulse() ;
-    do_inst() ;
+    process_inst() ;
 
     boot_STEP_clr.pulse() ;
     // Again, pulse the clock to the third phase to disable all control signals
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     boot_PC_clr.pulse() ;
-    load6502(prog, prog_len) ;
+    // Load the program to RAM
+    for (int i = 0 ; i < prog->len() ; i++){
+        boot_DATA.drive(true) ;
+        boot_DATA = prog->get_byte(i) ;
+        boot_PC_e.toggle() ; 
+        boot_RAM_s.pulse() ;
+        boot_PC_e.toggle() ;
+        boot_DATA.drive(false) ;
+        boot_PC_up.pulse() ;
+    }
+    printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
 
     #if 0 // For now we start PC at 0, not at the value in the reset vector
         boot_DATA.drive(true) ;
@@ -383,7 +312,7 @@ void reset6502(uint8_t prog[], int prog_len){
         boot_DATA.drive(false) ;
         // Reset step/phase to 0 and run the instruction.
         boot_STEP_clr.pulse() ;
-        do_inst() ;
+        process_inst() ;
     #else
         boot_PC_clr.pulse() ;
     #endif
@@ -395,29 +324,16 @@ void reset6502(uint8_t prog[], int prog_len){
 
 
 int main(int argc, char *argv[]){
-    if (argc < 2){
-        printf("Usage: %s SUCCESS_ADDR_IN_HEX\n", argv[0]) ;
-        exit(1) ;
-    }
+    init6502() ;
 
-    uint16_t SUCCESS_ADDR = (uint16_t)strtol(argv[1], NULL, 16) ;
-    init6502(SUCCESS_ADDR == 0) ;
- 
-    if (SUCCESS_ADDR == 0){
-        generate_microcode() ;
-        exit(0) ; 
-    }
-    printf("Default control word is 0x%010lX\n", CU.get_default_cw()) ;
-    printf("Success address is 0x%X\n", SUCCESS_ADDR) ;
+    // Choose the program to run
+    PROG *prog = &progTestSuite ;
     
-    // Load the program to RAM
-    FILE *file = fopen("6502_functional_test.bin", "rb") ; 
-    uint8_t prog[0x10000] ;
-    int prog_len = fread(prog, 1, 0x10000, file) ;
-    fclose(file) ;
+    prog->describe() ;
+    printf("\n") ;
 
-    // Here the reset sequence begins...
-    reset6502(prog, prog_len) ;
+    // Reset the processor
+    reset6502(prog) ;
 
     // Start processing instructions.
     int nb_insts = 0, nb_steps = 0 ;
@@ -433,13 +349,13 @@ int main(int argc, char *argv[]){
         } 
         prev_pc = pc ;
 
-        if (pc == SUCCESS_ADDR){
+        if (prog->is_done(pc)){
             printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_insts, nb_steps) ;
             printf("  Largest instruction (0x%02X) has %d steps.\n", max_inst, max_steps) ;
             exit(0) ;
         }
 
-        int inst_steps = do_inst() ; 
+        int inst_steps = process_inst() ; 
         nb_steps += inst_steps ;
         if (inst_steps > max_steps){
             max_steps = inst_steps ;

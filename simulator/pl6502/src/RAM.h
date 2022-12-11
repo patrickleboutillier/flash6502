@@ -9,7 +9,7 @@ class RAM : public component {
     public:
         input<8> data_in, addrh, addrl ;
         input<1> set, enable ;
-        output<8> data_out ;
+        output<8> data_out, ctrl ;
     private:
         uint8_t _mem[256][256] ;
 
@@ -26,6 +26,17 @@ class RAM : public component {
         } ;
 
         void always(){
+            // RAM is limited to the range 0x0000 => 0xF7FF
+            // The rest of the address space is assigned to the controller.
+            // This means the the controller handles the vectors in the range 0xFFFA => 0xFFFF
+            if ((addrh & 0xF8) == 0xF8){
+                ctrl = 1 ;
+                return ;
+            }
+            else {
+                ctrl = 0 ;
+            }
+
             if (! set){
                 _mem[addrh][addrl] = data_in ;
             }
