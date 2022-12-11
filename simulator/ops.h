@@ -20,7 +20,7 @@ uint8_t adc(uint8_t step) {
     return 1 ;
 }
 
-uint8_t anda(uint8_t step) {
+uint8_t and_(uint8_t step) {
     switch (step) { 
         case    0:  C1.ACC_e.toggle() ; break ;
         case    1:  C3.A_s.toggle() ; break ;
@@ -202,7 +202,7 @@ uint8_t beq(uint8_t step){
 }
 
 
-uint8_t bit(uint8_t step) {
+uint8_t bit_(uint8_t step) {
     switch (step) { 
         case    0:  C1.ACC_e.toggle() ; break ;
         case    1:  C3.A_s.toggle() ; break ;
@@ -459,7 +459,7 @@ uint8_t cld(uint8_t step) {
 }
 
 
-uint8_t cli(uint8_t step) {
+uint8_t cli_(uint8_t step) {
     switch (step) {
         case    0:  C1.STEP_clr = 0 ; break ; 
         default:    return 0 ;
@@ -1235,7 +1235,7 @@ uint8_t sed(uint8_t step) {
 }
 
 
-uint8_t sei(uint8_t step) {
+uint8_t sei_(uint8_t step) {
     switch (step) {
         case    0:  C1.STEP_clr = 0 ; break ;
         default:    return 0 ;
