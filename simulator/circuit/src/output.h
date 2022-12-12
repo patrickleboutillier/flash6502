@@ -85,7 +85,7 @@ template <uint32_t W> class output {
             }
         }
 
-        void drive(bool d){
+        void drive(bool d, bool hard = true){
             if (! d){
                 // Simulate pull down resistor...
                 set_value(0) ;
@@ -97,7 +97,9 @@ template <uint32_t W> class output {
             for (i = _connected_inputs.begin(); i != _connected_inputs.end() ; i++){
                 if (_drive){
                     if ((*i)->_driver != this){
-                        assert((*i)->_driver == nullptr) ;
+                        if (hard){
+                            assert((*i)->_driver == nullptr) ;
+                        }
                         (*i)->_driver = this ;
                         (*i)->always() ;
                     }

@@ -3,11 +3,11 @@
 
 
 #include "circuit.h"
-#include "../../microcode.h"
+#include "../../src/microcode.h"
 
 
-#define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = cw >> bit ; }
-#define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = cw >> bit ; }
+#define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = (cw >> bit) & 0x1 ; }
+#define set_signal_4(output, bit) if (((cw >> bit) & 0xF) != ((prev >> bit) & 0xF)){ output = (cw >> bit) & 0xF ; }
 
 
 class CONTROL_1_ROM : public component {

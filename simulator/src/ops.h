@@ -1473,7 +1473,7 @@ uint8_t rst2(uint8_t step){
         case    0:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
         case    1:  C4.PCh_s.toggle() ; break ;
         case    2:  C4.PCh_s.toggle() ; break ;
-        case    3:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case    3:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; break ;
         
         // Send EAl to B
         case    4:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
@@ -1493,7 +1493,7 @@ uint8_t rst2(uint8_t step){
         case   12:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
         case   13:  C4.PCl_s.toggle() ; break ;
         case   14:  C4.PCl_s.toggle() ; break ;
-        case   15:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case   15:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ;  break ;
 
         case   16:  C1.STEP_clr = 0 ; break ;
         
