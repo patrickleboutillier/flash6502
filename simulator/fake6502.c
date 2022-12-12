@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "circuit.h"
 #include "reg.h"
@@ -234,13 +235,14 @@ void process_ctrl(){
     else {
         boot_DATA.drive(false) ;
     }
+
     if (! C2.RAM_s){
         // write to vectors or IO
         if (addr < 0xA){
-            IO.set_byte(addr, (uint8_t)boot_DATA) ;
+            IO.set_byte(addr, (uint8_t)DATA.data_out) ;
         }
         else {
-            VECTORS.set_byte(addr, (uint8_t)boot_DATA) ;
+            VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
         }
     }
 }
@@ -268,6 +270,11 @@ int process_inst(){
 
 
 void reset6502(PROG *prog){
+    // Install vectors in controller
+    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_int(prog->int_addr()) ;
+    VECTORS.set_nmi(prog->nmi_addr()) ;
+
     boot_STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
@@ -302,33 +309,35 @@ void reset6502(PROG *prog){
         boot_PC_up.pulse() ;
     }
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
+    assert(CU.make_cw() == CU.get_default_cw()) ;
 
-    #if 0 // For now we start PC at 0, not at the value in the reset vector
-        boot_DATA.drive(true) ;
-        boot_DATA = 0x03 ; // RST2 instruction
-        boot_PC_e.toggle() ;
-        boot_RAM_s.pulse() ;
-        boot_PC_e.toggle() ;
-        boot_DATA.drive(false) ;
-        // Reset step/phase to 0 and run the instruction.
-        boot_STEP_clr.pulse() ;
-        process_inst() ;
-    #else
-        boot_PC_clr.pulse() ;
-    #endif
+    boot_DATA.drive(true) ;
+    boot_DATA = 0x03 ; // RST2 instruction
+    boot_PC_e.toggle() ;
+    boot_RAM_s.pulse() ;
+    boot_PC_e.toggle() ;
+    boot_DATA.drive(false) ;
+    // Reset step/phase to 0 and run the instruction.
+    boot_STEP_clr.pulse() ;
+    process_inst() ;
 
     boot_STEP_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
+        printf("---\n") ;
 }
 
 
 int main(int argc, char *argv[]){
     init6502() ;
 
-    // Choose the program to run
+    // Default program
     PROG *prog = &progTestSuite ;
-    
+    if (argc >= 2){
+        if (strcmp(argv[1], "star") == 0){
+            prog = &progStar ;
+        }
+    }
     prog->describe() ;
     printf("\n") ;
 
@@ -342,18 +351,22 @@ int main(int argc, char *argv[]){
     uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        //printf("PC:%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
+        // printf("PC:0x%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
         if (pc == prev_pc){
-            printf("Trap detected at 0x%04X! STATUS:0x%02X\n", pc, (uint8_t)STATUS.sreg) ;
-            exit(1) ;
+            bool done = prog->is_done(pc) ;
+
+            printf("---\nTRAP! -> PC:0x%04X  SREG:0x%02X  NB_INST:%d  NB_STEPS:%d  MAX_STEPS:%d  MAX_STEPS_INST:0x%02X  %s! \n", 
+                pc, (uint8_t)STATUS.sreg, nb_insts, nb_steps, max_steps, max_inst,
+                (done ? "SUCCESS" : "ERROR")) ;
+            exit(! done) ;
         } 
         prev_pc = pc ;
 
-        if (prog->is_done(pc)){
+        /*if (prog->is_done(pc)){
             printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_insts, nb_steps) ;
-            printf("  Largest instruction (0x%02X) has %d steps.\n", max_inst, max_steps) ;
+            printf("  Largest instruction (0x%02X) has %d steps.\n", ) ;
             exit(0) ;
-        }
+        }*/
 
         int inst_steps = process_inst() ; 
         nb_steps += inst_steps ;

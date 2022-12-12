@@ -32,12 +32,12 @@ class VECTORS {
     // Not the real address here, just the lower 4 bits.
     uint8_t get_byte(uint8_t addr){
         switch (addr){
-            case 0xF: return _reseth ;
-            case 0xE: return _resetl ;
-            case 0xD: return _inth ;
-            case 0xC: return _intl ;
-            case 0xB: return _nmih ;
-            case 0xA: return _nmil ;
+            case 0xF: return _nmih ;
+            case 0xE: return _nmil ;
+            case 0xD: return _reseth ;
+            case 0xC: return _resetl ;
+            case 0xB: return _inth ;
+            case 0xA: return _intl ;
         }
         
         return 0 ;
@@ -47,12 +47,12 @@ class VECTORS {
     // Not the real address here, just the lower 4 bits.
     void set_byte(uint8_t addr, uint8_t data){
         switch (addr){
-            case 0xF: _reseth = data ; return ;
-            case 0xE: _resetl = data ; return ;
-            case 0xD: _inth = data ; return ;
-            case 0xC: _intl = data ; return ;
-            case 0xB: _nmih = data ; return ;
-            case 0xA: _nmil = data ; return ;
+            case 0xF: _nmih = data ; return ;
+            case 0xE: _nmil = data ; return ;
+            case 0xD: _reseth = data ; return ;
+            case 0xC: _resetl = data ; return ;
+            case 0xB: _inth = data ; return ;
+            case 0xA: _intl = data ; return ;
         }
     }
 } ;

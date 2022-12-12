@@ -1,5 +1,5 @@
 
-STDOUT = $FF00
+STDOUT = $FFF1
 
 
 	.org $0000

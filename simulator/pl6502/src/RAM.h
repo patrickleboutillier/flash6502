@@ -26,9 +26,8 @@ class RAM : public component {
         } ;
 
         void always(){
-            // RAM is limited to the range 0x0000 => 0xF7FF
-            // The rest of the address space is assigned to the controller.
-            // This means the the controller handles the vectors in the range 0xFFFA => 0xFFFF
+            // RAM is limited to the range 0x0000 => 0xF7FF, the rest of the address space is assigned to the controller.
+            // This means that the controller handles the vectors in the range 0xFFFA => 0xFFFF
             if ((addrh & 0xF8) == 0xF8){
                 ctrl = 1 ;
                 return ;
@@ -41,7 +40,11 @@ class RAM : public component {
                 _mem[addrh][addrl] = data_in ;
             }
             if (! enable){ // negative logic
-                data_out.drive(true) ;
+                // Here we use a soft drive here since there are sometimes race conditions with the controller
+                // The controller can drive the bridge a bit longer (see process_ctrl()) after an address change
+                // (from the controller range to the RAM range) and the RAM_e signal has not been turned off yet,
+                // the RAM will try to drive the bus while the controller is still on it...
+                data_out.drive(true, false) ;
                 data_out = _mem[addrh][addrl] ;
             }
             else {
