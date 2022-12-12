@@ -3,7 +3,7 @@
 
 
 #include "circuit.h"
-#include "../../microcode.h"
+#include "../../src/microcode.h"
 
 
 #define set_signal_1(output, bit) if (((cw >> bit) & 0x1) != ((prev >> bit) & 0x1)){ output = (cw >> bit) & 0x1 ; }

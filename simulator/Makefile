@@ -1,18 +1,15 @@
-build: fake6502
+.PHONY: build
+build: 
+	make -C src build
 
-fake6502: fake6502.c *.h
-	g++ -Wall -g -O -I circuit/src -I circuit/complib -I pl6502/src fake6502.c -o fake6502
-
+.PHONY: test
 test: build 
-	@./fake6502 testsuite
+	@./src/fake6502 testsuite
 
+.PHONY: star
 star: build
-	@./fake6502 star
+	@./src/fake6502 star
 
-mc: microcode
-microcode: microcode.c addrmodes.h ops.h
-	g++ -Wall -g -O -I circuit/src -I circuit/complib -I pl6502/src microcode.c -o microcode
-	./microcode > /tmp/mimcrocode.h && cp -f /tmp/microcode.h .
-
+.PHONY: clean
 clean:
-	rm -f fake6502 microcode
+	make -C src clean
