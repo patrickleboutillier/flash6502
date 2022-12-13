@@ -3,10 +3,18 @@
 #include "CTRLSIG.h"
 #include "ALU.h"
 #include "STATUS.h"
-
+#include "VECTORS.h"
+#include "IO.h"
 
 // Push button
-#define STEP 10
+#define STEP 10         // push button
+#define CTRL            // Activate controller for vectors and IO
+#define CTRL_e          // Request to read from controller
+#define CTRL_s          // Request to write to controller
+#define CTRL_ADDR0 A0
+#define CTRL_ADDR1 A1
+#define CTRL_ADDR2 A2
+#define CTRL_ADDR3 A3
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG PC_clr(NULL, 11) ;
@@ -36,20 +44,26 @@ CTRLSIG ST_e(&E3, 9, true) ;
 CTRLSIG PCh_s(&E3, 10, true), EAh_e(&E3, 11, true), EAh_s(&E3, 12) ; 
 STATUS STATUS(&E3, A0, A1, A2, A3) ;
 
+VECTORS VECTORS ;
+IO IO ;
+
 #define START_PC 0
 bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
 
-bool HALTED = false ;
 byte STEP_clr = 1 ;
 byte INST = 0 ;
 
 
 bool STEP_button_pressed() ;
+#include "PROG.h"
 #include "fake6502.h"
 #include "PROGRAMS.h"
 
+// Program to run
+PROG *prog = NULL ;
 
+  
 void setup() {
   Serial.begin(115200) ;
   Serial.println(F("Starting Flash6502.")) ;
@@ -82,36 +96,24 @@ void setup() {
   STATUS.setup() ;
   
   CTRLSIG::check() ;
-  
-  //reset() ;
-  //test_ram() ;
-  
-  //reset6502(prog42, sizeof(prog42), START_PC) ;
-  reset6502(NULL, 14625, START_PC, &E1) ;
-  // load6502(prog42, sizeof(prog42)) ;
 
-  //test() ;
-
-  // Serial.println(F("DONE")) ;
+  PROG *prog = &progTestSuite ;
+  prog->describe() ;
+  Serial.println() ;
+  reset6502(prog) ;
 }
 
+// See simulator main while loop
 void loop(){
-  if (! HALTED){
-    //if (get_pc() == 0x1814){
-    //  DEBUG_STEP = true ;
-    //}
-    
-    // step6502("inst", -1, true) ;
-    if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
-      monitor6502(true) ; Serial.println() ;
-    }
-    inst6502(DEBUG_STEP) ;
+  //if (get_pc() == 0x1814){
+  //  DEBUG_STEP = true ;
+  //}
+  
+  // step6502("inst", -1, true) ;
+  if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
+    monitor6502(true) ; Serial.println() ;
   }
-  else {
-    while (! STEP_button_pressed()){} ;
-    HALTED = false ;
-    reset6502(prog42, sizeof(prog42), START_PC) ;
-  }
+  process_inst(DEBUG_STEP) ;
   
   //byte data = DATA.read() ;
   //Serial.print("DATA:0x") ;
