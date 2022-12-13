@@ -5,9 +5,6 @@
 #include "Arduino.h"
 
 
-
-
-
 class CTRLSIG {
   private:
     Extension *_e ;
@@ -46,9 +43,7 @@ class CTRLSIG {
       }
       else {
         digitalWrite(_pin, v) ;
-      }     
-      // We have to wait a bit for the signal to reach the slave and be processed
-      //delayMicroseconds(25) ;
+      }
     }
 
     void toggle(){
