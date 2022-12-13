@@ -41,7 +41,7 @@ class PROG {
         return _name ;
     }
 
-    uint16_t len(){
+    uint32_t len(){
         return _len ;
     }
 
