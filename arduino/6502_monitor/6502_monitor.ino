@@ -48,6 +48,7 @@ IO IO ;
 #define START_PC 0
 bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
+#define MON_EVERY 1000
 
 byte STEP_clr = 1 ;
 byte INST = 0 ;
@@ -60,7 +61,7 @@ bool STEP_button_pressed() ;
 
 
 // Program to run
-PROG *prog = &progHello ; // &progTestSuite ;
+PROG *prog = &progTestSuite ;
 
   
 void setup() {
@@ -117,7 +118,7 @@ void loop(){
       prev_pc = pc ;
 
       // step6502("inst", -1, true) ;
-      if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
+      if (((inst_cnt % MON_EVERY) == 0)||(DEBUG_MON)){
         monitor6502(true) ; Serial.println() ;
       }
       process_inst(DEBUG_STEP) ; 

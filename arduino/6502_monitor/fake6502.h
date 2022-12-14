@@ -28,7 +28,7 @@ PROGMEM const func6502 addrtable[256] = {
 
 PROGMEM const func6502 optable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst1, nop,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  nop, /* 0 */
+/* 0 */      brk,  ora,  rst1, rst2,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  nop, /* 0 */
 /* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  nop, /* 1 */
 /* 2 */      jsr,  and_, nop,  nop,  bit_,  and_,  rol,  nop,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  nop, /* 2 */
 /* 3 */      bmi,  and_, nop,  nop,  nop,  and_,  rol,  nop,  sec,  and_,  nop,  nop,  nop,  and_,  rol,  nop, /* 3 */
@@ -104,7 +104,7 @@ unsigned long process_inst(bool debug = false){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
     uint8_t addr_start = 0, op_start = 0 ;
-    bool fetch_done = false, addr_done = false, op_done = false ;
+    bool fetch_done = false, addr_done = false ;
     for (int step = 0 ; step < 64 ; step++){
         if (! fetch_done){
             if (fetch(step)){
@@ -133,20 +133,22 @@ unsigned long process_inst(bool debug = false){
             addr_done = true ;
             op_start = step ;
         }
-        if (! op_done){
-            func6502 f = pgm_read_word(&(optable[INST])) ;
-            if (f(step - op_start)){
-                if (digitalRead(CTRL)){
-                  process_ctrl() ;
-                }
-                if (debug){
-                  step6502("oper", step - op_start) ;
-                }
-                continue ;
+        
+        func6502 f = pgm_read_word(&(optable[INST])) ;
+        if (f(step - op_start)){
+            if (digitalRead(CTRL)){
+              process_ctrl() ;
             }
-            inst_cnt++ ;
-            return inst_cnt ;
+            if (debug){
+              step6502("oper", step - op_start) ;
+            }
+            continue ;
         }
+        // Make sure we reset the bus in case we where driving it. 
+        process_ctrl() ;
+        
+        inst_cnt++ ;
+        return inst_cnt ;
     }
 
     return inst_cnt ;
@@ -185,17 +187,12 @@ void reset6502(PROG *prog){
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
 
-    #if 0
-      DATA.write(0x03) ; // RST2 instruction
-      PC_e.toggle() ;
-      RAM_s.pulse() ;
-      PC_e.toggle() ;
-      DATA.reset() ;
-      process_inst() ;
-    #else
-      // For now. Later we should initialize the vectors here and run the rst2 instruction?
-      set_pc(prog->start_addr()) ;
-    #endif
+    DATA.write(0x03) ; // RST2 instruction
+    PC_e.toggle() ;
+    RAM_s.pulse() ;
+    PC_e.toggle() ;
+    DATA.reset() ;
+    process_inst() ;
     
     Serial.print(F("RESET -> ")) ;
     monitor6502(true) ;

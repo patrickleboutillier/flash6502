@@ -1,6 +1,6 @@
 #include "PROG.h"
 
-PROG progTestSuite("progTestSuite", &E1, 14625) ;
+PROG progTestSuite("progTestSuite", &E1, 14625, 0x0400, 0, 0, 0x3680) ;
 
 
 const uint8_t bytes42[] = {
