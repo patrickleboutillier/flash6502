@@ -77,6 +77,29 @@ void step6502(const char *msg, int step, bool idle = false){
 }
 
 
+void process_ctrl(){
+    if (RAM_e.read()){
+      DATA.reset() ;
+      return ;
+    }
+
+    uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+    if (! RAM_e.read()){
+        // read from vectors or IO
+        DATA.write(addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
+    }
+
+    if (! RAM_s.read()){
+        // write to vectors or IO
+        if (addr < 0xA){
+            IO.set_byte(addr, DATA.read()) ;
+        }
+        else {
+            VECTORS.set_byte(addr, DATA.read()) ;
+        }
+    }
+}
+
 
 unsigned long process_inst(bool debug = false){
     // Update the flags values for use in branch instructions. 
@@ -86,6 +109,9 @@ unsigned long process_inst(bool debug = false){
     for (int step = 0 ; step < 64 ; step++){
         if (! fetch_done){
             if (fetch(step)){
+                if (digitalRead(CTRL)){
+                  process_ctrl() ;
+                }
                 if (debug){
                     // step6502("fetch", step) ;
                 }
@@ -97,6 +123,9 @@ unsigned long process_inst(bool debug = false){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
+                if (digitalRead(CTRL)){
+                  process_ctrl() ;
+                }
                 if (debug){
                   step6502("addr", step - addr_start) ;
                 }
@@ -108,6 +137,9 @@ unsigned long process_inst(bool debug = false){
         if (! op_done){
             func6502 f = pgm_read_word(&(optable[INST])) ;
             if (f(step - op_start)){
+                if (digitalRead(CTRL)){
+                  process_ctrl() ;
+                }
                 if (debug){
                   step6502("oper", step - op_start) ;
                 }
@@ -136,7 +168,7 @@ void reset6502(PROG *prog){
     RAM_s.pulse() ;
     PC_e.toggle() ;
     DATA.reset() ;
-    process_inst(false) ;
+    process_inst() ;
 
     Serial.println(F("- Loading program to RAM...")) ;
     PC_clr.pulse() ;
@@ -153,9 +185,18 @@ void reset6502(PROG *prog){
     Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
-    
-    // For now. Later we should initialize the vectors here and run the rst2 instruction?
-    set_pc(prog->start_addr()) ;
+
+    #if 0
+      DATA.write(0x03) ; // RST2 instruction
+      PC_e.toggle() ;
+      RAM_s.pulse() ;
+      PC_e.toggle() ;
+      DATA.reset() ;
+      process_inst() ;
+    #else
+      // For now. Later we should initialize the vectors here and run the rst2 instruction?
+      set_pc(prog->start_addr()) ;
+    #endif
     
     Serial.print(F("RESET -> ")) ;
     monitor6502(true) ;

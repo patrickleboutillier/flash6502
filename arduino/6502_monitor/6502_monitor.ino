@@ -8,9 +8,7 @@
 
 // Push button
 #define STEP 10         // push button
-#define CTRL            // Activate controller for vectors and IO
-#define CTRL_e          // Request to read from controller
-#define CTRL_s          // Request to write to controller
+#define CTRL 12         // Activate controller for vectors and IO
 #define CTRL_ADDR0 A0
 #define CTRL_ADDR1 A1
 #define CTRL_ADDR2 A2
@@ -94,10 +92,10 @@ void setup() {
   ST_e.setup() ;
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
-  
   CTRLSIG::check() ;
 
   PROG *prog = &progTestSuite ;
+  
   prog->describe() ;
   Serial.println() ;
   reset6502(prog) ;
