@@ -299,7 +299,7 @@ void reset6502(PROG *prog){
     assert(CU.make_cw() == CU.get_default_cw()) ;
     boot_PC_clr.pulse() ;
     // Load the program to RAM
-    for (int i = 0 ; i < prog->len() ; i++){
+    for (uint32_t i = 0 ; i < prog->len() ; i++){
         boot_DATA.drive(true) ;
         boot_DATA = prog->get_byte(i) ;
         boot_PC_e.toggle() ; 
@@ -336,6 +336,9 @@ int main(int argc, char *argv[]){
     if (argc >= 2){
         if (strcmp(argv[1], "star") == 0){
             prog = &progStar ;
+        }
+        else if (strcmp(argv[1], "hello") == 0){
+            prog = &progHello ;
         }
     }
     prog->describe() ;

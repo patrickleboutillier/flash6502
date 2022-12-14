@@ -6,6 +6,10 @@ build:
 test: build 
 	@./src/fake6502 testsuite
 
+.PHONY: hello
+hello: build
+	@./src/fake6502 hello
+
 .PHONY: star
 star: build
 	@./src/fake6502 star
