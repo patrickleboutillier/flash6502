@@ -67,6 +67,7 @@ void setup() {
   Serial.println(F("Starting Flash6502.")) ;
   //Serial.print(CTRLSIG::count()) ;
   //Serial.println(F(" control signals defined.")) ;
+  pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
   PC_clr.setup() ;
