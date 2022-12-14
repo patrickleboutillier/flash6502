@@ -78,19 +78,18 @@ void step6502(const char *msg, int step, bool idle = false){
 
 
 void process_ctrl(){
-    if (RAM_e.read()){
-      DATA.reset() ;
-      return ;
-    }
-
-    uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
     if (! RAM_e.read()){
+        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
         // read from vectors or IO
         DATA.write(addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
+    }
+    else {
+        DATA.reset() ;      
     }
 
     if (! RAM_s.read()){
         // write to vectors or IO
+        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
         if (addr < 0xA){
             IO.set_byte(addr, DATA.read()) ;
         }

@@ -58,8 +58,9 @@ bool STEP_button_pressed() ;
 #include "fake6502.h"
 #include "PROGRAMS.h"
 
+
 // Program to run
-PROG *prog = NULL ;
+PROG *prog = &progHello ; // &progTestSuite ;
 
   
 void setup() {
@@ -94,8 +95,6 @@ void setup() {
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
   CTRLSIG::check() ;
-
-  PROG *prog = &progTestSuite ;
   
   prog->describe() ;
   Serial.println() ;
@@ -110,9 +109,9 @@ void loop(){
       uint16_t pc = get_pc() ;
       if (pc == prev_pc){
           bool done = prog->is_done(pc) ;
-          Serial.print(F("TRAP! -> ")) ;
+          Serial.print(F("---\nTRAP! -> ")) ;
           monitor6502(true) ; 
-          Serial.println(done ? F("SUCCESS") : F("ERROR")) ;
+          Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
           while (1){} ;
       } 
       prev_pc = pc ;
