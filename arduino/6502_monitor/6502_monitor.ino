@@ -104,19 +104,25 @@ void setup() {
 
 // See simulator main while loop
 void loop(){
-  //if (get_pc() == 0x1814){
-  //  DEBUG_STEP = true ;
-  //}
-  
-  // step6502("inst", -1, true) ;
-  if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
-    monitor6502(true) ; Serial.println() ;
+  // Start processing instructions.
+  uint16_t prev_pc = 0xFFFF ;
+  while (1) {
+      uint16_t pc = get_pc() ;
+      if (pc == prev_pc){
+          bool done = prog->is_done(pc) ;
+          Serial.print(F("TRAP! -> ")) ;
+          monitor6502(true) ; 
+          Serial.println(done ? F("SUCCESS") : F("ERROR")) ;
+          while (1){} ;
+      } 
+      prev_pc = pc ;
+
+      // step6502("inst", -1, true) ;
+      if (((inst_cnt % 1000) == 0)||(DEBUG_MON)){
+        monitor6502(true) ; Serial.println() ;
+      }
+      process_inst(DEBUG_STEP) ; 
   }
-  process_inst(DEBUG_STEP) ;
-  
-  //byte data = DATA.read() ;
-  //Serial.print("DATA:0x") ;
-  //Serial.println(data, HEX) ; 
 }
 
 
