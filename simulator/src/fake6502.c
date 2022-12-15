@@ -127,12 +127,12 @@ void init6502(){
 
     DATA.data_out.connect(A.data_in) ;
     A_e.connect(A.enable) ;
-    C3.A_s.connect(A.set) ;
+    C1.A_s.connect(A.set) ;
     A_e = 0 ; // always enabled 
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
-    C3.B_s.connect(B.set) ;
+    C1.B_s.connect(B.set) ;
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
@@ -159,14 +159,17 @@ void init6502(){
     ALU_v.data_out.connect(STATUS.v_in) ;
     ALU_z.data_out.connect(STATUS.z_in) ;
     ALU_c.data_out.connect(STATUS.c_in) ;
+    C3.ST_bi.connect(STATUS.i_in) ;
 
     C5.ST_NZ_s.connect(STATUS.nz_set) ;
     C5.ST_V_s.connect(STATUS.v_set) ;
     C5.ST_C_s.connect(STATUS.c_set) ;
+    // Disabled for now
+    C5.ST_I_s.connect(STATUS.i_set) ;
     C5.ST_ALU_C_s.connect(STATUS.alu_c_set) ;
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
     C5.ST_s.connect(STATUS.set) ;
-    C5.ST_e.connect(STATUS.data_enable) ;
+    C3.ST_e.connect(STATUS.data_enable) ;
     C5.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
@@ -177,14 +180,14 @@ void init6502(){
     INST_e = 0 ; // always enabled
 
     CLK.connect(STEP.clk) ;
-    C1.STEP_clr.connect(STEP.clear) ;
+    C3.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     boot_STEP_cnt_e.connect(STEP.enable) ;
     boot_STEP_cnt_e = 1 ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    boot_STEP_clr.connect(C1.n) ;
+    GND.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
@@ -198,7 +201,7 @@ void init6502(){
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
-    GND.connect(C3.n) ;
+    boot_STEP_clr.connect(C3.n) ;
     GND.connect(C3.v) ;
     GND.connect(C3.z) ;
     GND.connect(C3.c) ;
@@ -217,10 +220,6 @@ void init6502(){
     GND.connect(C5.z) ;
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
-
-    // Disabled for now
-    GND.connect(STATUS.i_set) ;
-    GND.connect(STATUS.i_in) ;
 }
 
 

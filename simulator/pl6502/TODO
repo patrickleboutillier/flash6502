@@ -1,4 +1,5 @@
 Branch feature/interrrupt:
+    - Add ST_I_set everywhere ST is loaded from bus
     - Hook up interrupt signals
       - Idea for i_in:
         - To clear: set from "ALU" mode, tied to GND
