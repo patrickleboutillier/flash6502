@@ -3,7 +3,7 @@
 Trying to build a 6502-compatible CPU on breadboards, using as few chips as possible.
 
 ## Introduction
-For a while I've been working on small projects that implement various "toy/fictitious" CPUs using discrete components, but I grew frustrated for 2 reasons:
+For a while I've been working on small projects that implement various "toy/fictitious" CPUs (namely the [Scott CPU](https://github.com/patrickleboutillier/jcscpu-hmc)) using discrete components, but I grew frustrated for 2 reasons:
 
 1. Memory space is usually to small to create useful/fun programs
 2. You have to write your own assembler and tool chain.
