@@ -164,7 +164,6 @@ void init6502(){
     C5.ST_NZ_s.connect(STATUS.nz_set) ;
     C5.ST_V_s.connect(STATUS.v_set) ;
     C5.ST_C_s.connect(STATUS.c_set) ;
-    // Disabled for now
     C5.ST_I_s.connect(STATUS.i_set) ;
     C5.ST_ALU_C_s.connect(STATUS.alu_c_set) ;
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
@@ -382,7 +381,7 @@ int main(int argc, char *argv[]){
         }
         nb_insts++ ;
         if ((nb_insts % 100000) == 0){
-            printf("%d instructions executed.\n", nb_insts) ;
+            printf("%d instructions executed (pc:0x%04X).\n", nb_insts, pc) ;
         }
     }
 }
