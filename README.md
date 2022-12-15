@@ -24,3 +24,9 @@ The system is made up of 8 sections, which I will refer to using the following n
 - Registers: contains the Arduino controller, as well as the X, Y and ACC registers.
 - ALU: contains the 8-bit ALU with 16 operations, as well as the A and B registers that are connected to it.
 - Status: contains the status (P) register, as well as the status logic implementd in a ROM chip. There is also a multiplexer to select the source for the status bits (ALU or data bus) and a buffer to control sending the status byte to the data bus.
+- Data bus: The 8 bit data bus
+- Address Low:
+- RAM: 
+- Address High:
+- Control Unit:
+
