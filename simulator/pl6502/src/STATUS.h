@@ -121,7 +121,7 @@ class STATUS : public component {
             alu_c = sreg.data_out ;
  
             if (! data_enable){
-                // This can be implemented with a 373 with the set always on 
+                // This can be implemented with a 244. 
                 data_out.drive(true) ;
                 uint8_t P = N << 7 | V << 6 | 1 << 5 | 1 << 4 | I << 2 | Z << 1 | C ;
                 data_out.set_value(P) ;

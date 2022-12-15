@@ -111,7 +111,6 @@ class CONTROL_2_ROM : public component {
                 set_signal_1(RAM_s, 6) ;
             }
             
-            set_signal_1(RAM_s, 6) ;
             set_signal_1(RAM_e, 7) ;
         } ;
 } ;

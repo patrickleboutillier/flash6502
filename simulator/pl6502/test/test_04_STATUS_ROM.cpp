@@ -83,13 +83,16 @@ TEST(test_pl6502, STATUS_ROM){
         v_in = bit(15) ;
         z_in = bit(12) ;
         c_in = bit(7) ;
+        i_in = bit(6) ;
 
+        i_old = bit(11) ; 
         n_old = bit(9) ;
         v_old = bit(8) ;
         z_old = bit(13) ;
         c_old = bit(14) ;
         alu_c_old = bit(17) ;
 
+        i_set = bit(5) ;
         nz_set = bit(4) ;
         v_set = bit(3) ;
         c_set = bit(2) ;
@@ -97,7 +100,7 @@ TEST(test_pl6502, STATUS_ROM){
         alu_c_from_C = bit(0) ;
 
         // N, V, Z, C, alu_c: D7, D6, D4, D3, D2
-        uint8_t data = status_rom.N << 7 | status_rom.V << 6 |  
+        uint8_t data = status_rom.N << 7 | status_rom.V << 6 | status_rom.I << 5 |  
             status_rom.Z << 4 | status_rom.C << 3 | status_rom.alu_c << 2 ;
  
         fwrite(&data, 1, 1, rom) ;
