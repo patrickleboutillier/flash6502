@@ -1,22 +1,40 @@
-Branch/vectors:
-- RAM will finish at 0xF7FF, the rest of the address space will be handled by the controller
-  - Add CE to RAM module
-- All programs must expose their vectors to the controller (explicitely or implicitely if they have 64k bytes)
-- The controller will provide the vectors when they are requested by the CPU
-  - The controller must then listen on:
-    - CTRL (i.e. top 5 bits of ADDRh anded together, informs the controller that it is on, and disables RAM) 
-      - Must be implemented on the board using a 7408 gate next to the RAM chip (replacing the unused 7400) 
-    - CTRL_e, CTRL_s (which are really RAM_e and RAM_s, to know when to write or read the vectors)
-      - These 2 are already available while we are not already running microcode
-    - Also available must be the lower 4 bits of ADDRl, to know the address of the IO/vector request.
-      - A0-A3
+Branch feature/interrrupt:
 
-- load6502 will set the vectors in the controller
-- After load6502, the rst2 instruction should be run to initialize the PC from the reset vector.
-- Vector initializing:
-  - RESET: to reach 0xFFFD:  dec(dec(dec(0))), then dec() for reach 0xFFFC
-  - INT:   to reach 0xFFFF:  dec(0), then dec() to reach 0xFFFE
-  - NMI:   to reach 0xFFFB:  dec(dec(dec(dec(dec(0))))), then dec() for reach 0xFFFA
+    static void brk() {
+        pc++;
+        push16(pc); //push next instruction address onto stack
+        push8(status | FLAG_BREAK); //push CPU status to stack
+        setinterrupt(); //set interrupt flag
+        pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
+    }
+
+    - Inc PC 
+    - Push PCh
+    - Push PCl
+    - Push Status (w/BREAK)
+    - Push Acc
+    - Clear B
+    - DEC B to Acc
+    - Acc to PCh and B
+    - DEC B to Acc
+    - Acc to PCl
+    - Pull Acc
+
+    void nmi6502() {
+        push16(pc);
+        push8(status);
+        status |= FLAG_INTERRUPT;
+        pc = (uint16_t)read6502(0xFFFA) | ((uint16_t)read6502(0xFFFB) << 8);
+    }
+
+    void irq6502() {
+        push16(pc);
+        push8(status);
+        status |= FLAG_INTERRUPT;
+        pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
+    }
+
+
 
 
 Backlog:

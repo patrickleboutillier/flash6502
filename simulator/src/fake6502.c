@@ -217,6 +217,10 @@ void init6502(){
     GND.connect(C5.z) ;
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
+
+    // Disabled for now
+    GND.connect(STATUS.i_set) ;
+    GND.connect(STATUS.i_in) ;
 }
 
 
