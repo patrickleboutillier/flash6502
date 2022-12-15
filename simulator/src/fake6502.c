@@ -252,15 +252,15 @@ int process_inst(){
     int nb_steps = 1 ;
     while (1){
         CLK.pulse() ;
-        if (STEP == 0){
-            break ;
-        }
-        nb_steps++ ;
-
         // Check if the controller needs to do something
         if (RAM.ctrl.get_value()){
             process_ctrl() ;
         }
+
+        if (STEP == 0){
+            break ;
+        }
+        nb_steps++ ;
     }
 
     // printf("INST:0x%02X, steps:%d\n", (uint8_t)INST, nb_steps) ;
