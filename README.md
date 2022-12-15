@@ -10,6 +10,8 @@ For a while I've been working on small projects that implement various "toy/fict
 
 After viewing Ben Eater's great video series on the 6502, I wondered if it might be possible to implement a 6502 CPU (not a computer using a 6502 CPU) on breadboards using discrete components. Also, since breadboard projects tend to take up a lot of space very quickly (in squares inches I mean), I decided to try and use the least amount of chips possible, ideally under 40.
 
+## Architecture
+
 ### Architecture Decisions
 In order to achieve these goals, I made the following architecture decisions:
 
@@ -18,7 +20,7 @@ In order to achieve these goals, I made the following architecture decisions:
 - It's ok if the actual 6502 timing is not respected.
 - It's ok to use chips that did not exist at the time the 6502 was designeed, namely large ROMs (which are used extensively), in order to keep the chips count low and simplify the design.
 
-## Architecture Breakdown
+### Architecture Breakdown
 The system is made up of 8 sections, which I will refer to using the following names:
 
 - **Registers**: contains the Arduino controller, as well as the X, Y and ACC registers.
