@@ -1,10 +1,15 @@
 Branch feature/interrrupt:
+    - Hook up interrupt signals
+      - Idea for i_in:
+        - To clear: set from "ALU" mode, tied to GND
+        - To set: get status, eor with 0x100, set from data bus 
+    - Implement cli and sei
+    - Run tests with I_flag = 3 
 
     static void brk() {
         pc++;
         push16(pc); //push next instruction address onto stack
         push8(status | FLAG_BREAK); //push CPU status to stack
-        setinterrupt(); //set interrupt flag
         pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
     }
 
