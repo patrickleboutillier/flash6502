@@ -20,7 +20,7 @@ In order to achieve these goals, I made the following architecture decisions:
 - It's ok if the actual 6502 timing is not respected.
 - It's ok to use chips that did not exist at the time the 6502 was designeed, namely large ROMs (which are used extensively), in order to keep the chips count low and simplify the design.
 
-### Architecture Breakdown
+### High-Level Architecture
 The system is made up of 8 sections, which I will refer to using the following names:
 
 - **Registers**: contains the Arduino controller, as well as the X, Y and ACC registers.
