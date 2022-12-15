@@ -8,7 +8,7 @@ For a while I've been working on small projects that implement various "toy/fict
 1. Memory space is usually to small to create useful/fun programs
 2. You have to write your own assembler and tool chain.
 
-After viewing Ben Eater's great video series on the 6502, I wondered if it might be possible to implement a 6502 CPU (*not a computer using a 6502 CPU chip*) on breadboards using discrete components. Also, since breadboard projects tend to take up a lot of space very quickly (in squares inches I mean), I decided to try and use the least amount of chips possible, ideally under 40.
+After viewing Ben Eater's great video series on the 6502, I wondered if it might be possible to implement a 6502 CPU (not *a computer using a 6502 CPU chip*...) on breadboards using discrete components. Also, since breadboard projects tend to take up a lot of space very quickly (in squares inches I mean), I decided to try and use the least amount of chips possible, ideally under 40.
 
 ## Architecture
 
