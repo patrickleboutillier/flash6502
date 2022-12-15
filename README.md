@@ -18,7 +18,7 @@ In order to achieve these goals, I made the following architecture decisions:
 - It's ok for the design to be assisted by a microcontroller (i.e. Arduino) for power, clocking and for some complicated parts like the reset sequence.
 - It's ok if it doesn't run actual existing 6502 ROMs, but it has to run programs that I write myself using a standard 6502 assembler.
 - It's ok if the actual 6502 timing is not respected.
-- It's ok to use chips that did not exist at the time the 6502 was designeed, namely large ROMs (which are used extensively), in order to keep the chips count low and simplify the design.
+- It's ok to use chips that did not exist at the time the 6502 was designed, namely large ROMs (which are used extensively), in order to keep the chips count low and simplify the design.
 
 ### High-Level Architecture
 The system is made up of 8 sections, which I will refer to using the following names:
