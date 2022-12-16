@@ -342,25 +342,6 @@ uint8_t bpl(uint8_t step){
 
 
 uint8_t brk(uint8_t step) {
-    /*static void brk() {
-        pc++;
-        push16(pc); //push next instruction address onto stack
-        push8(status | FLAG_BREAK); //push CPU status to stack
-        pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
-    }
-
-    - Inc PC 
-    - Push PCh
-    - Push PCl
-    - Push Status (w/BREAK)
-    - Push Acc
-    - Clear B
-    - DEC B to Acc
-    - Acc to PCh and B
-    - DEC B to Acc
-    - Acc to PCl
-    - Pull Acc */
-
     switch (step){
         // Inc PC
         case    0:  C2.PC_up.toggle() ; break ;
@@ -399,7 +380,7 @@ uint8_t brk(uint8_t step) {
         // Clear B
         case   22:  C1.B_s.toggle() ; break ;
         case   23:  C1.B_s.toggle() ; break ;
-        // DEC B (0xFF) to EAh and EAl
+        // DEC B (giving 0xFF) to EAh and EAl
         case   24:  C3.ALU_op = ALU_DEC ; 
                     C3.ALU_e.toggle() ; break ;
         case   25:  C4.EAl_s.toggle() ; C4.EAh_s.toggle() ; break ;
@@ -407,24 +388,33 @@ uint8_t brk(uint8_t step) {
         case   27:  C3.ALU_op = 0 ; 
                     C3.ALU_e.toggle() ; break ;
         // RAM[EA] to PCh
-        case   28:  C4.EAl_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case   28:  C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.RAM_e.toggle() ; break ;
         case   29:  C4.PCh_s.toggle() ; break ;
         case   30:  C4.PCh_s.toggle() ; break ;
-        case   31:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAl_e.toggle() ; break ;
-        // DEC B (0xFF) to EAl
-        case   32:  C3.ALU_op = ALU_DEC ; 
+        case   31:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        // EAl to B
+        case   32:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case   33:  C1.B_s.toggle() ; break ;
+        case   34:  C1.B_s.toggle() ; break ;
+        case   35:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        // DEC B (giving 0xFE) to EAl
+        case   36:  C3.ALU_op = ALU_DEC ; 
                     C3.ALU_e.toggle() ; break ;
-        case   33:  C4.EAl_s.toggle() ; break ;
-        case   34:  C4.EAl_s.toggle() ; break ;
-        case   35:  C3.ALU_op = 0 ; 
+        case   37:  C4.EAl_s.toggle() ; break ;
+        case   38:  C4.EAl_s.toggle() ; break ;
+        case   39:  C3.ALU_op = 0 ; 
                     C3.ALU_e.toggle() ; break ;
         // RAM[EA] to PCl
-        case   36:  C4.EAl_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
-        case   37:  C4.PCl_s.toggle() ; break ;
-        case   38:  C4.PCl_s.toggle() ; break ;
-        case   39:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAl_e.toggle() ; break ;
-
-        case   40:  C3.STEP_clr = 0 ; break ;
+        case   40:  C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case   41:  C4.PCl_s.toggle() ; break ;
+        case   42:  C4.PCl_s.toggle() ; break ;
+        case   43:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; break ;
+        // Set Interrupt flag
+        case   44:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   45:  C5.ST_s.toggle() ; break ;
+        case   46:  C5.ST_s.toggle() ; break ;
+        case   47:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   48:  C3.STEP_clr = 0 ; break ;
         
         default:    return 0 ;
     }

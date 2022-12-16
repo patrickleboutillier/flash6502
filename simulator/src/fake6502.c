@@ -367,12 +367,6 @@ int main(int argc, char *argv[]){
         } 
         prev_pc = pc ;
 
-        /*if (prog->is_done(pc)){
-            printf("SUCCESS (%d instructions executed in %d steps)!\n", nb_insts, nb_steps) ;
-            printf("  Largest instruction (0x%02X) has %d steps.\n", ) ;
-            exit(0) ;
-        }*/
-
         int inst_steps = process_inst() ; 
         nb_steps += inst_steps ;
         if (inst_steps > max_steps){
