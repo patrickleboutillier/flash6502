@@ -1,30 +1,4 @@
 Branch feature/interrrupt:
-    - Add ST_I_set everywhere ST is loaded from bus
-    - Hook up interrupt signals
-      - Idea for i_in:
-        - To clear: set from "ALU" mode, tied to GND
-        - To set: get status, eor with 0x100, set from data bus 
-    - Implement cli and sei
-    - Run tests with I_flag = 3 
-
-    static void brk() {
-        pc++;
-        push16(pc); //push next instruction address onto stack
-        push8(status | FLAG_BREAK); //push CPU status to stack
-        pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
-    }
-
-    - Inc PC 
-    - Push PCh
-    - Push PCl
-    - Push Status (w/BREAK)
-    - Push Acc
-    - Clear B
-    - DEC B to Acc
-    - Acc to PCh and B
-    - DEC B to Acc
-    - Acc to PCl
-    - Pull Acc
 
     void nmi6502() {
         push16(pc);
