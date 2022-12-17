@@ -1,10 +1,11 @@
 Branch feature/interrrupt:
 
-    void nmi6502() {
-        push16(pc);
-        push8(status);
-        status |= FLAG_INTERRUPT;
-        pc = (uint16_t)read6502(0xFFFA) | ((uint16_t)read6502(0xFFFB) << 8);
+    static void brk() {
+        pc++;
+        push16(pc); //push next instruction address onto stack
+        push8(status | FLAG_BREAK); //push CPU status to stack
+        setinterrupt(); //set interrupt flag
+        pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
     }
 
     void irq6502() {
@@ -14,8 +15,15 @@ Branch feature/interrrupt:
         pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
     }
 
+    void nmi6502() {
+        push16(pc);
+        push8(status);
+        status |= FLAG_INTERRUPT;
+        pc = (uint16_t)read6502(0xFFFA) | ((uint16_t)read6502(0xFFFB) << 8);
+    }
 
 
 
 Backlog:
+- optimize like nmi
 - Compact steps

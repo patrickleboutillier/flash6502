@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "circuit.h"
 #include "reg.h"
@@ -271,22 +273,15 @@ int process_inst(){
 }
 
 
-void reset6502(PROG *prog){
-    // Install vectors in controller
-    VECTORS.set_reset(prog->start_addr()) ;
-    VECTORS.set_int(prog->int_addr()) ;
-    VECTORS.set_nmi(prog->nmi_addr()) ;
-
+void insert_inst(uint8_t opcode){
     boot_STEP_clr.pulse() ;
     // At this point, INST is driving the control signals with whatever random value it contains at startup.
     // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
     // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
     CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
-    boot_PC_clr.pulse() ;
-
     boot_DATA.drive(true) ;
-    boot_DATA = 0x02 ; // RST1 instruction
+    boot_DATA = opcode ;
     boot_PC_e.toggle() ;
     boot_RAM_s.pulse() ;
     boot_PC_e.toggle() ;
@@ -294,6 +289,16 @@ void reset6502(PROG *prog){
     // Reset step/phase to 0 and run the instruction.
     boot_STEP_clr.pulse() ;
     process_inst() ;
+}
+
+
+void reset6502(PROG *prog){
+    // Install vectors in controller
+    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_int(prog->int_addr()) ;
+    VECTORS.set_nmi(prog->nmi_addr()) ;
+
+    insert_inst(0x02) ; // RST1 instruction
 
     boot_STEP_clr.pulse() ;
     // Again, pulse the clock to the third phase to disable all control signals
@@ -313,17 +318,8 @@ void reset6502(PROG *prog){
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
 
-    boot_DATA.drive(true) ;
-    boot_DATA = 0x03 ; // RST2 instruction
-    boot_PC_e.toggle() ;
-    boot_RAM_s.pulse() ;
-    boot_PC_e.toggle() ;
-    boot_DATA.drive(false) ;
-    // Reset step/phase to 0 and run the instruction.
-    boot_STEP_clr.pulse() ;
-    process_inst() ;
+    insert_inst(0x03) ; // RST2 instruction
 
-    boot_STEP_clr.pulse() ;
     printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
         printf("---\n") ;
@@ -331,6 +327,9 @@ void reset6502(PROG *prog){
 
 
 int main(int argc, char *argv[]){
+    // Set STDIN to non-blocking
+    fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK) ;
+
     init6502() ;
 
     // Default program
@@ -376,6 +375,14 @@ int main(int argc, char *argv[]){
         nb_insts++ ;
         if ((nb_insts % 100000) == 0){
             printf("%d instructions executed (pc:0x%04X).\n", nb_insts, pc) ;
+        }
+
+        // Check for interrupts from stdio
+        char buf[9] ;
+        int n = read(0, buf, 8) ;
+        buf[n] = '\0' ;
+        if ((n > 0)&&((buf[0] == 'i')||(buf[0] == 'n'))) {
+            insert_inst((buf[0] == 'i' ? 0x12 : 0x13)) ;
         }
     }
 }
