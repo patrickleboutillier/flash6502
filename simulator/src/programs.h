@@ -1,4 +1,4 @@
-PROG progTestSuite("TestSuite", "programs/testsuite/6502_functional_test.bin", 0, 0, 0, 0x3680) ;
+PROG progTestSuite("TestSuite", "programs/testsuite/6502_functional_test.bin", 0, 0, 0, 0x36AD) ;
 
 PROG progHello("Hello", "programs/hello/hello.bin", 0, 0, 0, 0x20) ;
 
