@@ -335,12 +335,9 @@ void reset6502(PROG *prog){
 }
 
 
-void process_interrupt(uint8_t inst){
-    //DEBUG_STEP = true ;
-    if (DEBUG_STEP){
-        uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP) ;
-    }
+void process_interrupt(uint8_t inst){    
+    uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
+    printf("INTR  -> PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP) ;
 
     // Prime INST with our fake interrupt instruction. This will alter the normal
     // fetch stage. See fetch() in addrmodes.h
@@ -350,6 +347,12 @@ void process_interrupt(uint8_t inst){
     process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
     ctrl_DATA.drive(false) ; // Reset the data bus
     process_inst() ;         // finish the instruction
+ 
+    pc = PCh.data_out << 8 | PCl.data_out ;
+    printf("      <- PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X  RAM[SP+1]:0x%02X  RAM[SP+2]:0x%02X  RAM[SP+3]:0x%02X\n", 
+        pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
+        RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
+
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_NOP ;
