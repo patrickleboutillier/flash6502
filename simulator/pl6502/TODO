@@ -1,4 +1,12 @@
 Branch feature/interrrupt:
+    - Debug irq
+        - 4-5 ticks (do fetch)
+        - override INST with irq
+            - start irq with dec(PC)
+            - maybe split irq in 2 if it doesn't fit in one instruction.
+        - keep going
+    - Repeat with nmi 
+
 
     static void brk() {
         pc++;

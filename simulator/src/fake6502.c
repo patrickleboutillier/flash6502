@@ -19,7 +19,7 @@
 #include "io.h"
 #include "prog.h"
 #include "programs.h"
-
+#include "inst.h"
 
 CONTROL_1_ROM C1 ;
 CONTROL_2_ROM C2 ;
@@ -54,8 +54,10 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
 output<1> CLK(1) ; 
 
-output<1> boot_RAM_s(1), boot_PC_e(1), boot_PC_up(1), boot_STEP_clr(1), boot_PC_clr, boot_STEP_cnt_e ;
-output<8> boot_DATA ;
+output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
+output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
+output<1> ctrl_STEP_clr(1), STEP_cnt_e ;
+output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
 
@@ -63,9 +65,12 @@ VECTORS VECTORS ;
 IO IO ;
 
 
+bool DEBUG_STEP = false ;
+
+
 void init6502(){
-    boot_DATA.drive(false) ;
-    boot_DATA.connect(DATA.data_in) ;
+    ctrl_DATA.drive(false) ;
+    ctrl_DATA.connect(DATA.data_in) ;
 
     ADDRh.data_out.connect(Ah2D.data_in) ;
     C4.Ah2D_e.connect(Ah2D.enable) ;
@@ -95,7 +100,7 @@ void init6502(){
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
     VCC.connect(PCl.down) ;
-    boot_PC_clr.connect(PCl.clear) ;
+    ctrl_PC_clr.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -104,7 +109,7 @@ void init6502(){
     C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    boot_PC_clr.connect(PCh.clear) ;
+    ctrl_PC_clr.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
@@ -183,8 +188,8 @@ void init6502(){
     CLK.connect(STEP.clk) ;
     C3.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
-    boot_STEP_cnt_e.connect(STEP.enable) ;
-    boot_STEP_cnt_e = 1 ;
+    STEP_cnt_e.connect(STEP.enable) ;
+    STEP_cnt_e = 1 ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
@@ -195,14 +200,14 @@ void init6502(){
     STEP.data_out.connect(C1.step) ;
 
     INST.data_out.connect(C2.inst) ;
-    boot_PC_up.connect(C2.n) ;
-    boot_PC_e.connect(C2.v) ;
-    boot_RAM_s.connect(C2.z) ;
-    GND.connect(C2.c) ;
+    ctrl_PC_up.connect(C2.n) ;
+    ctrl_PC_e.connect(C2.v) ;
+    ctrl_INST_s.connect(C2.z) ;
+    ctrl_RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
-    boot_STEP_clr.connect(C3.n) ;
+    ctrl_STEP_clr.connect(C3.n) ;
     GND.connect(C3.v) ;
     GND.connect(C3.z) ;
     GND.connect(C3.c) ;
@@ -228,16 +233,16 @@ void process_ctrl(){
     uint8_t addr = ADDRl.data_out & 0xF ;
     if (! C2.RAM_e){
         // read from vectors or IO
-        boot_DATA.drive(true) ;
+        ctrl_DATA.drive(true) ;
         if (addr < 0xA){
-            boot_DATA = IO.get_byte(addr) ;
+            ctrl_DATA = IO.get_byte(addr) ;
         }
         else {
-            boot_DATA = VECTORS.get_byte(addr) ;
+            ctrl_DATA = VECTORS.get_byte(addr) ;
         }
     }
     else {
-        boot_DATA.drive(false) ;
+        ctrl_DATA.drive(false) ;
     }
 
     if (! C2.RAM_s){
@@ -274,20 +279,16 @@ int process_inst(){
 
 
 void insert_inst(uint8_t opcode){
-    boot_STEP_clr.pulse() ;
-    // At this point, INST is driving the control signals with whatever random value it contains at startup.
-    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
-    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    ctrl_STEP_clr.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
-    boot_DATA.drive(true) ;
-    boot_DATA = opcode ;
-    boot_PC_e.toggle() ;
-    boot_RAM_s.pulse() ;
-    boot_PC_e.toggle() ;
-    boot_DATA.drive(false) ;
-    // Reset step/phase to 0 and run the instruction.
-    boot_STEP_clr.pulse() ;
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = opcode ;
+    ctrl_PC_e.toggle() ;
+    ctrl_RAM_s.pulse() ;
+    ctrl_PC_e.toggle() ;
+    ctrl_DATA.drive(false) ;
+    // When we insert an instruction, we trigger an extra fetch (the new instruction), which increments the PC
+    // and extra time. We counter that here by decrementing it just before.
     process_inst() ;
 }
 
@@ -298,31 +299,58 @@ void reset6502(PROG *prog){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
-    insert_inst(0x02) ; // RST1 instruction
+    // Clear INST register
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = INST_NOP ;
+    ctrl_INST_s.pulse() ;
+    ctrl_DATA.drive(false) ;
 
-    boot_STEP_clr.pulse() ;
-    // Again, pulse the clock to the third phase to disable all control signals
-    CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
+    insert_inst(INST_RST1) ;
+
+    ctrl_STEP_clr.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
-    boot_PC_clr.pulse() ;
+    ctrl_PC_clr.pulse() ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){
-        boot_DATA.drive(true) ;
-        boot_DATA = prog->get_byte(i) ;
-        boot_PC_e.toggle() ; 
-        boot_RAM_s.pulse() ;
-        boot_PC_e.toggle() ;
-        boot_DATA.drive(false) ;
-        boot_PC_up.pulse() ;
+        ctrl_DATA.drive(true) ;
+        ctrl_DATA = prog->get_byte(i) ;
+        ctrl_PC_e.toggle() ;
+        ctrl_RAM_s.pulse() ;
+        ctrl_PC_e.toggle() ;
+        ctrl_DATA.drive(false) ;
+        ctrl_PC_up.pulse() ;
     }
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
+    
+    // Reset PC here to be safe?
+    insert_inst(INST_RST2) ;
 
-    insert_inst(0x03) ; // RST2 instruction
-
-    printf("RESET -> PC:0x%02X%02X  SP:0x%X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
-        (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
+    printf("RESET -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
         printf("---\n") ;
+}
+
+
+void process_interrupt(uint8_t inst){
+    //DEBUG_STEP = true ;
+    if (DEBUG_STEP){
+        uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
+        printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP) ;
+    }
+
+    // Prime INST with our fake interrupt instruction. This will alter the normal
+    // fetch stage. See fetch() in addrmodes.h
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = inst ;
+    ctrl_INST_s.pulse() ;
+    ctrl_DATA.drive(false) ;
+    process_inst() ;
+    // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = INST_NOP ;
+    ctrl_INST_s.pulse() ;
+    ctrl_DATA.drive(false) ;
 }
 
 
@@ -345,6 +373,10 @@ int main(int argc, char *argv[]){
     prog->describe() ;
     printf("\n") ;
 
+    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
+
+
     // Reset the processor
     reset6502(prog) ;
 
@@ -355,15 +387,20 @@ int main(int argc, char *argv[]){
     uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        // printf("PC:0x%04X, INST:0x%02X, STATUS:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg) ;
+        if (DEBUG_STEP){
+            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X RAM[SP+1]:0x%02X RAM[SP+2]:0x%02X RAM[SP+3]:0x%02X\n", 
+                pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
+                RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
+        }
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;
 
             printf("---\nTRAP! -> PC:0x%04X  SREG:0x%02X  NB_INST:%d  NB_STEPS:%d  MAX_STEPS:%d  MAX_STEPS_INST:0x%02X  %s! \n", 
                 pc, (uint8_t)STATUS.sreg, nb_insts, nb_steps, max_steps, max_inst,
                 (done ? "SUCCESS" : "ERROR")) ;
+            fflush(stdout) ;
             exit(! done) ;
-        } 
+        }
         prev_pc = pc ;
 
         int inst_steps = process_inst() ; 
@@ -382,7 +419,7 @@ int main(int argc, char *argv[]){
         int n = read(0, buf, 8) ;
         buf[n] = '\0' ;
         if ((n > 0)&&((buf[0] == 'i')||(buf[0] == 'n'))) {
-            insert_inst((buf[0] == 'i' ? 0x12 : 0x13)) ;
+            process_interrupt(buf[0] == 'i' ? INST_IRQ : INST_NMI) ;
         }
     }
 }
