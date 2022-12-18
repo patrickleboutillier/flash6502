@@ -28,10 +28,11 @@ CTRLSIG A_s(&E2, 9) ;
 ALU_OP ALU_op(new CTRLSIG(&E2, 8), new CTRLSIG(&E2, 7), new CTRLSIG(&E2, 6), new CTRLSIG(&E2, 5)) ; 
 CTRLSIG ALU_e(&E2, 4, true) ;
 CTRLSIG B_s(&E2, 3) ;
-CTRLSIG INST_s(&E2, A0) ;
+CTRLSIG INST_s(&E2, 13) ; // TODO: check this, 13 maybe flaky w/LED
 CTRLSIG Al2D_e(&E2, 10, true), Ah2D_e(&E2, 2, true) ;
 CTRLSIG EAl_e(&E2, 12, true), PCl_s(&E2, 11, true) ;
 CTRLSIG RAM_s(&E2, A2, true), RAM_e(&E2, A3, true) ;
+CTRLSIG EAh_e(&E2, A0, true), EAh_s(&E2, A1) ; 
 
 Extension E3(3, "STATUS, ADDRh") ;
 CTRLSIG ST_s(&E3, 2) ;
@@ -39,7 +40,7 @@ CTRLSIG ST_NZ_s(&E3, 7), ST_V_s(&E3, 6), ST_C_s(&E3, 5), ST_ALU_C_s(&E3, 4) ;
 CTRLSIG ST_ALU_C_from_C(&E3, 3) ;
 CTRLSIG ST_src(&E3, 8, true) ;
 CTRLSIG ST_e(&E3, 9, true) ;
-CTRLSIG PCh_s(&E3, 10, true), EAh_e(&E3, 11, true), EAh_s(&E3, 12) ; 
+CTRLSIG PCh_s(&E3, 10, true), ST_bi(&E3, 11), ST_I_s(&E3, 12) ; 
 STATUS STATUS(&E3, A0, A1, A2, A3) ;
 
 VECTORS VECTORS ;
@@ -89,7 +90,7 @@ void setup() {
   RAM_s.setup() ; RAM_e.setup() ;
   
   ST_s.setup() ;
-  ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ;
+  ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
   ST_ALU_C_from_C.setup() ;
   ST_src.setup() ;
   ST_e.setup() ;
