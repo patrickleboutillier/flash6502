@@ -2,9 +2,9 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     if ((INST == INST_IRQ)||(INST == INST_NMI)){
         // Interrupt (IRQ or NMI). The controller has already setup INST, so there is nothing else to do.
         switch (step){
-            case    0:  C3.STEP_clr = 1 ; break ; // it's important that nothing else happens here
-            case    1:  break ;
-            case    2:  break ;
+            case    0:  C3.STEP_clr = 1 ; break ;   // it's important that nothing else happens here
+            case    1:  C4.EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
+            case    2:  C4.EAl_s.toggle() ; break ; //   store it in EAl
             case    3:  break ;
             case    4:  break ;
             default:    return 0 ;

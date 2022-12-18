@@ -257,7 +257,7 @@ void process_ctrl(){
 }
 
 
-int process_inst(){
+int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
     while (1){
         CLK.pulse() ;
@@ -267,6 +267,9 @@ int process_inst(){
         }
 
         if (STEP == 0){
+            break ;
+        }
+        if (nb_steps == max_steps){
             break ;
         }
         nb_steps++ ;
@@ -344,8 +347,9 @@ void process_interrupt(uint8_t inst){
     ctrl_DATA.drive(true) ;
     ctrl_DATA = inst ;
     ctrl_INST_s.pulse() ;
-    ctrl_DATA.drive(false) ;
-    process_inst() ;
+    process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
+    ctrl_DATA.drive(false) ; // Reset the data bus
+    process_inst() ;         // finish the instruction
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_NOP ;
