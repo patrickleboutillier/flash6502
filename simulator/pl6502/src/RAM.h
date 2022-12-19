@@ -25,6 +25,12 @@ class RAM : public component {
             }
         } ;
 
+
+        uint8_t peek(uint16_t addr){
+            return _mem[addr >> 8][addr & 0xFF] ;
+        }
+
+
         void always(){
             // RAM is limited to the range 0x0000 => 0xF7FF, the rest of the address space is assigned to the controller.
             // This means that the controller handles the vectors in the range 0xFFFA => 0xFFFF

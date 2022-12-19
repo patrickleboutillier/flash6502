@@ -5909,7 +5909,9 @@ test_jsr
         
 ;trap in case of unexpected IRQ, NMI, BRK, RESET - BRK test target
 nmi_trap
-        trap            ;check stack for conditions at NMI
+        rti             ;check stack for conditions at NMI
+        nop
+        nop
         jmp start       ;catastrophic error - cannot continue
 res_trap
         trap            ;unexpected RESET
