@@ -343,7 +343,79 @@ uint8_t bpl(uint8_t step){
 
 uint8_t brk(uint8_t step) {
     switch (step){
-        case    0:  C3.STEP_clr = 0 ; break ;
+        // Inc PC
+        case    0:  C2.PC_up.toggle() ; break ;
+        case    1:  C2.PC_up.toggle() ; break ; 
+        // PCh to B
+        case    2:  C2.PC_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case    3:  C1.B_s.toggle() ; break ;
+        case    4:  C1.B_s.toggle() ; break ;
+        case    5:  C4.Ah2D_e.toggle() ; C2.PC_e.toggle() ; break ;
+        // B to RAM[SP--]
+        case    6:  C3.ALU_op = ALU_PASS ; 
+                    C2.SP_e.toggle() ; C3.ALU_e.toggle() ; break ;
+        case    7:  C2.RAM_s.toggle() ; break ;
+        case    8:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
+        case    9:  C3.ALU_op = 0 ; 
+                    C3.ALU_e.toggle() ; C2.SP_e.toggle() ; C2.SP_down.toggle() ; break ;
+        // PCl to B
+        case   10:  C2.PC_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case   11:  C1.B_s.toggle() ; break ;
+        case   12:  C1.B_s.toggle() ; break ;
+        case   13:  C4.Al2D_e.toggle() ; C2.PC_e.toggle() ; break ;
+        // B to RAM[SP--]
+        case   14:  C3.ALU_op = ALU_PASS ; 
+                    C2.SP_e.toggle() ; C3.ALU_e.toggle() ; break ;
+        case   15:  C2.RAM_s.toggle() ; break ;
+        case   16:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
+        case   17:  C3.ALU_op = 0 ; 
+                    C3.ALU_e.toggle() ; C2.SP_e.toggle() ; C2.SP_down.toggle() ; break ;
+        // Push Status (w/BREAK, via ST_bi)
+        case   18:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; break ;
+        case   19:  C2.RAM_s.toggle() ; break ;
+        case   20:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
+        case   21:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
+        
+        // pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
+        // Clear B
+        case   22:  C1.B_s.toggle() ; break ;
+        case   23:  C1.B_s.toggle() ; break ;
+        // DEC B (giving 0xFF) to EAh and EAl
+        case   24:  C3.ALU_op = ALU_DEC ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   25:  C4.EAl_s.toggle() ; C4.EAh_s.toggle() ; break ;
+        case   26:  C4.EAl_s.toggle() ; C4.EAh_s.toggle() ; break ;
+        case   27:  C3.ALU_op = 0 ; 
+                    C3.ALU_e.toggle() ; break ;
+        // RAM[EA] to PCh
+        case   28:  C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case   29:  C4.PCh_s.toggle() ; break ;
+        case   30:  C4.PCh_s.toggle() ; break ;
+        case   31:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        // EAl to B
+        case   32:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case   33:  C1.B_s.toggle() ; break ;
+        case   34:  C1.B_s.toggle() ; break ;
+        case   35:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        // DEC B (giving 0xFE) to EAl
+        case   36:  C3.ALU_op = ALU_DEC ; 
+                    C3.ALU_e.toggle() ; break ;
+        case   37:  C4.EAl_s.toggle() ; break ;
+        case   38:  C4.EAl_s.toggle() ; break ;
+        case   39:  C3.ALU_op = 0 ; 
+                    C3.ALU_e.toggle() ; break ;
+        // RAM[EA] to PCl
+        case   40:  C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case   41:  C4.PCl_s.toggle() ; break ;
+        case   42:  C4.PCl_s.toggle() ; break ;
+        case   43:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; break ;
+        // Set Interrupt flag
+        case   44:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   45:  C5.ST_s.toggle() ; break ;
+        case   46:  C5.ST_s.toggle() ; break ;
+        case   47:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   48:  C3.STEP_clr = 0 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
@@ -1460,7 +1532,7 @@ uint8_t rst1(uint8_t step){
         case   15:  C2.SP_down.toggle() ; break ;
         case   16:  C2.SP_down.toggle() ; break ;
         case   17:  C2.SP_down.toggle() ; break ;
-        // Copy SP to EAl
+        // Copy SP to EAl, EA now 0xFFFD
         case   18:  C2.SP_e.toggle() ; C4.Al2D_e.toggle() ; break ;
         case   19:  C4.EAl_s.toggle() ;  break ;
         case   20:  C4.EAl_s.toggle() ;  break ;
