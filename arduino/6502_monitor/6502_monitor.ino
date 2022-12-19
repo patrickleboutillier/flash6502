@@ -118,6 +118,11 @@ void loop(){
       } 
       prev_pc = pc ;
 
+      if (pc == 0x0A73){
+      //  DEBUG_STEP = true ;
+      //  DEBUG_MON = true ;
+      }
+      
       // step6502("inst", -1, true) ;
       if (((inst_cnt % MON_EVERY) == 0)||(DEBUG_MON)){
         monitor6502(true) ; Serial.println() ;

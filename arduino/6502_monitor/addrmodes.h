@@ -1,5 +1,3 @@
-
-
 uint8_t fetch(uint8_t step) { // 1 cycle
     switch (step){
         case    0:  STEP_clr = 1 ; PC_e.toggle() ; RAM_e.toggle() ; break ;

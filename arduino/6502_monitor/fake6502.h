@@ -81,10 +81,11 @@ void process_ctrl(){
     if (! RAM_e.read()){
         uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
         // read from vectors or IO
-        DATA.write(addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
+        uint8_t data = (addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
+        DATA.write(data) ;
     }
     else {
-        DATA.reset() ;      
+        DATA.reset() ;     
     }
 
     if (! RAM_s.read()){
@@ -103,13 +104,21 @@ void process_ctrl(){
 unsigned long process_inst(bool debug = false){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
+    
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false ;
+    bool prev_ctrl = 0, ctrl = 0 ; 
     for (int step = 0 ; step < 64 ; step++){
+        prev_ctrl = ctrl ;
+        
         if (! fetch_done){
             if (fetch(step)){
-                if (digitalRead(CTRL)){
-                  process_ctrl() ;
+                ctrl = digitalRead(CTRL) ;
+                if (ctrl){
+                  process_ctrl() ; 
+                }
+                else if (prev_ctrl){
+                  DATA.reset() ;
                 }
                 if (debug){
                     // step6502("fetch", step) ;
@@ -122,8 +131,12 @@ unsigned long process_inst(bool debug = false){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
-                if (digitalRead(CTRL)){
+                ctrl = digitalRead(CTRL) ;
+                if (ctrl){
                   process_ctrl() ;
+                }
+                else if (prev_ctrl){
+                  DATA.reset() ;
                 }
                 if (debug){
                   step6502("addr", step - addr_start) ;
@@ -136,16 +149,18 @@ unsigned long process_inst(bool debug = false){
         
         func6502 f = pgm_read_word(&(optable[INST])) ;
         if (f(step - op_start)){
-            if (digitalRead(CTRL)){
+            ctrl = digitalRead(CTRL) ;
+            if (ctrl){
               process_ctrl() ;
+            }
+            else if (prev_ctrl){
+              DATA.reset() ;
             }
             if (debug){
               step6502("oper", step - op_start) ;
             }
             continue ;
         }
-        // Make sure we reset the bus in case we where driving it. 
-        process_ctrl() ;
         
         inst_cnt++ ;
         return inst_cnt ;
@@ -155,10 +170,10 @@ unsigned long process_inst(bool debug = false){
 }
 
 
-void reset6502(PROG *prog){
+void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     // Install vectors in controller
     Serial.println(F("Starting reset sequence...")) ;
-    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_reset(start_addr != 0xFF ? start_addr : prog->start_addr()) ;
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
     
@@ -186,13 +201,15 @@ void reset6502(PROG *prog){
     Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
-
+    monitor6502(true) ;
+    Serial.println() ;
+    
     DATA.write(0x03) ; // RST2 instruction
     PC_e.toggle() ;
     RAM_s.pulse() ;
     PC_e.toggle() ;
     DATA.reset() ;
-    process_inst() ;
+    process_inst(DEBUG_STEP) ;
     
     Serial.print(F("RESET -> ")) ;
     monitor6502(true) ;
