@@ -56,7 +56,7 @@ TEST(test_pl6502, STATUS){
         EXPECT_EQ(status.C.get_value(), (c_set ? c_in.get_value() : c_old)) ;
         EXPECT_EQ(status.alu_c.get_value(), (alu_c_set ? (alu_c_from_C ? c_old : c_in.get_value()) : alu_c_old)) ;
         EXPECT_EQ(status.Z.get_value(), (nz_set ? z_in.get_value() : z_old)) ;
-        uint32_t P = status.N << 7 | status.V << 6 | 1 << 5 | 1 << 4 | 
+        uint32_t P = status.N << 7 | status.V << 6 | 1 << 5 | i_in << 4 | 
             status.I << 2 | status.Z << 1 | status.C ;
         EXPECT_EQ(status.data_out.get_value(), P) ;
 

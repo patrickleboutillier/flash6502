@@ -1,7 +1,7 @@
 AS65 Assembler for R6502 [1.42].  Copyright 1994-2007, Frank A. Kingswood                                                Page    1
 ---------------------------------------------------- 6502_functional_test.a65 ----------------------------------------------------
 
-6112 lines read, no errors in pass 1.
+6114 lines read, no errors in pass 1.
                         ;
                         ; 6 5 0 2   F U N C T I O N A L   T E S T
                         ;
@@ -14419,9 +14419,9 @@ ffff =                  ram_top = -1
                                 
                         ;trap in case of unexpected IRQ, NMI, BRK, RESET - BRK test target
 3899 :                  nmi_trap
-                                trap            ;check stack for conditions at NMI
-3899 : 4c9938          >        jmp *           ;failed anyway
-                        
+3899 : 40                       rti             ;check stack for conditions at NMI
+389a : ea                       nop
+389b : ea                       nop
 389c : 4c0004                   jmp start       ;catastrophic error - cannot continue
 389f :                  res_trap
                                 trap            ;unexpected RESET
