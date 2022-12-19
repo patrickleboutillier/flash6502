@@ -46,7 +46,6 @@ STATUS STATUS(&E3, A0, A1, A2, A3) ;
 VECTORS VECTORS ;
 IO IO ;
 
-#define START_PC 0
 bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
 #define MON_EVERY 1000
@@ -118,7 +117,7 @@ void loop(){
       } 
       prev_pc = pc ;
 
-      //if (pc == 0x0A73){
+      //if (pc == 0x09F3){
       //  DEBUG_STEP = true ;
       //  DEBUG_MON = true ;
       //}
