@@ -24,13 +24,13 @@ CTRLSIG SP_down(&E1, 8, true), SP_s(&E1, 7, true), SP_e(&E1, 6, true), EAl_s(&E1
   PC_up(&E1, 4, true), PC_e(&E1, 3, true) ;
 
 Extension E2(2, "ALU, RAM") ;
-CTRLSIG A_s(&E2, 9) ;
+CTRLSIG A_s(&E1, A2) ;
 ALU_OP ALU_op(new CTRLSIG(&E2, 8), new CTRLSIG(&E2, 7), new CTRLSIG(&E2, 6), new CTRLSIG(&E2, 5)) ; 
 CTRLSIG ALU_e(&E2, 4, true) ;
 CTRLSIG B_s(&E2, 3) ;
 CTRLSIG INST_s(&E2, 13) ; // TODO: check this, 13 maybe flaky w/LED
-CTRLSIG Al2D_e(&E2, 10, true), Ah2D_e(&E2, 2, true) ;
-CTRLSIG EAl_e(&E2, 12, true), PCl_s(&E2, 11, true) ;
+CTRLSIG Al2D_e(&E1, A3, true), Ah2D_e(&E2, 2, true) ;
+CTRLSIG EAl_e(&E1, 2, true), PCl_s(&E1, 13, true) ;
 CTRLSIG RAM_s(&E2, A2, true), RAM_e(&E2, A3, true) ;
 CTRLSIG EAh_e(&E2, A0, true), EAh_s(&E2, A1) ; 
 
