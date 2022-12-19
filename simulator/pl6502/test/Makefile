@@ -35,3 +35,6 @@ flash_ALUL:
 
 flash_ALUH:
 	minipro -p $(FLASH) -w ALUH_ROM.bin	
+
+flash_STATUS:
+	minipro -p $(FLASH) -w STATUS_ROM.bin	
