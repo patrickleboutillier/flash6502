@@ -265,9 +265,6 @@ class CONTROL_UNIT {
         return cw ;
     }
 
-    void apply_cw(uint64_t cw){
-    }
-
     uint64_t make_cw(){
         return
             (uint64_t)_C1->make_cw() << 0 | 
