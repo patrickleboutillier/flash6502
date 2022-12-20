@@ -32,3 +32,4 @@ The system is made up of 8 sections, which I will refer to using the following n
 - **RAM**: contains the instruction register (INST), the 64k RAM chip (connected to the "address low" and "address high" busses, as well as the data bus) and the memory mapping logic, as well as 2 buffers allowing to send the contents of the "address low/high" buses to the data bus.
 - **Control Unit**: contains the stepping logic and 5 ROM chips that handle the 40 control signals. Each ROM chip receives the output of the step counting (6 bits), the output of the INST register (8 bits), as well as 4 other input signals that vary depending on the chip.
 
+### Block Diagram
