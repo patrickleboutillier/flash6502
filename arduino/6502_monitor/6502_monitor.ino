@@ -40,8 +40,8 @@ CTRLSIG ST_NZ_s(&E3, 7), ST_V_s(&E3, 6), ST_C_s(&E3, 5), ST_ALU_C_s(&E3, 4) ;
 CTRLSIG ST_ALU_C_from_C(&E3, 3) ;
 CTRLSIG ST_src(&E3, 8, true) ;
 CTRLSIG ST_e(&E3, 9, true) ;
-CTRLSIG PCh_s(&E3, 10, true), ST_bi(&E3, 11), ST_I_s(&E3, 12) ; 
-STATUS STATUS(&E3, A0, A1, A2, A3) ;
+CTRLSIG PCh_s(&E3, 10, true), ST_bi(&E3, 11), ST_I_s(&E3, 13) ; 
+STATUS STATUS(&E3, A0, A1, A2, A3, 12) ;
 
 VECTORS VECTORS ;
 IO IO ;
@@ -67,8 +67,8 @@ PROG *prog = &progTestSuite ;
 void setup() {
   Serial.begin(115200) ;
   Serial.println(F("Starting Flash6502.")) ;
-  //Serial.print(CTRLSIG::count()) ;
-  //Serial.println(F(" control signals defined.")) ;
+  Serial.print(CTRLSIG::count()) ;
+  Serial.println(F(" control signals defined.")) ;
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
@@ -102,6 +102,7 @@ void setup() {
   reset6502(prog) ;
 }
 
+
 // See simulator main while loop
 void loop(){
   // Start processing instructions.
@@ -122,11 +123,18 @@ void loop(){
       //  DEBUG_MON = true ;
       //}
       
-      // step6502("inst", -1, true) ;
       if (((inst_cnt % MON_EVERY) == 0)||(DEBUG_MON)){
         monitor6502(true) ; Serial.println() ;
       }
-      process_inst(DEBUG_STEP) ; 
+      process_inst(0, 0xFF, DEBUG_STEP) ; 
+
+      if (! DEBUG_STEP){
+        if (STEP_button_pressed()){
+          //DEBUG_STEP = true ;
+          //DEBUG_MON = true ;
+          process_interrupt(INST_IRQ) ;
+        }
+      }
   }
 }
 

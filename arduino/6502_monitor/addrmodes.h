@@ -1,14 +1,28 @@
 uint8_t fetch(uint8_t step) { // 1 cycle
-    switch (step){
-        case    0:  STEP_clr = 1 ; PC_e.toggle() ; RAM_e.toggle() ; break ;
-        case    1:  INST_s.toggle() ; 
-                    #ifdef ARDUINO
-                        INST = DATA.read() ;
-                    #endif
-                    break ;
-        case    2:  INST_s.toggle() ; PC_up.toggle() ; break ;
-        case    3:  RAM_e.toggle() ; PC_e.toggle() ; PC_up.toggle() ; break ;
-        default:    return 0 ;
+    if ((INST == INST_IRQ)||(INST == INST_NMI)){
+        // Interrupt (IRQ or NMI). The controller has already setup INST, so there is nothing else to do.
+        switch (step){
+            case    0:  STEP_clr = 1 ; break ;   // it's important that nothing else happens here
+            case    1:  EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
+            case    2:  EAl_s.toggle() ; break ; //   store it in EAl
+            case    3:  break ;
+            case    4:  break ;
+            default:    return 0 ;
+        }
+    }
+    else {
+        switch (step){
+            case    0:  STEP_clr = 1 ; break ; // it's important that nothing else happens here
+            case    1:  PC_e.toggle() ; RAM_e.toggle() ; break ;
+            case    2:  INST_s.toggle() ; 
+                        #ifdef ARDUINO
+                            INST = DATA.read() ;
+                        #endif
+                        break ;
+            case    3:  INST_s.toggle() ; PC_up.toggle() ; break ;
+            case    4:  RAM_e.toggle() ; PC_e.toggle() ; PC_up.toggle() ; break ;
+            default:    return 0 ;
+        }
     }
     return 1 ;
 }
