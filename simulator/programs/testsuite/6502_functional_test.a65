@@ -85,7 +85,7 @@
 ;ROM_vectors writable (0=no, 1=yes)
 ;if ROM vectors can not be used interrupts will not be trapped
 ;as a consequence BRK can not be tested but will be emulated to test RTI
-ROM_vectors = 0
+ROM_vectors = 1
 
 ;load_data_direct (0=move from code segment, 1=load directly)
 ;loading directly is preferred but may not be supported by your platform
@@ -95,7 +95,7 @@ load_data_direct = 1
 ;I_flag behavior (0=force enabled, 1=force disabled, 2=prohibit change, 3=allow
 ;change) 2 requires extra code and is not recommended. SEI & CLI can only be
 ;tested if you allow changing the interrupt status (I_flag = 3)
-I_flag = 0
+I_flag = 3
 
 ;configure memory - try to stay away from memory used by the system
 ;zero_page memory start address, $52 (82) consecutive Bytes required
@@ -5909,7 +5909,9 @@ test_jsr
         
 ;trap in case of unexpected IRQ, NMI, BRK, RESET - BRK test target
 nmi_trap
-        trap            ;check stack for conditions at NMI
+        rti             ;check stack for conditions at NMI
+        nop
+        nop
         jmp start       ;catastrophic error - cannot continue
 res_trap
         trap            ;unexpected RESET
@@ -6101,12 +6103,13 @@ vec_init
 vec_bss equ $fffa
     endif                   ;end of RAM init data
     
-    if (load_data_direct = 1) & (ROM_vectors = 1)  
-        org $fffa       ;vectors
-        dw  nmi_trap
-        dw  res_trap
-        dw  irq_trap
-    endif
+    ; PL removed vectors
+    ; if (load_data_direct = 1) & (ROM_vectors = 1)  
+    ;     org $fffa       ;vectors
+    ;     dw  nmi_trap
+    ;     dw  res_trap
+    ;     dw  irq_trap
+    ; endif
 
         end start
             

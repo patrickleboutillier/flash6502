@@ -15,10 +15,10 @@ class CONTROL_1_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ; // n here is used to enable STEP_clr
         input<6> step ;
-        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, STEP_clr ;
+        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, A_s, B_s ;
 
         CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            X_e(1), Y_e(1), ACC_e(1), STEP_clr(1) {
+                            X_e(1), Y_e(1), ACC_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -29,7 +29,8 @@ class CONTROL_1_ROM : public component {
                 Y_e << 3 |
                 ACC_s << 4 |
                 ACC_e << 5 |
-                STEP_clr << 6 ;
+                A_s << 6 |
+                B_s << 7 ;
         }
 
         void always(){
@@ -42,14 +43,8 @@ class CONTROL_1_ROM : public component {
             set_signal_1(Y_e, 3) ;
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
-
-            // STEP_clr for reset sequence.
-            if (! n){
-                STEP_clr = 0 ;
-            }
-            else {
-                set_signal_1(STEP_clr, 6) ;
-            }
+            set_signal_1(A_s, 6) ;
+            set_signal_1(B_s, 7) ;
         } ;
 } ;
 
@@ -101,17 +96,21 @@ class CONTROL_2_ROM : public component {
                 set_signal_1(PC_e, 4) ;
             }
 
-            set_signal_1(INST_s, 5) ;
-
+            if (z){
+                INST_s = 1 ;
+            }
+            else {
+                set_signal_1(INST_s, 5) ;
+            }
+            
             // RAM_s for reset sequence.
-            if (! z){
+            if (! c){
                 RAM_s = 0 ;
             }
             else {
                 set_signal_1(RAM_s, 6) ;
             }
             
-            set_signal_1(RAM_s, 6) ;
             set_signal_1(RAM_e, 7) ;
         } ;
 } ;
@@ -123,18 +122,19 @@ class CONTROL_3_ROM : public component {
         input<1> n, v, z, c ;
         input<6> step ;
         output<4> ALU_op ; 
-        output<1> A_s, ALU_e, B_s ;
+        output<1> ALU_e, ST_e, ST_bi, STEP_clr ;
 
         CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
-                            ALU_e(1)  {
+                            ALU_e(1), ST_e(1), STEP_clr(1)  {
         } ;
 
         uint8_t make_cw(){
             return 
                 ALU_op << 0 | 
-                A_s << 4 |
-                ALU_e << 5 | 
-                B_s << 6 ;
+                ALU_e << 4 | 
+                ST_e << 5 |
+                ST_bi << 6 |
+                STEP_clr << 7 ;
         }
 
         void always(){
@@ -142,9 +142,17 @@ class CONTROL_3_ROM : public component {
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 16) & 0xFF ;
 
             set_signal_4(ALU_op, 0) ; 
-            set_signal_1(A_s, 4) ;
-            set_signal_1(ALU_e, 5) ; 
-            set_signal_1(B_s, 6) ;
+            set_signal_1(ALU_e, 4) ;
+            set_signal_1(ST_e, 5) ; 
+            set_signal_1(ST_bi, 6) ;
+
+            // STEP_clr for reset sequence.
+            if (! n){
+                STEP_clr = 0 ;
+            }
+            else {
+                set_signal_1(STEP_clr, 7) ;
+            } 
         } ;
 } ;
 
@@ -194,18 +202,17 @@ class CONTROL_5_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> ST_e, ST_src, ST_NZ_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
+        output<1> ST_src, ST_NZ_s, ST_I_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
 
-        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            ST_e(1) {
+        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this) {
         } ;
 
         uint8_t make_cw(){
             return 
-                ST_e << 0 |
-                ST_src << 1 |
-                ST_NZ_s << 2 |
-                ST_V_s << 3 |
+                ST_src << 0 |
+                ST_NZ_s << 1 |
+                ST_V_s << 2 |
+                ST_I_s << 3 |
                 ST_C_s << 4 |
                 ST_ALU_C_s << 5 |
                 ST_ALU_C_from_C << 6 |
@@ -216,10 +223,10 @@ class CONTROL_5_ROM : public component {
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 32) & 0xFF ;
 
-            set_signal_1(ST_e, 0) ;
-            set_signal_1(ST_src, 1) ;
-            set_signal_1(ST_NZ_s, 2) ;
-            set_signal_1(ST_V_s, 3) ;
+            set_signal_1(ST_src, 0) ;
+            set_signal_1(ST_NZ_s, 1) ;
+            set_signal_1(ST_V_s, 2) ;
+            set_signal_1(ST_I_s, 3) ;
             set_signal_1(ST_C_s, 4) ;
             set_signal_1(ST_ALU_C_s, 5) ;
             set_signal_1(ST_ALU_C_from_C, 6) ;
@@ -256,9 +263,6 @@ class CONTROL_UNIT {
     uint64_t get_cw(uint8_t inst, uint8_t flags, uint8_t step){
         uint64_t cw = microcode[inst << 10 | flags << 6 | step] ;
         return cw ;
-    }
-
-    void apply_cw(uint64_t cw){
     }
 
     uint64_t make_cw(){

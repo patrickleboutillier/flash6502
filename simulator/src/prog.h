@@ -31,7 +31,12 @@ class PROG {
         fclose(f) ;
         
         _bytes = bytes ;
-        _start_addr = (_len >= 0xFFFC ? (_bytes[0xFFFD] << 8 | _bytes[0xFFFC]) : start_addr) ;
+        if ((_len >= 0xFFFC)&&(! start_addr)){
+            _start_addr = _bytes[0xFFFD] << 8 | _bytes[0xFFFC] ;
+        }
+        else {
+            _start_addr = start_addr ;
+        }
         _int_addr = (_len >= 0xFFFE ? (_bytes[0xFFFF] << 8 | _bytes[0xFFFE]) : int_addr) ;
         _nmi_addr = (_len >= 0xFFFA ? (_bytes[0xFFFB] << 8 | _bytes[0xFFFA]) : nmi_addr) ;
         _done_addr = done_addr ;
@@ -62,7 +67,7 @@ class PROG {
     }
 
     uint16_t nmi_addr(){
-        return _int_addr ;
+        return _nmi_addr ;
     }
     
     uint16_t done_addr(){
