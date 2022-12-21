@@ -33,3 +33,4 @@ The system is made up of 8 sections, which I will refer to using the following n
 - **Control Unit**: contains the stepping logic and 5 ROM chips that handle the 40 control signals. Each ROM chip receives the output of the step counting (6 bits), the output of the INST register (8 bits), as well as 4 other input signals that vary depending on the chip.
 
 ### Block Diagram
+![Block Diagram](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/block_architecture.jpeg)
