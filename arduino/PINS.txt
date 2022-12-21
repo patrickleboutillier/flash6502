@@ -3,12 +3,12 @@ INPUT/OUTPUT:
     - DATA BUS: 2 -> 9
 
 INPUT:
-    - IRQ: A4
-    - NMI: A5
-    - Use 00 chip:
-        - CTRL NAND !RAM_s: A6
-        - CTRL NAND !RAM_e: A7
     - ADDRl: A0 -> A3
+    - Use 7400 chip:
+        - CTRL NAND !RAM_s: A4
+        - CTRL NAND !RAM_e: A5
+    - IRQ: A6
+    - NMI: A7
 
 OUTPUT:
     - PC_e: 13
