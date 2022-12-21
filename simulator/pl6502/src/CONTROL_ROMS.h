@@ -96,10 +96,15 @@ class CONTROL_2_ROM : public component {
                 set_signal_1(PC_e, 4) ;
             }
 
-            set_signal_1(INST_s, 5) ;
-
+            if (z){
+                INST_s = 1 ;
+            }
+            else {
+                set_signal_1(INST_s, 5) ;
+            }
+            
             // RAM_s for reset sequence.
-            if (! z){
+            if (! c){
                 RAM_s = 0 ;
             }
             else {
@@ -140,7 +145,6 @@ class CONTROL_3_ROM : public component {
             set_signal_1(ALU_e, 4) ;
             set_signal_1(ST_e, 5) ; 
             set_signal_1(ST_bi, 6) ;
-
 
             // STEP_clr for reset sequence.
             if (! n){
@@ -259,9 +263,6 @@ class CONTROL_UNIT {
     uint64_t get_cw(uint8_t inst, uint8_t flags, uint8_t step){
         uint64_t cw = microcode[inst << 10 | flags << 6 | step] ;
         return cw ;
-    }
-
-    void apply_cw(uint64_t cw){
     }
 
     uint64_t make_cw(){

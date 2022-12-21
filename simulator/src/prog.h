@@ -67,7 +67,7 @@ class PROG {
     }
 
     uint16_t nmi_addr(){
-        return _int_addr ;
+        return _nmi_addr ;
     }
     
     uint16_t done_addr(){
