@@ -7,7 +7,7 @@ fake6502: fake6502.c *.h
 .PHONY: mc
 mc: microcode
 
-microcode: microcode.c addrmodes.h ops.h
+microcode: microcode.c addrmodes.h ops.h ../pl6502/src/CONTROL_ROMS.h
 	g++ -Wall -g -O -I ../circuit/src -I ../circuit/complib -I ../pl6502/src microcode.c -o microcode
 	./microcode > /tmp/microcode.h && cp -f /tmp/microcode.h .
 

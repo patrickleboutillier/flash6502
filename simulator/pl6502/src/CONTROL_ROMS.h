@@ -15,10 +15,10 @@ class CONTROL_1_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ; // n here is used to enable STEP_clr
         input<6> step ;
-        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, A_s, B_s ;
+        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, A_s, STEP_clr ;
 
         CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            X_e(1), Y_e(1), ACC_e(1) {
+                            X_e(1), Y_e(1), ACC_e(1), STEP_clr(1) {
         } ;
 
         uint8_t make_cw(){
@@ -30,7 +30,7 @@ class CONTROL_1_ROM : public component {
                 ACC_s << 4 |
                 ACC_e << 5 |
                 A_s << 6 |
-                B_s << 7 ;
+                STEP_clr << 7 ;
         }
 
         void always(){
@@ -44,7 +44,14 @@ class CONTROL_1_ROM : public component {
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
             set_signal_1(A_s, 6) ;
-            set_signal_1(B_s, 7) ;
+            
+            // STEP_clr for reset sequence.
+            if (! n){
+                STEP_clr = 0 ;
+            }
+            else {
+                set_signal_1(STEP_clr, 7) ;
+            }
         } ;
 } ;
 
@@ -122,19 +129,19 @@ class CONTROL_3_ROM : public component {
         input<1> n, v, z, c ;
         input<6> step ;
         output<4> ALU_op ; 
-        output<1> ALU_e, ST_e, ST_bi, STEP_clr ;
+        output<1> ALU_e, ST_e, ST_bi, B_s ;
 
         CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
-                            ALU_e(1), ST_e(1), STEP_clr(1)  {
+                            ALU_e(1), ST_e(1)  {
         } ;
 
         uint8_t make_cw(){
             return 
-                ALU_op << 0 | 
-                ALU_e << 4 | 
+                ALU_op << 0 |
+                ALU_e << 4 |
                 ST_e << 5 |
                 ST_bi << 6 |
-                STEP_clr << 7 ;
+                B_s << 7 ;
         }
 
         void always(){
@@ -145,14 +152,7 @@ class CONTROL_3_ROM : public component {
             set_signal_1(ALU_e, 4) ;
             set_signal_1(ST_e, 5) ; 
             set_signal_1(ST_bi, 6) ;
-
-            // STEP_clr for reset sequence.
-            if (! n){
-                STEP_clr = 0 ;
-            }
-            else {
-                set_signal_1(STEP_clr, 7) ;
-            } 
+            set_signal_1(B_s, 7) ; 
         } ;
 } ;
 

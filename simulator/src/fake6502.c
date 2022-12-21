@@ -139,7 +139,7 @@ void init6502(){
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
-    C1.B_s.connect(B.set) ;
+    C3.B_s.connect(B.set) ;
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
@@ -186,14 +186,14 @@ void init6502(){
     INST_e = 0 ; // always enabled
 
     CLK.connect(STEP.clk) ;
-    C3.STEP_clr.connect(STEP.clear) ;
+    C1.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     STEP_cnt_e.connect(STEP.enable) ;
     STEP_cnt_e = 1 ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    GND.connect(C1.n) ;
+    ctrl_STEP_clr.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
@@ -207,7 +207,7 @@ void init6502(){
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
-    ctrl_STEP_clr.connect(C3.n) ;
+    GND.connect(C3.n) ;
     GND.connect(C3.v) ;
     GND.connect(C3.z) ;
     GND.connect(C3.c) ;
@@ -424,9 +424,19 @@ int main(int argc, char *argv[]){
         // Check for interrupts from stdio
         char buf[9] ;
         int n = read(0, buf, 8) ;
-        buf[n] = '\0' ;
-        if ((n > 0)&&((buf[0] == 'i')||(buf[0] == 'n'))) {
-            process_interrupt(buf[0] == 'i' ? INST_IRQ : INST_NMI) ;
+        if (n > 0){
+            char itype = buf[0] ;
+            switch (itype){
+                case 'i':
+                    // Process interrupt only if interrupt disable is off.
+                    if (! STATUS.I){
+                        process_interrupt(INST_IRQ) ;
+                    }
+                    break ;
+                case 'n':
+                    process_interrupt(INST_NMI) ;
+                    break ;
+            }
         }
     }
 }
