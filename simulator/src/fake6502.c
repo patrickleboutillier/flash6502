@@ -290,8 +290,7 @@ void insert_inst(uint8_t opcode){
     ctrl_RAM_s.pulse() ;
     ctrl_PC_e.toggle() ;
     ctrl_DATA.drive(false) ;
-    // When we insert an instruction, we trigger an extra fetch (the new instruction), which increments the PC
-    // and extra time. We counter that here by decrementing it just before.
+
     process_inst() ;
 }
 
@@ -302,16 +301,19 @@ void reset6502(PROG *prog){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
-    // Clear INST register
+    // Clear step counter and program counter
+    ctrl_STEP_clr.pulse() ;
+    ctrl_PC_clr.pulse() ;
+
+    // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
-    ctrl_DATA = INST_NOP ;
+    ctrl_DATA = INST_BOOT ;
     ctrl_INST_s.pulse() ;
     ctrl_DATA.drive(false) ;
 
     insert_inst(INST_RST1) ;
 
     ctrl_STEP_clr.pulse() ;
-    assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_PC_clr.pulse() ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){

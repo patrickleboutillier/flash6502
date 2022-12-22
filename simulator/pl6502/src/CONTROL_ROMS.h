@@ -103,6 +103,7 @@ class CONTROL_2_ROM : public component {
                 set_signal_1(PC_e, 4) ;
             }
 
+            // INST_s for reset sequence and interrupts
             if (z){
                 INST_s = 1 ;
             }
