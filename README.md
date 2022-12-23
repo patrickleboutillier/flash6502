@@ -15,6 +15,7 @@ After viewing Ben Eater's great video series on the 6502, I wondered if it might
 ### Architecture Decisions
 In order to achieve these goals, I made the following architecture decisions:
 
+- It's ok if it's slower (perhaps even some orders of magnitude slower) than a real 6502.
 - It's ok for the design to be assisted by a microcontroller (i.e. Arduino) for power, clocking and for some complicated parts like the reset sequence.
 - It's ok if it doesn't run actual existing 6502 ROMs, but it has to run programs that I write myself using a standard 6502 assembler.
 - It's ok if the actual 6502 timing is not respected.
@@ -34,3 +35,4 @@ The system is made up of 8 sections, which I will refer to using the following n
 
 ### Breadboard Block Diagram
 ![Block Diagram](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/block_architecture.jpeg)
+
