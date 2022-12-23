@@ -166,7 +166,7 @@ void init6502(){
     ALU_v.data_out.connect(STATUS.v_in) ;
     ALU_z.data_out.connect(STATUS.z_in) ;
     ALU_c.data_out.connect(STATUS.c_in) ;
-    C3.ST_bi.connect(STATUS.i_in) ;
+    C5.ST_bi.connect(STATUS.i_in) ;
 
     C5.ST_NZ_s.connect(STATUS.nz_set) ;
     C5.ST_V_s.connect(STATUS.v_set) ;
@@ -176,7 +176,7 @@ void init6502(){
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
     C5.ST_s.connect(STATUS.set) ;
     C3.ST_e.connect(STATUS.data_enable) ;
-    C5.ST_src.connect(STATUS.src_data) ;
+    C3.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 

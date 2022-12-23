@@ -371,10 +371,10 @@ uint8_t brk(uint8_t step) {
         case   17:  C3.ALU_op = 0 ; 
                     C3.ALU_e.toggle() ; C2.SP_e.toggle() ; C2.SP_down.toggle() ; break ;
         // Push Status (w/BREAK, via ST_bi)
-        case   18:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; break ;
+        case   18:  C2.SP_e.toggle() ; C5.ST_bi.toggle() ; C3.ST_e.toggle() ; break ;
         case   19:  C2.RAM_s.toggle() ; break ;
         case   20:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
-        case   21:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
+        case   21:  C2.SP_e.toggle() ; C5.ST_bi.toggle() ; C3.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
         
         // pc = (uint16_t)read6502(0xFFFE) | ((uint16_t)read6502(0xFFFF) << 8);
         // Clear B
@@ -410,10 +410,10 @@ uint8_t brk(uint8_t step) {
         case   42:  C4.PCl_s.toggle() ; break ;
         case   43:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; break ;
         // Set Interrupt flag
-        case   44:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   44:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case   45:  C5.ST_s.toggle() ; break ;
         case   46:  C5.ST_s.toggle() ; break ;
-        case   47:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   47:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case   48:  C1.STEP_clr = 0 ; break ;
         
         default:    return 0 ;
@@ -488,10 +488,10 @@ uint8_t _interrupt(uint8_t step){
         case   40:  C4.PCl_s.toggle() ; break ;
         case   41:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; break ;
         // Set Interrupt flag
-        case   42:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   42:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case   43:  C5.ST_s.toggle() ; break ;
         case   44:  C5.ST_s.toggle() ; break ;
-        case   45:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   45:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case   46:  C1.STEP_clr = 0 ; break ;
         
         default:    return 0 ;
@@ -1079,10 +1079,10 @@ uint8_t pha(uint8_t step) {
 
 uint8_t php(uint8_t step) {
     switch (step) {
-        case    0:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; break ;
+        case    0:  C2.SP_e.toggle() ; C5.ST_bi.toggle() ; C3.ST_e.toggle() ; break ;
         case    1:  C2.RAM_s.toggle() ; break ;
         case    2:  C2.RAM_s.toggle() ; C2.SP_down.toggle() ; break ;
-        case    3:  C2.SP_e.toggle() ; C3.ST_bi.toggle() ; C3.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
+        case    3:  C2.SP_e.toggle() ; C5.ST_bi.toggle() ; C3.ST_e.toggle() ; C2.SP_down.toggle() ; break ;
         
         case    4:  C1.STEP_clr = 0 ; break ;       
         
@@ -1140,11 +1140,11 @@ uint8_t plp(uint8_t step) {
                     C3.ALU_e.toggle() ; break ;
         
         case    8:  C2.SP_e.toggle() ; C2.RAM_e.toggle() ; 
-                    C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+                    C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
         case    9:  C5.ST_s.toggle() ; break ;
         case   10:  C5.ST_s.toggle() ; break ;
         case   11:  C2.SP_e.toggle() ; C2.RAM_e.toggle() ; 
-                    C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+                    C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
 
         case   12:  C1.STEP_clr = 0 ; break ;
 
@@ -1256,11 +1256,11 @@ uint8_t rti(uint8_t step) {
                     C3.ALU_e.toggle() ; break ;
         // RAM[SP] to STATUS
         case    8:  C2.SP_e.toggle() ; C2.RAM_e.toggle() ;  
-                    C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+                    C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
         case    9:  C5.ST_s.toggle() ; break ;
         case   10:  C5.ST_s.toggle() ; break ;
         case   11:  C2.SP_e.toggle() ; C2.RAM_e.toggle() ; 
-                    C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+                    C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
         // SP to B
         case   12:  C2.SP_e.toggle() ; C4.Al2D_e.toggle() ; break ;
         case   13:  C3.B_s.toggle() ; break ;
@@ -1404,10 +1404,10 @@ uint8_t sed(uint8_t step) {
 
 uint8_t sei_(uint8_t step) {
     switch (step) {
-        case    0:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case    0:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case    1:  C5.ST_s.toggle() ; break ;
         case    2:  C5.ST_s.toggle() ; break ;
-        case    3:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case    3:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
 
         case    4:  C1.STEP_clr = 0 ; break ; 
 
@@ -1597,12 +1597,12 @@ uint8_t tya(uint8_t step) {
 uint8_t rst1(uint8_t step){
     switch (step) {
         // Set registers, SP and STATUS to 0
-        case    0:  C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case    0:  C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
         case    1:  C1.ACC_s.toggle() ; C1.X_s.toggle() ; C1.Y_s.toggle() ; C1.A_s.toggle() ; C3.B_s.toggle() ;
                     C2.SP_s.toggle() ; C5.ST_s.toggle() ; break ;
         case    2:  C1.ACC_s.toggle() ; C1.X_s.toggle() ; C1.Y_s.toggle() ; C1.A_s.toggle() ; C3.B_s.toggle() ;
                     C2.SP_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case    3:  C5.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case    3:  C3.ST_src.toggle() ; C5.ST_NZ_s.toggle() ; C5.ST_V_s.toggle() ; C5.ST_C_s.toggle() ; C5.ST_I_s.toggle() ; break ;
         // Set ALU_c to 0 
         case    4:  C5.ST_ALU_C_from_C.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         case    5:  C5.ST_s.toggle() ; break ;
@@ -1660,10 +1660,10 @@ uint8_t rst2(uint8_t step){
         case   14:  C4.PCl_s.toggle() ; break ;
         case   15:  C2.RAM_e.toggle() ; C4.EAh_e.toggle() ; C4.EAl_e.toggle() ;  break ;
         // Disable interrupts by setting the interrupt flag
-        case   16:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   16:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         case   17:  C5.ST_s.toggle() ; break ;
         case   18:  C5.ST_s.toggle() ; break ;
-        case   19:  C3.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
+        case   19:  C5.ST_bi.toggle() ; C5.ST_I_s.toggle() ; break ;
         
         case   20:  C1.STEP_clr = 0 ; break ;
         
