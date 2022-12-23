@@ -133,7 +133,7 @@ class CONTROL_3_ROM : public component {
         output<1> ALU_e, ST_e, ST_src, B_s ;
 
         CONTROL_3_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), 
-                            ALU_e(1), ST_e(1)  {
+                            ALU_e(1), ST_e(1), ST_src(1)  {
         } ;
 
         uint8_t make_cw(){
