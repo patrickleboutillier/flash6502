@@ -2,7 +2,7 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     if ((INST == INST_IRQ)||(INST == INST_NMI)){
         // Interrupt (IRQ or NMI). The controller has already setup INST, so there is nothing else to do.
         switch (step){
-            case    0:  C1.STEP_clr = 1 ; break ;   // it's important that nothing else happens here
+            case    0:  break ;                     // it's important that nothing happens here
             case    1:  C4.EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
             case    2:  C4.EAl_s.toggle() ; break ; //   store it in EAl
             case    3:  break ;
@@ -12,7 +12,7 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     }
     else {
         switch (step){
-            case    0:  C1.STEP_clr = 1 ; break ; // it's important that nothing else happens here
+            case    0:  break ;                     // it's important that nothing else happens here
             case    1:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; break ;
             case    2:  C2.INST_s.toggle() ; 
                         #ifdef ARDUINO
@@ -62,20 +62,18 @@ uint8_t imm(uint8_t step) { // 1 cycle
 
 uint8_t zp(uint8_t step) { // 3 cycles
     switch (step){
-        case    0:  break ;
+        case    0:  C4.EAh_s.toggle() ; break ;
         case    1:  C4.EAh_s.toggle() ; break ;
-        case    2:  C4.EAh_s.toggle() ; break ;
-        case    3:  break ;
 
-        case    4:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; break ;
-        case    5:  C4.EAl_s.toggle() ; break ;
-        case    6:  C4.EAl_s.toggle() ; break ;
-        case    7:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
+        case    2:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case    3:  C4.EAl_s.toggle() ; break ;
+        case    4:  C4.EAl_s.toggle() ; break ;
+        case    5:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; break ;
 
-        case    8:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
-        case    9:  C3.B_s.toggle() ; break ;
-        case   10:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case   11:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    6:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; break ;
+        case    7:  C3.B_s.toggle() ; break ;
+        case    8:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
+        case    9:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; C2.PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 

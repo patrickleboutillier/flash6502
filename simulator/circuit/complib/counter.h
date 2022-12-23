@@ -94,19 +94,20 @@ template <uint32_t W> class counter : public component {
             if (! clear){
                 _cnt = 0 ;
             }
-            
-            if (! load){
-                _cnt = data_in ;
-            }
-
-            if (enable){
-                if ((clk)&&(! _prev_clk)){
-                    _cnt = (_cnt + 1) & ((1 << W) - 1) ;
-                    rco = ((_cnt == ((1 << W) - 1)) ? 1 : 0) ;
+            else {
+                if (! load){
+                    _cnt = data_in ;
                 }
-                _prev_clk = clk ;
-            }
 
+                if (enable){
+                    if ((clk)&&(! _prev_clk)){
+                        _cnt = (_cnt + 1) & ((1 << W) - 1) ;
+                        rco = ((_cnt == ((1 << W) - 1)) ? 1 : 0) ;
+                    }
+                    _prev_clk = clk ;
+                }
+            }
+            
             data_out = _cnt ;
         } ;
 } ;
