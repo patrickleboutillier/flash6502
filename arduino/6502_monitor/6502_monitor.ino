@@ -7,7 +7,7 @@
 #include "IO.h"
 
 // Push button
-#define STEP 10         // push button
+#define STEP A6         // push button
 #define CTRL 12         // Activate controller for vectors and IO
 #define CTRL_ADDR0 A0
 #define CTRL_ADDR1 A1
@@ -16,6 +16,8 @@
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG PC_clr(NULL, 11) ;
+CTRLSIG CLK_async(NULL, 10, true) ;
+CTRLSIG STEP_clr(NULL, 13, true) ;
 
 Extension E1(1, "X, Y, ACC, ADDRl") ;
 CTRLSIG X_e(&E1, 12, true), X_s(&E1, 11), Y_e(&E1, A0, true), Y_s(&E1, A1) ;
@@ -47,14 +49,12 @@ VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
-bool DEBUG_STEP = false ;
+bool DEBUG_STEP = true ;
 #define MON_EVERY 1000
 
-byte STEP_clr = 1 ;
 byte INST = 0 ;
 
 
-bool STEP_button_pressed() ;
 #include "PROG.h"
 #include "fake6502.h"
 #include "PROGRAMS.h"
@@ -65,6 +65,9 @@ PROG *prog = &progTestSuite ;
 
   
 void setup() {
+  // Faster analog reads
+  ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
+
   Serial.begin(115200) ;
   Serial.println(F("Starting Flash6502.")) ;
   Serial.print(CTRLSIG::count()) ;
@@ -73,6 +76,8 @@ void setup() {
 
   DATA.setup() ;
   PC_clr.setup() ;
+  CLK_async.setup() ;
+  STEP_clr.setup() ;
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
@@ -129,46 +134,11 @@ void loop(){
       process_inst(0, 0xFF, DEBUG_STEP) ; 
 
       if (! DEBUG_STEP){
-        if (STEP_button_pressed()){
+        if (analog_button_pressed(STEP)){
           //DEBUG_STEP = true ;
           //DEBUG_MON = true ;
           process_interrupt(INST_IRQ) ;
         }
       }
   }
-}
-
-
-#define DEBOUNCE_DELAY_MS 50
-
-bool STEP_button_pressed(){
-  static bool button_state = HIGH ;
-  static bool last_button_state = button_state ;
-  static unsigned long last_debounce_time = 0 ;
-  bool ret = 0 ;
-  int reading = digitalRead(STEP) ;
-  
-  if (reading != last_button_state) {
-    last_debounce_time = millis() ;
-  }
-  
-  if ((millis() - last_debounce_time) > DEBOUNCE_DELAY_MS){
-    if (reading != button_state){
-      button_state = reading ;
-      if (button_state == HIGH){
-        ret = 1 ;
-      }
-    }
-  }
-
-  // save the reading. Next time through the loop, it'll be the lastButtonState:
-  last_button_state = reading ;
-   
-  return ret ;
-}
-
-
-void step(){
-   Serial.println(F("\nSTEP:")) ;
-   while (! STEP_button_pressed()){} ; 
 }

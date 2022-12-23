@@ -74,7 +74,7 @@ void step6502(const char *msg, int step, bool idle = false){
     Serial.print(step) ;
   }
   Serial.println() ;
-  while (! STEP_button_pressed()){} ;
+  while (! analog_button_pressed(STEP)){} ;
 }
 
 
@@ -102,7 +102,7 @@ void process_ctrl(){
 }
 
 
-unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug = false){
+unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
     
@@ -112,6 +112,8 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug = f
     for (int step = start_step ; step < max_steps ; step++){
         prev_ctrl = ctrl ;
 
+        CLK_async.pulse() ; // down/up
+        
         if (! fetch_done){
             if (fetch(step)){
                 ctrl = digitalRead(CTRL) ;
@@ -184,6 +186,12 @@ void insert_inst(uint8_t opcode){
 
 
 void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
+    STEP_clr.pulse() ;
+
+    if (DEBUG_STEP){
+      step6502("reset", 0) ;
+    }
+            
     // Install vectors in controller
     Serial.println(F("Starting reset sequence...")) ;
     VECTORS.set_reset(start_addr != 0xFF ? start_addr : prog->start_addr()) ;
@@ -214,6 +222,7 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
+    Serial.print(F("      -> ")) ;
     monitor6502(true) ;
     Serial.println() ;
     

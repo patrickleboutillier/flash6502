@@ -35,7 +35,11 @@ class CTRLSIG {
       write(_cache) ;
       _nb_setup++ ;
     }
-    
+
+    void operator=(uint8_t v){
+      write(v) ;
+    }
+        
     void write(uint8_t v){
       _cache = v ;
       if (_e != NULL){
