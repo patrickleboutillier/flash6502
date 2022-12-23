@@ -12,7 +12,7 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     }
     else {
         switch (step){
-            case    0:  STEP_clr = 1 ; break ; // it's important that nothing else happens here
+            case    0:  STEP_clr = 1 ; break ;   // it's important that nothing else happens here
             case    1:  PC_e.toggle() ; RAM_e.toggle() ; break ;
             case    2:  INST_s.toggle() ; 
                         #ifdef ARDUINO
@@ -62,20 +62,18 @@ uint8_t imm(uint8_t step) { // 1 cycle
 
 uint8_t zp(uint8_t step) { // 3 cycles
     switch (step){
-        case    0:  break ;
+        case    0:  EAh_s.toggle() ; break ;
         case    1:  EAh_s.toggle() ; break ;
-        case    2:  EAh_s.toggle() ; break ;
-        case    3:  break ;
 
-        case    4:  PC_e.toggle() ; RAM_e.toggle() ; break ;
-        case    5:  EAl_s.toggle() ; break ;
-        case    6:  EAl_s.toggle() ; break ;
-        case    7:  RAM_e.toggle() ; PC_e.toggle() ; break ;
+        case    2:  PC_e.toggle() ; RAM_e.toggle() ; break ;
+        case    3:  EAl_s.toggle() ; break ;
+        case    4:  EAl_s.toggle() ; break ;
+        case    5:  RAM_e.toggle() ; PC_e.toggle() ; break ;
 
-        case    8:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
-        case    9:  B_s.toggle() ; break ;
-        case   10:  B_s.toggle() ; PC_up.toggle() ; break ;
-        case   11:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
+        case    6:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        case    7:  B_s.toggle() ; break ;
+        case    8:  B_s.toggle() ; PC_up.toggle() ; break ;
+        case    9:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 

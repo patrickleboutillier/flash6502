@@ -49,7 +49,7 @@ VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
-bool DEBUG_STEP = true ;
+bool DEBUG_STEP = false ;
 #define MON_EVERY 1000
 
 byte INST = 0 ;

@@ -1653,7 +1653,7 @@ uint8_t rst2(uint8_t step){
         case    0:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
         case    1:  PCh_s.toggle() ; break ;
         case    2:  PCh_s.toggle() ; break ;
-        case    3:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        case    3:  RAM_e.toggle() ; EAh_e.toggle() ; EAl_e.toggle() ; break ;
         // Send EAl to B
         case    4:  EAl_e.toggle() ; Al2D_e.toggle() ; break ;
         case    5:  B_s.toggle() ; break ;
@@ -1665,18 +1665,18 @@ uint8_t rst2(uint8_t step){
         case    9:  EAl_s.toggle() ; break ;
         case   10:  EAl_s.toggle() ; break ;
         case   11:  ALU_op = 0 ; 
-                    ALU_e.toggle() ; break ;
+                    ALU_e.toggle() ; break ; 
         // RAM[EA] to PCl
         case   12:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
         case   13:  PCl_s.toggle() ; break ;
         case   14:  PCl_s.toggle() ; break ;
-        case   15:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; break ;
+        case   15:  RAM_e.toggle() ; EAh_e.toggle() ; EAl_e.toggle() ;  break ;
         // Disable interrupts by setting the interrupt flag
         case   16:  ST_bi.toggle() ; ST_I_s.toggle() ; break ;
         case   17:  ST_s.toggle() ; break ;
         case   18:  ST_s.toggle() ; break ;
         case   19:  ST_bi.toggle() ; ST_I_s.toggle() ; break ;
-
+        
         case   20:  STEP_clr = 0 ; break ;
         
         default:    return 0 ;

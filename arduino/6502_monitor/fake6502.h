@@ -26,10 +26,11 @@ PROGMEM const func6502 addrtable[256] = {
 /* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx,  imp  /* F */
 } ;
 
+#define boot nop
 
 PROGMEM const func6502 optable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst1, rst2,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  nop, /* 0 */
+/* 0 */      brk,  ora,  rst1, rst2,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  boot, /* 0 */
 /* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  nop, /* 1 */
 /* 2 */      jsr,  and_, nop,  nop,  bit_,  and_,  rol,  nop,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  nop, /* 2 */
 /* 3 */      bmi,  and_, nop,  nop,  nop,  and_,  rol,  nop,  sec,  and_,  nop,  nop,  nop,  and_,  rol,  nop, /* 3 */
@@ -111,8 +112,6 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     bool prev_ctrl = 0, ctrl = 0 ; 
     for (int step = start_step ; step < max_steps ; step++){
         prev_ctrl = ctrl ;
-
-        CLK_async.pulse() ; // down/up
         
         if (! fetch_done){
             if (fetch(step)){
@@ -123,6 +122,7 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
                 else if (prev_ctrl){
                   DATA.reset() ;
                 }
+                CLK_async.pulse() ; // down/up
                 if (debug){
                     step6502("fetch", step) ;
                 }
@@ -141,6 +141,7 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
                 else if (prev_ctrl){
                   DATA.reset() ;
                 }
+                CLK_async.pulse() ; // down/up
                 if (debug){
                   step6502("addr", step - addr_start) ;
                 }
@@ -159,6 +160,7 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
             else if (prev_ctrl){
               DATA.reset() ;
             }
+            CLK_async.pulse() ; // down/up
             if (debug){
               step6502("oper", step - op_start) ;
             }
@@ -174,23 +176,20 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
 
 
 void insert_inst(uint8_t opcode){
+    STEP_clr.pulse() ;
     DATA.write(opcode) ;
     PC_e.toggle() ;
     RAM_s.pulse() ;
     PC_e.toggle() ;
     DATA.reset() ;
-    // When we insert an instruction, we trigger an extra fetch (the new instruction), which increments the PC
-    // and extra time. We counter that here by decrementing it just before.
-    process_inst(0, 0xFF, DEBUG_STEP) ;
+    process_inst(0, 0xFF, false) ;
 }
 
 
 void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
-    STEP_clr.pulse() ;
-
-    if (DEBUG_STEP){
-      step6502("reset", 0) ;
-    }
+    //if (DEBUG_STEP){
+    //  step6502("reset", 0xFF) ;
+    //}
             
     // Install vectors in controller
     Serial.println(F("Starting reset sequence...")) ;
@@ -198,16 +197,20 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
     
+    STEP_clr.pulse() ;
+    PC_clr.pulse() ;
+
     inst_cnt = 0 ;
     // Clear INST register
-    DATA.write(INST_NOP) ;
+    DATA.write(INST_BOOT) ;
     INST_s.pulse() ;
-    INST = INST_NOP ;
+    INST = INST_BOOT ;
     DATA.reset() ;
 
     insert_inst(INST_RST1) ;
 
     Serial.println(F("- Loading program to RAM...")) ;
+    STEP_clr.pulse() ;
     PC_clr.pulse() ;
     for (int i = 0 ; i < prog->len() ; i++){
         byte inst = prog->get_byte(i) ;
