@@ -8,7 +8,7 @@ TEST(test_pl6502, STATUS){
     output<1> n_in, v_in, i_in, z_in, c_in ;
     output<1> nz_set, v_set, i_set, c_set, alu_c_set, alu_c_from_C ;
     output<8> data_in ;
-    output<1> data_enable(1), src_data, status_set ;
+    output<1> data_enable(1), src_data(1), status_set ;
     STATUS status ;
     n_in.connect(status.n_in) ;
     v_in.connect(status.v_in) ;
@@ -85,7 +85,7 @@ TEST(test_pl6502, STATUS){
         uint8_t data = i ;
         data_in = data ;
 
-        src_data = 1 ;
+        src_data = 0 ;
         nz_set = 1 ;
         v_set = 1 ;
         c_set = 1 ;
@@ -104,6 +104,6 @@ TEST(test_pl6502, STATUS){
         v_set = 0 ;
         c_set = 0 ;       
         i_set = 0 ;
-        src_data = 0 ;
+        src_data = 1 ;
     }
 }

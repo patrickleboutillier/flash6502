@@ -25,3 +25,4 @@ flash_CTRL4:
 
 flash_CTRL5:
 	minipro -p $(FLASH) -w CONTROL_5_ROM.bin
+	
