@@ -8,7 +8,7 @@ INPUT:
         - CTRL: A0
         - RAM_e: A1
         - RAM_s: A2
-        - STATUS.I: A3
+        - STATUS.I: A3  // For now. Maybe STEP_clr is better? 
       - B:
         - ADDRl: A0 -> A3
     - IRQ: A6
@@ -24,4 +24,4 @@ OUTPUT:
         - 3: RAM_s
         - 4: PC_up
         - 5: STEP_clr
-        - 6: PC_clr (replace by PC_s)
+        - 6: PC_clr (using a NOT gate...)

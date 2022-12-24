@@ -10,6 +10,7 @@
 #include "bus.h"
 #include "tristate.h"
 #include "counter.h"
+#include "not.h"
 
 #include "RAM.h"
 #include "ALU.h"
@@ -57,12 +58,11 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-// TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
 
-output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
-output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
-output<1> ctrl_STEP_clr(1) ;
+output<1> ctrl_INST_s ; 
+output<1> ctrl_PC_e(1), ctrl_PC_clr(1) ;
+not_<1> not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -102,11 +102,12 @@ void init6502(){
     C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
+    ctrl_PC_clr.connect(not_PC_clr.a) ;
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
     VCC.connect(PCl.down) ;
-    ctrl_PC_clr.connect(PCl.clear) ;
+    not_PC_clr.b.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -115,7 +116,7 @@ void init6502(){
     C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    ctrl_PC_clr.connect(PCh.clear) ;
+    not_PC_clr.b.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
@@ -191,24 +192,24 @@ void init6502(){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    //CLK_async.connect(STEP.clk) ;
+    CTRL_OUT.CLK_async.connect(STEP.clk) ;
     C1.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    ctrl_STEP_clr.connect(C1.n) ;
+    CTRL_OUT.STEP_clr.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
     STEP.data_out.connect(C1.step) ;
 
     INST.data_out.connect(C2.inst) ;
-    ctrl_PC_up.connect(C2.n) ;
+    CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
     ctrl_INST_s.connect(C2.z) ;
-    ctrl_RAM_s.connect(C2.c) ;
+    CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
@@ -237,8 +238,6 @@ void init6502(){
     C2.RAM_e.connect(CTRL_IN.ctrl2) ;
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
     STATUS.I.connect(CTRL_IN.ctrl4) ;
-
-    CTRL_OUT.CLK_async.connect(STEP.clk) ;
 }
 
 
@@ -274,7 +273,7 @@ void process_ctrl(){
 int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
     while (1){
-        CTRL_OUT.CLK_async.pulse() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ;
         // Check if the controller needs to do something
         if (CTRL_IN.ctrl1){ // RAM.ctrl
             process_ctrl() ;
@@ -296,12 +295,12 @@ int process_inst(uint8_t max_steps = 0xFF){
 
 
 void insert_inst(uint8_t opcode){
-    ctrl_STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_DATA.drive(true) ;
     ctrl_DATA = opcode ;
     ctrl_PC_e.toggle() ;
-    ctrl_RAM_s.pulse() ;
+    CTRL_OUT.pulse(RAM_S) ;
     ctrl_PC_e.toggle() ;
     ctrl_DATA.drive(false) ;
 
@@ -316,7 +315,7 @@ void reset6502(PROG *prog){
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
     // Clear step counter and program counter
-    ctrl_STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     ctrl_PC_clr.pulse() ;
 
     // Initialize INST register to BOOT
@@ -327,17 +326,17 @@ void reset6502(PROG *prog){
 
     insert_inst(INST_RST1) ;
 
-    ctrl_STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     ctrl_PC_clr.pulse() ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){
         ctrl_DATA.drive(true) ;
         ctrl_DATA = prog->get_byte(i) ;
         ctrl_PC_e.toggle() ;
-        ctrl_RAM_s.pulse() ;
+        CTRL_OUT.pulse(RAM_S) ;
         ctrl_PC_e.toggle() ;
         ctrl_DATA.drive(false) ;
-        ctrl_PC_up.pulse() ;
+        CTRL_OUT.pulse(PC_UP) ;
     }
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;

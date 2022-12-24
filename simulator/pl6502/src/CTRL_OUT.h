@@ -31,7 +31,7 @@ class CTRL_OUT : public component {
             CLK_async = (cmd == CLK_ASYNC ? 0 : 1) ;
             CLK_sync = (cmd == CLK_SYNC ? 0 : 1) ;
             RAM_s = (cmd == RAM_S ? 0 : 1) ;
-            PC_up = (cmd == PC_up ? 0 : 1) ;
+            PC_up = (cmd == PC_UP ? 0 : 1) ;
             STEP_clr = (cmd == STEP_CLR ? 0 : 1) ;
         } ;
 
