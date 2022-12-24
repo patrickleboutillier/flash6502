@@ -23,6 +23,7 @@
 
 class ALU_OP {
   private:
+    bool _setup ;
     CTRLSIG *_o3, *_o2, *_o1, *_o0 ;
     
   public:    
@@ -31,6 +32,7 @@ class ALU_OP {
       _o2 = o2 ;
       _o1 = o1 ;
       _o0 = o0 ;
+      _setup = false ;
     }
 
     void setup(){
@@ -38,13 +40,16 @@ class ALU_OP {
       _o2->setup() ;
       _o1->setup() ;
       _o0->setup() ;  
+      _setup = true ;
     }
     
     void operator=(byte op){
-      _o3->write((op >> 3) & 1) ;
-      _o2->write((op >> 2) & 1) ;
-      _o1->write((op >> 1) & 1) ;
-      _o0->write((op >> 0) & 1) ;
+      if (_setup){
+        _o3->write((op >> 3) & 1) ;
+        _o2->write((op >> 2) & 1) ;
+        _o1->write((op >> 1) & 1) ;
+        _o0->write((op >> 0) & 1) ;
+      }
     }
 } ;
 

@@ -83,11 +83,15 @@ void setup() {
   ACC_s.setup() ; ACC_e.setup() ;
   SP_down.setup() ; SP_s.setup() ; SP_e.setup() ; EAl_s.setup() ; 
   PC_up.setup() ; PC_e.setup() ;
-  
   A_s.setup() ;
-  ALU_op.setup() ;
+
+  // CTRL ROM 3
+  /* ALU_op.setup() ;
   ALU_e.setup() ;
   B_s.setup() ;
+  ST_e.setup() ;
+  ST_src.setup() ; */
+
   INST_s.setup() ;
   Al2D_e.setup() ; Ah2D_e.setup() ;
   EAl_e.setup() ; PCl_s.setup() ;
@@ -96,11 +100,11 @@ void setup() {
   ST_s.setup() ;
   ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
   ST_ALU_C_from_C.setup() ;
-  ST_src.setup() ;
-  ST_e.setup() ;
+
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
-  CTRLSIG::check() ;
+  
+  //CTRLSIG::check() ;
   
   prog->describe() ;
   Serial.println() ;
