@@ -4,12 +4,12 @@ INPUT/OUTPUT:
 
 INPUT:
     - Use SN74HC157 chip, pin 13 as selector
-      - A
+      - A:
         - CTRL: A0
         - RAM_e: A1
         - RAM_s: A2
         - STATUS.I: A3
-      - B
+      - B:
         - ADDRl: A0 -> A3
     - IRQ: A6
     - NMI: A7
@@ -23,4 +23,4 @@ OUTPUT:
         - RAM_s
         - PC_up
         - STEP_clr
-        - PC_clr
+        - PC_clr (replace by PC_s)
