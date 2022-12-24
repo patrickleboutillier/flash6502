@@ -61,7 +61,7 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
 
 output<1> ctrl_INST_s ; 
-output<1> ctrl_PC_e(1), ctrl_PC_clr(1) ;
+output<1> ctrl_PC_e(1) ;
 not_<1> not_PC_clr ;
 output<8> ctrl_DATA ;
 
@@ -102,7 +102,7 @@ void init6502(){
     C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    ctrl_PC_clr.connect(not_PC_clr.a) ;
+    CTRL_OUT.PC_clr.connect(not_PC_clr.a) ;
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
@@ -316,7 +316,7 @@ void reset6502(PROG *prog){
 
     // Clear step counter and program counter
     CTRL_OUT.pulse(STEP_CLR) ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(PC_CLR) ;
 
     // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
@@ -327,7 +327,7 @@ void reset6502(PROG *prog){
     insert_inst(INST_RST1) ;
 
     CTRL_OUT.pulse(STEP_CLR) ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){
         ctrl_DATA.drive(true) ;
