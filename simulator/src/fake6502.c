@@ -59,11 +59,10 @@ output<1> INST_e(1) ;
 
 // TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> CLK_async(1) ;
 
 output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
 output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
-output<1> ctrl_STEP_clr(1), STEP_cnt_e ;
+output<1> ctrl_STEP_clr(1) ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -192,11 +191,10 @@ void init6502(){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    CLK_async.connect(STEP.clk) ;
+    //CLK_async.connect(STEP.clk) ;
     C1.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
-    STEP_cnt_e.connect(STEP.enable) ;
-    STEP_cnt_e = 1 ;
+    VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
@@ -240,7 +238,7 @@ void init6502(){
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
     STATUS.I.connect(CTRL_IN.ctrl4) ;
 
-    //CTRL_OUT.CLK_async.connect(STEP.clk) ;
+    CTRL_OUT.CLK_async.connect(STEP.clk) ;
 }
 
 
@@ -276,7 +274,7 @@ void process_ctrl(){
 int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
     while (1){
-        CLK_async.pulse() ;
+        CTRL_OUT.CLK_async.pulse() ;
         // Check if the controller needs to do something
         if (CTRL_IN.ctrl1){ // RAM.ctrl
             process_ctrl() ;
