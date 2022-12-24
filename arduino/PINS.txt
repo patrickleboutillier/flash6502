@@ -3,19 +3,24 @@ INPUT/OUTPUT:
     - DATA BUS: 2 -> 9
 
 INPUT:
-    - ADDRl: A0 -> A3
-    - Use 7400 chip:
-        - CTRL NAND !RAM_s: A4
-        - CTRL NAND !RAM_e: A5
+    - Use SN74HC157 chip, pin 13 as selector
+      - A:
+        - CTRL: A0
+        - RAM_e: A1
+        - RAM_s: A2
+        - STATUS.I: A3
+      - B:
+        - ADDRl: A0 -> A3
     - IRQ: A6
     - NMI: A7
 
 OUTPUT:
-    - PC_e: 13
-    - Use 3x8 decoder (10-12)?
-        - CLK
+    - PC_e: A4
+    - INST_s: A5
+    - Use SN74HC138 decoder (10-12), all negative logic signals:
+        - CLK_async
+        - CLK_sync
         - RAM_s
         - PC_up
         - STEP_clr
-        - PC_clr
-        - INST_s
+        - PC_clr (replace by PC_s)
