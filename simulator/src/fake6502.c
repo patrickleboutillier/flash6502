@@ -15,6 +15,7 @@
 #include "ALU.h"
 #include "STATUS.h"
 #include "CTRL_IN.h"
+#include "CTRL_OUT.h"
 #include "CONTROL_ROMS.h"
 #include "vectors.h"
 #include "io.h"
@@ -31,7 +32,8 @@ CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
 
 output<1> ctrl_in_src ;
 CTRL_IN CTRL_IN(&ctrl_in_src) ;
-
+output<3> ctrl_out_cmd ;
+CTRL_OUT CTRL_OUT(&ctrl_out_cmd) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -232,12 +234,13 @@ void init6502(){
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
 
-    ctrl_in_src.connect(CTRL_IN.ctrl_or_addr) ;
     ADDRl.data_out.connect(CTRL_IN.addrl) ;
     RAM.ctrl.connect(CTRL_IN.ctrl1) ;
     C2.RAM_e.connect(CTRL_IN.ctrl2) ;
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
     STATUS.I.connect(CTRL_IN.ctrl4) ;
+
+    //CTRL_OUT.CLK_async.connect(STEP.clk) ;
 }
 
 
