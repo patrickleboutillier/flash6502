@@ -193,13 +193,13 @@ void init6502(){
     INST_e = 0 ; // always enabled
 
     CTRL_OUT.CLK_async.connect(STEP.clk) ;
-    C1.STEP_clr.connect(STEP.clear) ;
+    CTRL_OUT.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    CTRL_OUT.STEP_clr.connect(C1.n) ;
+    GND.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
@@ -237,7 +237,7 @@ void init6502(){
     RAM.ctrl.connect(CTRL_IN.ctrl1) ;
     C2.RAM_e.connect(CTRL_IN.ctrl2) ;
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
-    C1.STEP_clr.connect(CTRL_IN.ctrl4) ;
+    C1.INST_done.connect(CTRL_IN.ctrl4) ;
 }
 
 
@@ -279,7 +279,8 @@ int process_inst(uint8_t max_steps = 0xFF){
             process_ctrl() ;
         }
 
-        if (! STEP){ // STEP_clr
+        if (CTRL_IN.out4){ // INST_done
+            CTRL_OUT.pulse(STEP_CLR) ;
             break ;
         }
         if (nb_steps == max_steps){
