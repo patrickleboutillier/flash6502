@@ -237,12 +237,12 @@ void init6502(){
     RAM.ctrl.connect(CTRL_IN.ctrl1) ;
     C2.RAM_e.connect(CTRL_IN.ctrl2) ;
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
-    STATUS.I.connect(CTRL_IN.ctrl4) ;
+    C1.STEP_clr.connect(CTRL_IN.ctrl4) ;
 }
 
 
 void process_ctrl(){
-    if (! CTRL_IN.ctrl2){   // RAM_e
+    if (! CTRL_IN.out2){   // RAM_e
         uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
@@ -257,7 +257,7 @@ void process_ctrl(){
         ctrl_DATA.drive(false) ;
     }
 
-    if (! CTRL_IN.ctrl3){    // RAM_s
+    if (! CTRL_IN.out3){    // RAM_s
         uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
@@ -275,11 +275,11 @@ int process_inst(uint8_t max_steps = 0xFF){
     while (1){
         CTRL_OUT.pulse(CLK_ASYNC) ;
         // Check if the controller needs to do something
-        if (CTRL_IN.ctrl1){ // RAM.ctrl
+        if (CTRL_IN.out1){ // RAM.ctrl
             process_ctrl() ;
         }
 
-        if (STEP == 0){
+        if (! STEP){ // STEP_clr
             break ;
         }
         if (nb_steps == max_steps){
@@ -444,7 +444,8 @@ int main(int argc, char *argv[]){
             switch (itype){
                 case 'i':
                     // Process interrupt only if interrupt disable is off.
-                    if (! CTRL_IN.out4){
+                    // TODO: Check for this in process_inst using actual gates.
+                    if (! STATUS.I){
                         process_interrupt(INST_IRQ) ;
                     }
                     break ;
