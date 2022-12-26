@@ -10,10 +10,13 @@
 #include "bus.h"
 #include "tristate.h"
 #include "counter.h"
+#include "not.h"
 
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
+#include "CTRL_IN.h"
+#include "CTRL_OUT.h"
 #include "CONTROL_ROMS.h"
 #include "vectors.h"
 #include "io.h"
@@ -27,6 +30,11 @@ CONTROL_3_ROM C3 ;
 CONTROL_4_ROM C4 ;
 CONTROL_5_ROM C5 ;
 CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
+
+output<1> ctrl_in_src ;
+CTRL_IN CTRL_IN(&ctrl_in_src) ;
+output<3> ctrl_out_cmd ;
+CTRL_OUT CTRL_OUT(&ctrl_out_cmd) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -50,13 +58,11 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-// TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> CLK(1) ; 
 
-output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
-output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
-output<1> ctrl_STEP_clr(1), STEP_cnt_e ;
+output<1> ctrl_INST_s ; 
+output<1> ctrl_PC_e(1) ;
+not_<1> not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -96,11 +102,12 @@ void init6502(){
     C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
+    CTRL_OUT.PC_clr.connect(not_PC_clr.a) ;
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
     VCC.connect(PCl.down) ;
-    ctrl_PC_clr.connect(PCl.clear) ;
+    not_PC_clr.b.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -109,7 +116,7 @@ void init6502(){
     C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    ctrl_PC_clr.connect(PCh.clear) ;
+    not_PC_clr.b.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
@@ -185,25 +192,24 @@ void init6502(){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    CLK.connect(STEP.clk) ;
-    C1.STEP_clr.connect(STEP.clear) ;
+    CTRL_OUT.CLK_async.connect(STEP.clk) ;
+    CTRL_OUT.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
-    STEP_cnt_e.connect(STEP.enable) ;
-    STEP_cnt_e = 1 ;
+    VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    ctrl_STEP_clr.connect(C1.n) ;
+    GND.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
     STEP.data_out.connect(C1.step) ;
 
     INST.data_out.connect(C2.inst) ;
-    ctrl_PC_up.connect(C2.n) ;
+    CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
     ctrl_INST_s.connect(C2.z) ;
-    ctrl_RAM_s.connect(C2.c) ;
+    CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
@@ -226,12 +232,18 @@ void init6502(){
     GND.connect(C5.z) ;
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
+
+    ADDRl.data_out.connect(CTRL_IN.addrl) ;
+    RAM.ctrl.connect(CTRL_IN.ctrl1) ;
+    C2.RAM_e.connect(CTRL_IN.ctrl2) ;
+    C2.RAM_s.connect(CTRL_IN.ctrl3) ;
+    C1.INST_done.connect(CTRL_IN.ctrl4) ;
 }
 
 
 void process_ctrl(){
-    uint8_t addr = ADDRl.data_out & 0xF ;
-    if (! C2.RAM_e){
+    if (! CTRL_IN.out2){   // RAM_e
+        uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
         if (addr < 0xA){
@@ -245,7 +257,8 @@ void process_ctrl(){
         ctrl_DATA.drive(false) ;
     }
 
-    if (! C2.RAM_s){
+    if (! CTRL_IN.out3){    // RAM_s
+        uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
             IO.set_byte(addr, (uint8_t)DATA.data_out) ;
@@ -260,13 +273,14 @@ void process_ctrl(){
 int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
     while (1){
-        CLK.pulse() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ;
         // Check if the controller needs to do something
-        if (RAM.ctrl.get_value()){
+        if (CTRL_IN.out1){ // RAM.ctrl
             process_ctrl() ;
         }
 
-        if (STEP == 0){
+        if (CTRL_IN.out4){ // INST_done
+            CTRL_OUT.pulse(STEP_CLR) ;
             break ;
         }
         if (nb_steps == max_steps){
@@ -282,12 +296,12 @@ int process_inst(uint8_t max_steps = 0xFF){
 
 
 void insert_inst(uint8_t opcode){
-    ctrl_STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_DATA.drive(true) ;
     ctrl_DATA = opcode ;
     ctrl_PC_e.toggle() ;
-    ctrl_RAM_s.pulse() ;
+    CTRL_OUT.pulse(RAM_S) ;
     ctrl_PC_e.toggle() ;
     ctrl_DATA.drive(false) ;
 
@@ -302,8 +316,8 @@ void reset6502(PROG *prog){
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
     // Clear step counter and program counter
-    ctrl_STEP_clr.pulse() ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
 
     // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
@@ -313,17 +327,17 @@ void reset6502(PROG *prog){
 
     insert_inst(INST_RST1) ;
 
-    ctrl_STEP_clr.pulse() ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){
         ctrl_DATA.drive(true) ;
         ctrl_DATA = prog->get_byte(i) ;
         ctrl_PC_e.toggle() ;
-        ctrl_RAM_s.pulse() ;
+        CTRL_OUT.pulse(RAM_S) ;
         ctrl_PC_e.toggle() ;
         ctrl_DATA.drive(false) ;
-        ctrl_PC_up.pulse() ;
+        CTRL_OUT.pulse(PC_UP) ;
     }
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
@@ -431,6 +445,7 @@ int main(int argc, char *argv[]){
             switch (itype){
                 case 'i':
                     // Process interrupt only if interrupt disable is off.
+                    // TODO: Check for this in process_inst using actual gates.
                     if (! STATUS.I){
                         process_interrupt(INST_IRQ) ;
                     }
