@@ -46,8 +46,21 @@ The operations are defined as such:
 
 Here are the details of each of the pins for the 2 Flash chips, ALU Low and ALU High:
 #### ALU Low
+- A16, A15, A12, A7: The lower nibble of the A register.
+- A3, A2, A1, A0: The lower nibble of the B register.
+- A13, A8, A9, A11: The ALU operation (see above).
+- A10: The "ALU carry" output of the Status section.
+- A17: Bit 4 of the B register. Used, for example, during the "shift right" operations.
+- A14: Bit 7 of the B register. Used during the "sign extend" operation. 
+- DQ3, DQ2, DQ1, DQ0: the result of the operation (these pins are connected to the Data Bus).
+- DQ6: The "zero" output of the operation.
+- DQ5: The "carry" output of the operation.
+- DQ4: The "shift" output of the operation.
+- OE#: Connected to the *ALU_e* control signal used to enable the result onto the Data Bus.
+
 #### ALU High
 
+#### Control signals
 The control signals for the sections are *ALU[3-0]*, *ALU_e*, *A_s* and *B_s*.
 
 ### Status
