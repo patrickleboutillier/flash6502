@@ -13,12 +13,12 @@
 class CONTROL_1_ROM : public component {
     public:
         input<8> inst ;
-        input<1> n, v, z, c ; // n here is used to enable STEP_clr
+        input<1> n, v, z, c ;
         input<6> step ;
-        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, A_s, STEP_clr ;
+        output<1> X_s, X_e, Y_s, Y_e, ACC_s, ACC_e, A_s, INST_done ;
 
         CONTROL_1_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this),
-                            X_e(1), Y_e(1), ACC_e(1), STEP_clr(1) {
+                            X_e(1), Y_e(1), ACC_e(1) {
         } ;
 
         uint8_t make_cw(){
@@ -30,7 +30,7 @@ class CONTROL_1_ROM : public component {
                 ACC_s << 4 |
                 ACC_e << 5 |
                 A_s << 6 |
-                STEP_clr << 7 ;
+                INST_done << 7 ;
         }
 
         void always(){
@@ -44,14 +44,7 @@ class CONTROL_1_ROM : public component {
             set_signal_1(ACC_s, 4) ;
             set_signal_1(ACC_e, 5) ;
             set_signal_1(A_s, 6) ;
-            
-            // STEP_clr for reset sequence.
-            if (! n){
-                STEP_clr = 0 ;
-            }
-            else {
-                set_signal_1(STEP_clr, 7) ;
-            }
+            set_signal_1(INST_done, 7) ;
         } ;
 } ;
 

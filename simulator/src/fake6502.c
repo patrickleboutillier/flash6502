@@ -193,13 +193,13 @@ void init6502(){
     INST_e = 0 ; // always enabled
 
     CTRL_OUT.CLK_async.connect(STEP.clk) ;
-    C1.STEP_clr.connect(STEP.clear) ;
+    CTRL_OUT.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    CTRL_OUT.STEP_clr.connect(C1.n) ;
+    GND.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
@@ -237,12 +237,12 @@ void init6502(){
     RAM.ctrl.connect(CTRL_IN.ctrl1) ;
     C2.RAM_e.connect(CTRL_IN.ctrl2) ;
     C2.RAM_s.connect(CTRL_IN.ctrl3) ;
-    STATUS.I.connect(CTRL_IN.ctrl4) ;
+    C1.INST_done.connect(CTRL_IN.ctrl4) ;
 }
 
 
 void process_ctrl(){
-    if (! CTRL_IN.ctrl2){   // RAM_e
+    if (! CTRL_IN.out2){   // RAM_e
         uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
@@ -257,7 +257,7 @@ void process_ctrl(){
         ctrl_DATA.drive(false) ;
     }
 
-    if (! CTRL_IN.ctrl3){    // RAM_s
+    if (! CTRL_IN.out3){    // RAM_s
         uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
@@ -275,11 +275,12 @@ int process_inst(uint8_t max_steps = 0xFF){
     while (1){
         CTRL_OUT.pulse(CLK_ASYNC) ;
         // Check if the controller needs to do something
-        if (CTRL_IN.ctrl1){ // RAM.ctrl
+        if (CTRL_IN.out1){ // RAM.ctrl
             process_ctrl() ;
         }
 
-        if (STEP == 0){
+        if (CTRL_IN.out4){ // INST_done
+            CTRL_OUT.pulse(STEP_CLR) ;
             break ;
         }
         if (nb_steps == max_steps){
@@ -444,7 +445,8 @@ int main(int argc, char *argv[]){
             switch (itype){
                 case 'i':
                     // Process interrupt only if interrupt disable is off.
-                    if (! CTRL_IN.out4){
+                    // TODO: Check for this in process_inst using actual gates.
+                    if (! STATUS.I){
                         process_interrupt(INST_IRQ) ;
                     }
                     break ;
