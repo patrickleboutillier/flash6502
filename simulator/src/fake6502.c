@@ -14,6 +14,7 @@
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
+#include "CTRL_IN.h"
 #include "CONTROL_ROMS.h"
 #include "vectors.h"
 #include "io.h"
@@ -27,6 +28,10 @@ CONTROL_3_ROM C3 ;
 CONTROL_4_ROM C4 ;
 CONTROL_5_ROM C5 ;
 CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
+
+output<1> ctrl_in_src ;
+CTRL_IN CTRL_IN(&ctrl_in_src) ;
+
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -52,7 +57,7 @@ output<1> INST_e(1) ;
 
 // TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> CLK(1) ; 
+output<1> CLK_async(1) ;
 
 output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
 output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
@@ -185,7 +190,7 @@ void init6502(){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    CLK.connect(STEP.clk) ;
+    CLK_async.connect(STEP.clk) ;
     C1.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     STEP_cnt_e.connect(STEP.enable) ;
@@ -226,12 +231,19 @@ void init6502(){
     GND.connect(C5.z) ;
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
+
+    ctrl_in_src.connect(CTRL_IN.ctrl_or_addr) ;
+    ADDRl.data_out.connect(CTRL_IN.addrl) ;
+    RAM.ctrl.connect(CTRL_IN.ctrl1) ;
+    C2.RAM_e.connect(CTRL_IN.ctrl2) ;
+    C2.RAM_s.connect(CTRL_IN.ctrl3) ;
+    STATUS.I.connect(CTRL_IN.ctrl4) ;
 }
 
 
 void process_ctrl(){
-    uint8_t addr = ADDRl.data_out & 0xF ;
-    if (! C2.RAM_e){
+    if (! CTRL_IN.ctrl2){   // RAM_e
+        uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
         if (addr < 0xA){
@@ -245,7 +257,8 @@ void process_ctrl(){
         ctrl_DATA.drive(false) ;
     }
 
-    if (! C2.RAM_s){
+    if (! CTRL_IN.ctrl3){    // RAM_s
+        uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
             IO.set_byte(addr, (uint8_t)DATA.data_out) ;
@@ -260,9 +273,9 @@ void process_ctrl(){
 int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
     while (1){
-        CLK.pulse() ;
+        CLK_async.pulse() ;
         // Check if the controller needs to do something
-        if (RAM.ctrl.get_value()){
+        if (CTRL_IN.ctrl1){ // RAM.ctrl
             process_ctrl() ;
         }
 
@@ -431,7 +444,7 @@ int main(int argc, char *argv[]){
             switch (itype){
                 case 'i':
                     // Process interrupt only if interrupt disable is off.
-                    if (! STATUS.I){
+                    if (! CTRL_IN.out4){
                         process_interrupt(INST_IRQ) ;
                     }
                     break ;
