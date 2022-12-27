@@ -59,10 +59,9 @@ reg<8> INST ;
 output<1> INST_e(1) ;
 
 counter<6> STEP ;
-
-output<1> ctrl_INST_s ; 
+ 
 output<1> ctrl_PC_e(1) ;
-not_<1> not_PC_clr ;
+not_<1> not_INST_s, not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -102,11 +101,11 @@ void init6502(){
     C4.EAl_s.connect(EAl.set) ;
     EAl.data_out.connect(ADDRl.data_in) ;
 
-    CTRL_OUT.PC_clr.connect(not_PC_clr.a) ;
     DATA.data_out.connect(PCl.data_in) ;
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
     VCC.connect(PCl.down) ;
+    CTRL_OUT.PC_clr.connect(not_PC_clr.a) ;
     not_PC_clr.b.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
@@ -208,7 +207,8 @@ void init6502(){
     INST.data_out.connect(C2.inst) ;
     CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
-    ctrl_INST_s.connect(C2.z) ;
+    CTRL_OUT.INST_s.connect(not_INST_s.a) ;
+    not_INST_s.b.connect(C2.z) ;
     CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
@@ -235,14 +235,15 @@ void init6502(){
 
     ADDRl.data_out.connect(CTRL_IN.addrl) ;
     RAM.ctrl.connect(CTRL_IN.ctrl1) ;
-    C2.RAM_e.connect(CTRL_IN.ctrl2) ;
-    C2.RAM_s.connect(CTRL_IN.ctrl3) ;
-    C1.INST_done.connect(CTRL_IN.ctrl4) ;
+    C1.INST_done.connect(CTRL_IN.ctrl2) ;
+    C2.RAM_e.connect(CTRL_IN.ctrl3) ;
+    C2.RAM_s.connect(CTRL_IN.ctrl4) ;
+
 }
 
 
 void process_ctrl(){
-    if (! CTRL_IN.out2){   // RAM_e
+    if (! CTRL_IN.out3){   // RAM_e
         uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
@@ -257,7 +258,7 @@ void process_ctrl(){
         ctrl_DATA.drive(false) ;
     }
 
-    if (! CTRL_IN.out3){    // RAM_s
+    if (! CTRL_IN.out4){    // RAM_s
         uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
@@ -279,7 +280,7 @@ int process_inst(uint8_t max_steps = 0xFF){
             process_ctrl() ;
         }
 
-        if (CTRL_IN.out4){ // INST_done
+        if (CTRL_IN.out2){ // INST_done
             CTRL_OUT.pulse(STEP_CLR) ;
             break ;
         }
@@ -322,7 +323,7 @@ void reset6502(PROG *prog){
     // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_BOOT ;
-    ctrl_INST_s.pulse() ;
+    CTRL_OUT.pulse(INST_S) ;
     ctrl_DATA.drive(false) ;
 
     insert_inst(INST_RST1) ;
@@ -359,7 +360,7 @@ void process_interrupt(uint8_t inst){
     // fetch stage. See fetch() in addrmodes.h
     ctrl_DATA.drive(true) ;
     ctrl_DATA = inst ;
-    ctrl_INST_s.pulse() ;
+    CTRL_OUT.pulse(INST_S) ;
     process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
     ctrl_DATA.drive(false) ; // Reset the data bus
     process_inst() ;         // finish the instruction
@@ -372,7 +373,7 @@ void process_interrupt(uint8_t inst){
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_NOP ;
-    ctrl_INST_s.pulse() ;
+    CTRL_OUT.pulse(INST_S) ;
     ctrl_DATA.drive(false) ;
 }
 
