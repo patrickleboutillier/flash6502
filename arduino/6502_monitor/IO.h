@@ -25,7 +25,7 @@ class IO {
             case 0x0: // stdin
               return ;
             case 0x1: // stdout 
-              Serial.print(data) ;
+              Serial.print((char)data) ;
               return ;
         }
     }

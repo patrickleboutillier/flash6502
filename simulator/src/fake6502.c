@@ -139,7 +139,7 @@ void init6502(){
 
     DATA.data_out.connect(B.data_in) ;
     B_e.connect(B.enable) ;
-    C1.B_s.connect(B.set) ;
+    C3.B_s.connect(B.set) ;
     B_e = 0 ; // always enabled  
 
     DATA.data_out.connect(X.data_in) ;
@@ -166,7 +166,7 @@ void init6502(){
     ALU_v.data_out.connect(STATUS.v_in) ;
     ALU_z.data_out.connect(STATUS.z_in) ;
     ALU_c.data_out.connect(STATUS.c_in) ;
-    C3.ST_bi.connect(STATUS.i_in) ;
+    C5.ST_bi.connect(STATUS.i_in) ;
 
     C5.ST_NZ_s.connect(STATUS.nz_set) ;
     C5.ST_V_s.connect(STATUS.v_set) ;
@@ -176,7 +176,7 @@ void init6502(){
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
     C5.ST_s.connect(STATUS.set) ;
     C3.ST_e.connect(STATUS.data_enable) ;
-    C5.ST_src.connect(STATUS.src_data) ;
+    C3.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
     STATUS.data_out.connect(DATA.data_in) ;
 
@@ -186,14 +186,14 @@ void init6502(){
     INST_e = 0 ; // always enabled
 
     CLK.connect(STEP.clk) ;
-    C3.STEP_clr.connect(STEP.clear) ;
+    C1.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
     STEP_cnt_e.connect(STEP.enable) ;
     STEP_cnt_e = 1 ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    GND.connect(C1.n) ;
+    ctrl_STEP_clr.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
@@ -207,7 +207,7 @@ void init6502(){
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
-    ctrl_STEP_clr.connect(C3.n) ;
+    GND.connect(C3.n) ;
     GND.connect(C3.v) ;
     GND.connect(C3.z) ;
     GND.connect(C3.c) ;
@@ -290,8 +290,7 @@ void insert_inst(uint8_t opcode){
     ctrl_RAM_s.pulse() ;
     ctrl_PC_e.toggle() ;
     ctrl_DATA.drive(false) ;
-    // When we insert an instruction, we trigger an extra fetch (the new instruction), which increments the PC
-    // and extra time. We counter that here by decrementing it just before.
+
     process_inst() ;
 }
 
@@ -302,16 +301,19 @@ void reset6502(PROG *prog){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
-    // Clear INST register
+    // Clear step counter and program counter
+    ctrl_STEP_clr.pulse() ;
+    ctrl_PC_clr.pulse() ;
+
+    // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
-    ctrl_DATA = INST_NOP ;
+    ctrl_DATA = INST_BOOT ;
     ctrl_INST_s.pulse() ;
     ctrl_DATA.drive(false) ;
 
     insert_inst(INST_RST1) ;
 
     ctrl_STEP_clr.pulse() ;
-    assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_PC_clr.pulse() ;
     // Load the program to RAM
     for (uint32_t i = 0 ; i < prog->len() ; i++){
@@ -424,9 +426,19 @@ int main(int argc, char *argv[]){
         // Check for interrupts from stdio
         char buf[9] ;
         int n = read(0, buf, 8) ;
-        buf[n] = '\0' ;
-        if ((n > 0)&&((buf[0] == 'i')||(buf[0] == 'n'))) {
-            process_interrupt(buf[0] == 'i' ? INST_IRQ : INST_NMI) ;
+        if (n > 0){
+            char itype = buf[0] ;
+            switch (itype){
+                case 'i':
+                    // Process interrupt only if interrupt disable is off.
+                    if (! STATUS.I){
+                        process_interrupt(INST_IRQ) ;
+                    }
+                    break ;
+                case 'n':
+                    process_interrupt(INST_NMI) ;
+                    break ;
+            }
         }
     }
 }

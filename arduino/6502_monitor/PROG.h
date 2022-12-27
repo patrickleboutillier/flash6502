@@ -17,8 +17,8 @@ class PROG {
     uint16_t _done_addr ;
     
   public:
-    // Program that is defined in the Arduino or simulator RAM
-    PROG(const char *name, const uint8_t *bytes, uint16_t len, uint16_t start_addr = 0, uint16_t int_addr = 0, uint16_t nmi_addr = 0, uint16_t done_addr = 0){
+    // Program that is defined in the Arduino RAM or flash
+    PROG(const char *name, const uint8_t *bytes, uint16_t len, bool progmem = false, uint16_t start_addr = 0, uint16_t int_addr = 0, uint16_t nmi_addr = 0, uint16_t done_addr = 0){
         _name = name ;
         _bytes = bytes ;
         _len = len ;
@@ -26,20 +26,7 @@ class PROG {
         _int_addr = int_addr ;
         _nmi_addr = nmi_addr ;
         _done_addr = done_addr ;
-        _progmem = false ;
-        _e = NULL ;
-    }
-
-    // Program that is defined in the Arduino flash
-    PROG(const char *name, const void *bytes, uint16_t len, uint16_t start_addr = 0, uint16_t int_addr = 0, uint16_t nmi_addr = 0, uint16_t done_addr = 0){
-        _name = name ;
-        _bytes = (byte *)bytes ;
-        _len = len ;
-        _start_addr = start_addr ;
-        _int_addr = int_addr ;
-        _nmi_addr = nmi_addr ;
-        _done_addr = done_addr ;
-        _progmem = true ;
+        _progmem = progmem ;
         _e = NULL ;
     }
 
@@ -89,7 +76,7 @@ class PROG {
     }
 
     uint16_t nmi_addr(){
-        return _int_addr ;
+        return _nmi_addr ;
     }
 
     uint16_t done_addr(){
