@@ -19,31 +19,45 @@ CTRLSIG PC_clr(NULL, 11) ;
 CTRLSIG CLK_async(NULL, 10, true) ;
 CTRLSIG STEP_clr(NULL, 13, true) ;
 
+//CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
 CTRLSIG X_e(&E1, 12, true), X_s(&E1, 11), Y_e(&E1, A0, true), Y_s(&E1, A1) ;
 CTRLSIG ACC_s(&E1, 9), ACC_e(&E1, 10, true) ;
 CTRLSIG SP_down(&E1, 8, true), SP_s(&E1, 7, true), SP_e(&E1, 6, true), EAl_s(&E1, 5), 
   PC_up(&E1, 4, true), PC_e(&E1, 3, true) ;
+CTRLSIG A_s(&E1, A2) ;
+CTRLSIG INST_s(&E1, 0) ; 
+CTRLSIG RAM_s(&E1, 1, true) ; 
+CTRLSIG EAl_e(&E1, 2, true), PCl_s(&E1, 13, true) ;
+CTRLSIG Al2D_e(&E1, A3, true) ;
 
 Extension E2(2, "ALU, RAM") ;
-CTRLSIG A_s(&E1, A2) ;
+// CTRL3
 ALU_OP ALU_op(new CTRLSIG(&E2, 8), new CTRLSIG(&E2, 7), new CTRLSIG(&E2, 6), new CTRLSIG(&E2, 5)) ; 
 CTRLSIG ALU_e(&E2, 4, true) ;
 CTRLSIG B_s(&E2, 3) ;
-CTRLSIG INST_s(&E2, 13) ; // TODO: check this, 13 maybe flaky w/LED
-CTRLSIG Al2D_e(&E1, A3, true), Ah2D_e(&E2, 2, true) ;
-CTRLSIG EAl_e(&E1, 2, true), PCl_s(&E1, 13, true) ;
-CTRLSIG RAM_s(&E2, A2, true), RAM_e(&E2, A3, true) ;
-CTRLSIG EAh_e(&E2, A0, true), EAh_s(&E2, A1) ; 
 
 Extension E3(3, "STATUS, ADDRh") ;
-CTRLSIG ST_s(&E3, 2) ;
-CTRLSIG ST_NZ_s(&E3, 7), ST_V_s(&E3, 6), ST_C_s(&E3, 5), ST_ALU_C_s(&E3, 4) ;
-CTRLSIG ST_ALU_C_from_C(&E3, 3) ;
-CTRLSIG ST_src(&E3, 8, true) ;
-CTRLSIG ST_e(&E3, 9, true) ;
-CTRLSIG PCh_s(&E3, 10, true), ST_bi(&E3, 11), ST_I_s(&E3, 13) ; 
+CTRLSIG ST_src(&E2, 11, true) ;
+CTRLSIG ST_e(&E2, 12, true) ;
+
+// CTRL4
+CTRLSIG RAM_e(&E3, 13, true) ;
+CTRLSIG Ah2D_e(&E3, 11, true) ;
+CTRLSIG EAh_e(&E3, 10, true) ;
+CTRLSIG EAh_s(&E3, 9) ; 
+CTRLSIG PCh_s(&E3, 8, true) ;
 STATUS STATUS(&E3, A0, A1, A2, A3, 12) ;
+
+// CTRL5
+CTRLSIG ST_bi(&E3, 7) ;
+CTRLSIG ST_NZ_s(&E3, 6) ;
+CTRLSIG ST_V_s(&E3, 5) ;
+CTRLSIG ST_I_s(&E3, 4) ; 
+CTRLSIG ST_C_s(&E3, 3) ;
+CTRLSIG ST_ALU_C_s(&E3, 2) ;
+CTRLSIG ST_ALU_C_from_C(&E3, 0) ;
+CTRLSIG ST_s(&E3, 1) ;
 
 VECTORS VECTORS ;
 IO IO ;
