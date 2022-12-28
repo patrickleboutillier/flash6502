@@ -4,7 +4,7 @@ bool button_pressed(uint8_t button_pin){
   static bool last_button_state = button_state ;
   static unsigned long last_debounce_time = 0 ;
   bool ret = 0 ;
-  bool reading = digitalRead(button_pin) > 512 ;
+  bool reading = digitalRead(button_pin) ;
   
   if (reading != last_button_state) {
     last_debounce_time = millis() ;
@@ -27,7 +27,8 @@ bool button_pressed(uint8_t button_pin){
 
 
 inline uint8_t analogRead2Digital(int apin){
-  bool dv = (analogRead(apin) >= 512) ;
+  int av = analogRead(apin) ;
+  bool dv = (av >= 512) ;
   return dv ;
 }
 

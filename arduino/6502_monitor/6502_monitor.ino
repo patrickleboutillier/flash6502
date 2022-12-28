@@ -12,8 +12,8 @@
 #define CTRL A2         // Activate controller for vectors and IO
 #define CTRL_ADDR0 A2
 #define CTRL_ADDR1 A3
-#define CTRL_ADDR2 A4
-#define CTRL_ADDR3 A5
+#define CTRL_ADDR2 A6
+#define CTRL_ADDR3 A7
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG CTRL_src(NULL, 13) ;
@@ -79,7 +79,8 @@ bool INST_done = 0 ;
 
 
 // Program to run
-PROG *prog = &progTestSuite ;
+// PROG *prog = &progTestSuite ;
+PROG *prog = &progStar ;
 
   
 void setup() {
