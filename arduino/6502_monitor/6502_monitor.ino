@@ -18,9 +18,9 @@
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG CTRL_src(NULL, 13) ;
 CTRL_OUT CTRL_OUT ;
-CTRLSIG PC_clr(NULL, 11) ;
 CTRLSIG CLK_async(NULL, 10, true) ;
-CTRLSIG STEP_clr(NULL, A1, true) ;
+CTRLSIG STEP_clr(NULL, 11, true) ;
+CTRLSIG PC_clr(NULL, A1) ;
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
