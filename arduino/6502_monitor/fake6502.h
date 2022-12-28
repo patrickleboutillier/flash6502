@@ -75,13 +75,15 @@ void step6502(const char *msg, int step, bool idle = false){
     Serial.print(step) ;
   }
   Serial.println() ;
-  while (! analog_button_pressed(STEP)){} ;
+  while (! button_pressed(STEP)){} ;
 }
 
 
 void process_ctrl(){
     if (! RAM_e.read()){
-        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 1 ;
+        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 0 ;
         // read from vectors or IO
         uint8_t data = (addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
         DATA.write(data) ;
@@ -92,7 +94,9 @@ void process_ctrl(){
 
     if (! RAM_s.read()){
         // write to vectors or IO
-        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 1 ;
+        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 0 ;
         if (addr < 0xA){
             IO.set_byte(addr, DATA.read()) ;
         }
@@ -112,6 +116,10 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     bool prev_ctrl = 0, ctrl = 0 ; 
     for (int step = start_step ; step < max_steps ; step++){
         prev_ctrl = ctrl ;
+
+        if (step > 0){
+          CLK_async.pulse() ; // down/up         
+        }
         
         if (! fetch_done){
             if (fetch(step)){
@@ -122,7 +130,6 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
                 else if (prev_ctrl){
                   DATA.reset() ;
                 }
-                CLK_async.pulse() ; // down/up
                 if (debug){
                     step6502("fetch", step) ;
                 }
@@ -141,7 +148,6 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
                 else if (prev_ctrl){
                   DATA.reset() ;
                 }
-                CLK_async.pulse() ; // down/up
                 if (debug){
                   step6502("addr", step - addr_start) ;
                 }
@@ -160,12 +166,14 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
             else if (prev_ctrl){
               DATA.reset() ;
             }
-            CLK_async.pulse() ; // down/up
             if (debug){
               step6502("oper", step - op_start) ;
             }
             continue ;
         }
+
+        // Reset step counter.
+        STEP_clr.pulse() ;
         
         inst_cnt++ ;
         return inst_cnt ;
@@ -242,14 +250,14 @@ void process_interrupt(uint8_t inst){
     Serial.print(F("INTR  -> ")) ;
     monitor6502(true) ;
     Serial.println() ; 
-
+    
     // Prime INST with our fake interrupt instruction. This will alter the normal
     // fetch stage. See fetch() in addrmodes.h
     DATA.write(inst) ;
     INST_s.pulse() ;
     INST = inst ;
     process_inst(0, 3, DEBUG_STEP) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
-    DATA.reset() ;              // Reset the data bus
+    DATA.reset() ;                          // Reset the data bus
     process_inst(3, 0xFF, DEBUG_STEP) ;     // finish the instruction
 
     Serial.print(F("      <- ")) ;
@@ -260,6 +268,9 @@ void process_interrupt(uint8_t inst){
     //    pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
     //    RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
 
+    // DEBUG_MON = true ;
+    // DEBUG_STEP = true ;
+    
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     DATA.write(INST_NOP) ;
     INST_s.pulse() ;

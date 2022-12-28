@@ -1,10 +1,10 @@
-bool analog_button_pressed(uint8_t button_pin){
+bool button_pressed(uint8_t button_pin){
   #define DEBOUNCE_DELAY_MS 50
   static bool button_state = HIGH ;
   static bool last_button_state = button_state ;
   static unsigned long last_debounce_time = 0 ;
   bool ret = 0 ;
-  bool reading = (analogRead(button_pin) > 512) ;
+  bool reading = digitalRead(button_pin) > 512 ;
   
   if (reading != last_button_state) {
     last_debounce_time = millis() ;
@@ -26,9 +26,15 @@ bool analog_button_pressed(uint8_t button_pin){
 }
 
 
+inline uint8_t analogRead2Digital(int apin){
+  bool dv = (analogRead(apin) >= 512) ;
+  return dv ;
+}
+
+
 void step(){
    Serial.println(F("\nSTEP:")) ;
-   while (! analog_button_pressed(STEP)){} ; 
+   while (! button_pressed(STEP)){} ; 
 }
 
 

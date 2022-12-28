@@ -1,23 +1,26 @@
 #include "Extension.h"
 #include "BUS.h"
 #include "CTRLSIG.h"
+#include "CTRL_OUT.h"
 #include "ALU.h"
 #include "STATUS.h"
 #include "VECTORS.h"
 #include "IO.h"
 
 // Push button
-#define STEP A6         // push button
-#define CTRL 12         // Activate controller for vectors and IO
-#define CTRL_ADDR0 A0
-#define CTRL_ADDR1 A1
-#define CTRL_ADDR2 A2
-#define CTRL_ADDR3 A3
+#define STEP A0         // push button
+#define CTRL A2         // Activate controller for vectors and IO
+#define CTRL_ADDR0 A2
+#define CTRL_ADDR1 A3
+#define CTRL_ADDR2 A4
+#define CTRL_ADDR3 A5
 
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
+CTRLSIG CTRL_src(NULL, 13) ;
+CTRL_OUT CTRL_OUT ;
 CTRLSIG PC_clr(NULL, 11) ;
 CTRLSIG CLK_async(NULL, 10, true) ;
-CTRLSIG STEP_clr(NULL, 13, true) ;
+CTRLSIG STEP_clr(NULL, A1, true) ;
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
@@ -67,6 +70,7 @@ bool DEBUG_STEP = false ;
 #define MON_EVERY 1000
 
 byte INST = 0 ;
+bool INST_done = 0 ; 
 
 
 #include "PROG.h"
@@ -152,10 +156,10 @@ void loop(){
       process_inst(0, 0xFF, DEBUG_STEP) ; 
 
       if (! DEBUG_STEP){
-        if (analog_button_pressed(STEP)){
+        if (button_pressed(STEP)){
           //DEBUG_STEP = true ;
           //DEBUG_MON = true ;
-          process_interrupt(INST_IRQ) ;
+          process_interrupt(INST_NMI) ;
         }
       }
   }
