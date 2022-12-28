@@ -18,8 +18,8 @@
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG CTRL_src(NULL, 13) ;
 CTRL_OUT CTRL_OUT ;
-CTRLSIG CLK_async(NULL, 10, true) ;
-CTRLSIG STEP_clr(NULL, 11, true) ;
+//CTRLSIG CLK_async(NULL, 10, true) ;
+//CTRLSIG STEP_clr(NULL, 11, true) ;
 CTRLSIG PC_clr(NULL, A1) ;
 
 //CTRL1, CTRL2
@@ -79,8 +79,8 @@ bool INST_done = 0 ;
 
 
 // Program to run
-// PROG *prog = &progTestSuite ;
-PROG *prog = &progStar ;
+PROG *prog = &progTestSuite ;
+//PROG *prog = &progStar ;
 
   
 void setup() {
@@ -95,8 +95,8 @@ void setup() {
 
   DATA.setup() ;
   PC_clr.setup() ;
-  CLK_async.setup() ;
-  STEP_clr.setup() ;
+  //CLK_async.setup() ;
+  //STEP_clr.setup() ;
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
@@ -127,6 +127,11 @@ void setup() {
   
   prog->describe() ;
   Serial.println() ;
+  if (! digitalRead(STEP)){
+    Serial.println(F("STEP button held down, entering step mode.\n")) ;
+    DEBUG_STEP = true ;
+    DEBUG_MON = true ;
+  }
   reset6502(prog) ;
 }
 

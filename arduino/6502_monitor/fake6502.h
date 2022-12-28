@@ -118,7 +118,9 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
         prev_ctrl = ctrl ;
 
         if (step > 0){
-          CLK_async.pulse() ; // down/up         
+          //CLK_async.pulse() ; // down/up  
+          CTRL_OUT.pulse(CLK_ASYNC) ;  
+          CTRL_OUT.pulse(CLK_SYNC) ;     
         }
         
         if (! fetch_done){
@@ -173,7 +175,9 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
         }
 
         // Reset step counter.
-        STEP_clr.pulse() ;
+        //STEP_clr.pulse() ;
+        CTRL_OUT.pulse(STEP_CLR) ;
+        CTRL_OUT.pulse(CLK_SYNC) ;
         
         inst_cnt++ ;
         return inst_cnt ;
@@ -184,7 +188,8 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
 
 
 void insert_inst(uint8_t opcode){
-    STEP_clr.pulse() ;
+    //STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     DATA.write(opcode) ;
     PC_e.toggle() ;
     RAM_s.pulse() ;
@@ -205,7 +210,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
     
-    STEP_clr.pulse() ;
+    //STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     PC_clr.pulse() ;
 
     inst_cnt = 0 ;
@@ -218,7 +224,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     insert_inst(INST_RST1) ;
 
     Serial.println(F("- Loading program to RAM...")) ;
-    STEP_clr.pulse() ;
+    //STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     PC_clr.pulse() ;
     for (int i = 0 ; i < prog->len() ; i++){
         byte inst = prog->get_byte(i) ;
