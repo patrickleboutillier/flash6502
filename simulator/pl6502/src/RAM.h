@@ -9,7 +9,8 @@ class RAM : public component {
     public:
         input<8> data_in, addrh, addrl ;
         input<1> set, enable ;
-        output<8> data_out, ctrl ;
+        output<8> data_out ;
+        output<1> ctrl ;
     private:
         uint8_t _mem[256][256] ;
 
