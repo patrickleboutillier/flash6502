@@ -4,21 +4,23 @@ uint8_t fetch(uint8_t step) { // 1 cycle
         switch (step){
             case    0:  C1.INST_done = 0 ; break ;   // it's important that nothing else happens here
             case    1:  C4.EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
-            case    2:  C4.EAl_s.toggle() ; break ; //   store it in EAl
+            case    2:  C4.EAl_s.toggle() ; break ; //   store it in EAl    
+            case    3:  break ;
+            case    4:  break ;
             default:    return 0 ;
         }
     }
     else {
         switch (step){
             case    0:  C1.INST_done = 0 ; break ;   // it's important that nothing else happens here
-            case    1:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; 
-                        C2.INST_s.toggle() ; 
+            case    1:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; break ; 
+            case    2:  C2.INST_s.toggle() ; 
                         #ifdef ARDUINO
                             INST = DATA.read() ;
                         #endif
                         break ;
-            case    2:  C2.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
-            case    3:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+            case    3:  C2.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
+            case    4:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
             default:    return 0 ;
         }
     }
