@@ -20,7 +20,7 @@ CTRLSIG CTRL_src(NULL, 13) ;
 CTRL_OUT CTRL_OUT ;
 //CTRLSIG CLK_async(NULL, 10, true) ;
 //CTRLSIG STEP_clr(NULL, 11, true) ;
-CTRLSIG PC_clr(NULL, A1) ;
+//CTRLSIG PC_clr(NULL, A1, true) ;
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
@@ -94,7 +94,7 @@ void setup() {
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
-  PC_clr.setup() ;
+  //PC_clr.setup() ;
   //CLK_async.setup() ;
   //STEP_clr.setup() ;
   

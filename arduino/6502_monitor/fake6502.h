@@ -212,7 +212,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     
     //STEP_clr.pulse() ;
     CTRL_OUT.pulse(STEP_CLR) ;
-    PC_clr.pulse() ;
+    //PC_clr.pulse() ;
+    CTRL_OUT.pulse(PC_CLR) ;
 
     inst_cnt = 0 ;
     // Clear INST register
@@ -226,7 +227,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     Serial.println(F("- Loading program to RAM...")) ;
     //STEP_clr.pulse() ;
     CTRL_OUT.pulse(STEP_CLR) ;
-    PC_clr.pulse() ;
+    //PC_clr.pulse() ;
+    CTRL_OUT.pulse(PC_CLR) ;
     for (int i = 0 ; i < prog->len() ; i++){
         byte inst = prog->get_byte(i) ;
         DATA.write(inst) ;

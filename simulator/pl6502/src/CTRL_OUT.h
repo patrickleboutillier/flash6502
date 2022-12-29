@@ -6,10 +6,10 @@
 
 #define CLK_ASYNC  1
 #define CLK_SYNC   2
-#define RAM_S      3
-#define PC_UP      4
-#define STEP_CLR   5
+#define STEP_CLR   3
+#define RAM_S      5
 #define INST_S     6
+#define PC_UP      4
 #define PC_CLR     7
 
 
@@ -32,10 +32,10 @@ class CTRL_OUT : public component {
         void always(){
             CLK_async = (cmd == CLK_ASYNC ? 0 : 1) ;
             CLK_sync = (cmd == CLK_SYNC ? 0 : 1) ;
-            RAM_s = (cmd == RAM_S ? 0 : 1) ;
-            PC_up = (cmd == PC_UP ? 0 : 1) ;
             STEP_clr = (cmd == STEP_CLR ? 0 : 1) ;
+            RAM_s = (cmd == RAM_S ? 0 : 1) ;
             INST_s = (cmd == INST_S ? 0 : 1) ;
+            PC_up = (cmd == PC_UP ? 0 : 1) ;
             PC_clr = (cmd == PC_CLR ? 0 : 1) ;
         } ;
 
