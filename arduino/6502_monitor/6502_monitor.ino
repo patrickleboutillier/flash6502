@@ -67,7 +67,7 @@ IO IO ;
 
 bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
-#define MON_EVERY 1000
+#define MON_EVERY 2000
 
 byte INST = 0 ;
 bool INST_done = 0 ; 
@@ -151,10 +151,10 @@ void loop(){
       } 
       prev_pc = pc ;
 
-      //if (pc == 0x09F3){
-      //  DEBUG_STEP = true ;
-      //  DEBUG_MON = true ;
-      //}
+      /* if (pc == 0x0608){
+        DEBUG_STEP = true ;
+        DEBUG_MON = true ;
+      } */
       
       if (((inst_cnt % MON_EVERY) == 0)||(DEBUG_MON)){
         monitor6502(true) ; Serial.println() ;
