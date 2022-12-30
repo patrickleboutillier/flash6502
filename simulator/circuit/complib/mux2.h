@@ -14,7 +14,7 @@ template <uint32_t W> class mux2 : public component {
         mux2() : a(this), b(this), sel(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             c = (sel == 0 ? a : b) ;
         } ;
 } ;

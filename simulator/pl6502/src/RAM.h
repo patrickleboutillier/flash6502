@@ -18,7 +18,7 @@ class RAM : public component {
         RAM() : data_in(this), addrh(this), addrl(this), set(this), enable(this) {
             data_out.drive(false) ;
 
-            // Fill RAM with garbage
+            // Fill RAM with random values
             for (int i = 0 ; i < 256 ; i++){
                 for (int j = 0 ; j < 256 ; j++){
                     _mem[i][j] = rand() & 0xFF ;
@@ -32,7 +32,7 @@ class RAM : public component {
         }
 
 
-        void always(){
+        void always(const void *trigger){
             // RAM is limited to the range 0x0000 => 0xF7FF, the rest of the address space is assigned to the controller.
             // This means that the controller handles the vectors in the range 0xFFFA => 0xFFFF
             if ((addrh & 0xF8) == 0xF8){
@@ -43,7 +43,12 @@ class RAM : public component {
                 ctrl = 0 ;
             }
 
-            if (! set){
+            if ((trigger == &data_in)&&(set)){
+                // Ignore changes on the data bus if set is not active.
+                return ;
+            }
+
+            if (! set){ // negative logic
                 _mem[addrh][addrl] = data_in ;
             }
             if (! enable){ // negative logic

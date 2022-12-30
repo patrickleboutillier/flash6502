@@ -76,7 +76,7 @@ class STATUS : public component {
             data_out.drive(false) ;
         } ;
 
-        void always(){ 
+        void always(const void *trigger){ 
             sreg_data_in = srom.I << 5 | srom.N << 4 | srom.V << 3 | srom.Z << 2 |  srom.C << 1 | srom.alu_c ; 
 
             sreg_set = set ;

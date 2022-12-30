@@ -29,7 +29,7 @@ class CTRL_OUT : public component {
         } ;
 
 
-        void always(){
+        void always(const void *trigger){
             CLK_async = (cmd == CLK_ASYNC ? 0 : 1) ;
             CLK_sync = (cmd == CLK_SYNC ? 0 : 1) ;
             STEP_clr = (cmd == STEP_CLR ? 0 : 1) ;

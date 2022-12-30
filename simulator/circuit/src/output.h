@@ -11,6 +11,9 @@
 using namespace std ;
 
 
+#define PREVENT_BUS_CONTENTION false
+
+
 template <uint32_t W> class output {
     private:
         uint32_t _value ;
@@ -85,7 +88,7 @@ template <uint32_t W> class output {
             }
         }
 
-        void drive(bool d, bool hard = true){
+        void drive(bool d, bool hard = PREVENT_BUS_CONTENTION){
             if (! d){
                 // Simulate pull down resistor...
                 set_value(0) ;
