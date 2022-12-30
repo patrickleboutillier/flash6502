@@ -108,7 +108,8 @@ void process_ctrl(){
 
 
 bool post_step(bool prev_ctrl){
-  bool ctrl = digitalRead(CTRL) ;
+  // bool ctrl = digitalRead(CTRL) ;
+  bool ctrl = PINC & 0b100 ; // A2
   if (ctrl){
     process_ctrl() ; 
   }
