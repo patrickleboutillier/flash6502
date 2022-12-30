@@ -68,10 +68,10 @@ uint8_t zp(uint8_t step) { // 3 cycles
         case    3:  EAl_s.toggle() ; break ;
         case    4:  RAM_e.toggle() ; PC_e.toggle() ; break ;
 
-        case    5:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ;
+        case    5:  EAl_e.toggle() ; RAM_e.toggle() ;
                     B_s.toggle() ; break ;
         case    6:  B_s.toggle() ; PC_up.toggle() ; break ;
-        case    7:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
+        case    7:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -101,10 +101,10 @@ uint8_t zpx(uint8_t step) { // 5 cycles
         case   10:  ALU_op = 0 ;
                     ALU_e.toggle() ; break ;
     
-        case   11:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ;  
+        case   11:  EAl_e.toggle() ; RAM_e.toggle() ;  
                     B_s.toggle() ; break ;
         case   12:  B_s.toggle() ; PC_up.toggle() ; break ;
-        case   13:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
+        case   13:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 
@@ -134,10 +134,10 @@ uint8_t zpy(uint8_t step) { // 5 cycles
         case   10:  ALU_op = 0 ;
                     ALU_e.toggle() ; break ;
     
-        case   11:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; 
+        case   11:  EAl_e.toggle() ; RAM_e.toggle() ; 
                     B_s.toggle() ; break ;
         case   12:  B_s.toggle() ; PC_up.toggle() ; break ;
-        case   13:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
+        case   13:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
     } 
