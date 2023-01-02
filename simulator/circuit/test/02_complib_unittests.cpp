@@ -99,11 +99,11 @@ TEST(test_complib, reg){
     EXPECT_EQ(r.data_out.get_value(), 0) ;
     enable = 0 ;
     EXPECT_EQ(r.data_out.get_value(), 42) ;
-    EXPECT_EQ(b.a._driver, &(r.data_out)) ;
+    EXPECT_EQ(b.a.get_driver(), &(r.data_out)) ;
     EXPECT_EQ(b.a.get_value(), 42) ;
     enable = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
-    EXPECT_EQ(b.a._driver, nullptr) ;
+    EXPECT_EQ(b.a.get_driver(), nullptr) ;
     in = 250 ; set = 1 ;
     EXPECT_EQ(r.data_out.get_value(), 0) ;
     enable = 0 ;
