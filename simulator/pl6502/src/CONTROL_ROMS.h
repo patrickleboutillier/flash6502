@@ -132,10 +132,10 @@ class CONTROL_3_ROM : public component {
         uint8_t make_cw(){
             return 
                 ALU_op  << 4 |
-                ALU_e   << 3 |
+                ST_src  << 3 |
                 B_s     << 2 |
                 ST_e    << 1 |
-                ST_src  << 0 ;
+                ALU_e   << 0 ;
         }
 
         void always(){
@@ -143,10 +143,10 @@ class CONTROL_3_ROM : public component {
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 16) & 0xFF ;
 
             set_signal_4(ALU_op,    4) ; 
-            set_signal_1(ALU_e,     3) ;
+            set_signal_1(ST_src,    3) ;
             set_signal_1(B_s,       2) ; 
             set_signal_1(ST_e,      1) ; 
-            set_signal_1(ST_src,    0) ;
+            set_signal_1(ALU_e,     0) ;
         } ;
 } ;
 
