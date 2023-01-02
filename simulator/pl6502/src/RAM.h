@@ -43,14 +43,14 @@ class RAM : public component {
                 ctrl = 0 ;
             }
 
-            if ((trigger == &data_in)&&(set)){
-                // Ignore changes on the data bus if set is not active.
-                return ;
-            }
-
             if (! set){ // negative logic
                 _mem[addrh][addrl] = data_in ;
             }
+            else if (trigger == &data_in){
+                // Ignore changes on the data bus or address busses if set is not active.
+                return ;
+            }
+
             if (! enable){ // negative logic
                 // Here we use a soft drive here since there are sometimes race conditions with the controller
                 // The controller can drive the bridge a bit longer (see process_ctrl()) after an address change

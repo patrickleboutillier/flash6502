@@ -25,6 +25,10 @@ template <uint32_t W> class input {
             _component = c ;
         } ;
 
+        bool driven(){
+            return (_driver != nullptr) ;
+        }
+
         uint32_t get_value(){
             assert(_driver != nullptr) ;
             return _driver->get_value() ;

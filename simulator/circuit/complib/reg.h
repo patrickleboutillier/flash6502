@@ -34,13 +34,12 @@ template <uint32_t W> class reg : public component {
         }
 
         void always(const void *trigger){
-            if ((trigger == &data_in)&&(! set)){
-                // Ignore changes on the data bus if set is not active.
-                return ;
-            }
-
             if (set){
                 _mem = data_in ;
+            }
+            else if (trigger == &data_in){
+                // Ignore changes on the data bus if set is not active.
+                return ;    
             }
             if (! enable){ // negative logic
                 data_out.drive(true) ;

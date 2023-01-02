@@ -89,16 +89,9 @@ template <uint32_t W> class output {
         }
 
         void drive(bool d, bool hard = PREVENT_BUS_CONTENTION){
-            if (! d){
-                // Simulate pull down resistor...
-                set_value(0) ;
-            }
-
-            _drive = d ;
-
             typename unordered_set<input<W> *>::iterator i ;
             for (i = _connected_inputs.begin(); i != _connected_inputs.end() ; i++){
-                if (_drive){
+                if (d){
                     if ((*i)->_driver != this){
                         if (hard){
                             assert((*i)->_driver == nullptr) ;
@@ -110,9 +103,17 @@ template <uint32_t W> class output {
                 else {
                     if ((*i)->_driver == this){
                         (*i)->_driver = nullptr ;
+                        set_value(0) ;
                     }
+                    // TODO: This really necessary?
+                    /* else if ((*i)->_driver != nullptr){
+                        // Refresh with current driver
+                        (*i)->always() ;
+                    } */
                 }
             }
+
+            _drive = d ;
         }
 } ;
 
