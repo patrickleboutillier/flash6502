@@ -15,8 +15,7 @@ template <uint32_t W> class bus : public component {
         } ;
 
         void always(const void *trigger){
-            // Simulate pull down resistor if data_in is not driven
-            data_out = (data_in.driven() ? data_in.get_value() : 0) ;
+            data_out = data_in ;
         } ;
 } ;
 

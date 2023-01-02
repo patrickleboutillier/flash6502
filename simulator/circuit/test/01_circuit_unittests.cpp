@@ -18,13 +18,13 @@ TEST(test_circuit, output){
 
     dummy d ;
     o.connect(d.i) ;
-    EXPECT_EQ(d.i._driver, &o) ;
+    EXPECT_EQ(d.i.get_driver(), &o) ;
     o = 0 ;
     EXPECT_EQ(d.i.get_value(), o.get_value()) ;
     o = 1 ;
     EXPECT_EQ(d.i.get_value(), o.get_value()) ;
     o.drive(false) ;
-    EXPECT_EQ(d.i._driver, nullptr) ;
+    EXPECT_EQ(d.i.get_driver(), nullptr) ;
     o.drive(true) ;
-    EXPECT_EQ(d.i._driver, &o) ;
+    EXPECT_EQ(d.i.get_driver(), &o) ;
 }
