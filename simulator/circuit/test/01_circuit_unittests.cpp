@@ -8,7 +8,7 @@ class dummy : public component {
     public:
         input<1> i ;
         dummy() : i(this){} ;
-        void always(){} ;
+        void always(const void *trigger){} ;
 } ;
 
 

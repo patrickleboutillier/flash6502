@@ -29,7 +29,7 @@ class STATUS_ROM : public component {
                        n_old(this),  v_old(this), z_old(this), c_old(this), i_old(this), alu_c_old(this){
         } ;
 
-        void always(){
+        void always(const void *trigger){
             N = (nz_set ? n_in : n_old) ;
             V = (v_set ? v_in : v_old) ;
             Z = (nz_set ? z_in : z_old) ;

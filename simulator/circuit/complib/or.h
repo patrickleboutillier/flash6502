@@ -13,7 +13,7 @@ template <uint32_t W> class or_ : public component {
         or_() : a(this), b(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             c.set_value(a.get_value() | b.get_value()) ;
         } ;
 } ;

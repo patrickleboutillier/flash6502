@@ -4,7 +4,7 @@
 
 class component {
     public:
-        virtual void always() = 0 ;
+        virtual void always(const void *trigger) = 0 ;
 } ;
 
 

@@ -43,7 +43,7 @@ class ALU : public component {
             v.drive(false) ;
         } ;
 
-        void always(){
+        void always(const void *trigger){
             alul.op = op ;
             aluh.op = op ;
             alul_a = a & 0xF ;

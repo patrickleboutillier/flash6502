@@ -33,7 +33,7 @@ class CONTROL_1_ROM : public component {
                 A_s         << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 0) & 0xFF ;
 
@@ -72,7 +72,7 @@ class CONTROL_2_ROM : public component {
                 RAM_e   << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 8) & 0xFF ;
 
@@ -138,7 +138,7 @@ class CONTROL_3_ROM : public component {
                 ALU_e   << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 16) & 0xFF ;
 
@@ -175,7 +175,7 @@ class CONTROL_4_ROM : public component {
                 PCh_s  << 0 ;               
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 24) & 0xFF ;
 
@@ -213,7 +213,7 @@ class CONTROL_5_ROM : public component {
                 ST_s            << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 32) & 0xFF ;
 

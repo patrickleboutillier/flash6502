@@ -42,7 +42,7 @@ template <uint32_t W> class input {
 
         void always(){
             if (_component != nullptr){
-                _component->always() ;
+                _component->always(this) ;
             }
         }
 } ;

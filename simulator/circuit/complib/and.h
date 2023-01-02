@@ -13,7 +13,7 @@ template <uint32_t W> class and_ : public component {
         and_() : a(this), b(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             c.set_value(a.get_value() & b.get_value()) ;
         } ;
 } ;
