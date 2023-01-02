@@ -2,7 +2,7 @@ uint8_t fetch(uint8_t step) { // 1 cycle
     if ((INST == INST_IRQ)||(INST == INST_NMI)){
         // Interrupt (IRQ or NMI). The controller has already setup INST, so there is nothing else to do.
         switch (step){
-            case    0:  C1.INST_done = 0 ; break ;   // it's important that nothing else happens here
+            case    0:  C1.INST_done = 0 ; break ;  // it's important that nothing else happens here
             case    1:  C4.EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
             case    2:  C4.EAl_s.toggle() ; break ; //   store it in EAl
             default:    return 0 ;
@@ -428,63 +428,63 @@ uint8_t indy(uint8_t step) { // 10 cycles
         case    0:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; 
                     C3.B_s.toggle() ; break ;
         case    1:  C3.B_s.toggle() ; C2.PC_up.toggle() ; break ;
-        case    2:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
+        case    2:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ;
         
-        case    3:  C1.Y_e.toggle() ; 
+                    C1.Y_e.toggle() ; 
                     C1.A_s.toggle() ; break ;
-        case    4:  C1.A_s.toggle() ; break ;
-        case    5:  C1.Y_e.toggle() ; break ;
+        case    3:  C1.A_s.toggle() ; break ;
+        case    4:  C1.Y_e.toggle() ;
 
-        case    6:  C3.ALU_op = ALU_INC ; 
+                    C3.ALU_op = ALU_INC ; 
                     C3.ALU_e.toggle() ; 
                     C4.EAl_s.toggle() ; break ;
-        case    7:  C4.EAl_s.toggle() ; break ;
-        case    8:  C3.ALU_op = 0 ;
-                    C3.ALU_e.toggle() ; break ;
+        case    5:  C4.EAl_s.toggle() ; break ;
+        case    6:  C3.ALU_op = 0 ;
+                    C3.ALU_e.toggle() ;
 
-        case    9:  C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
+                    C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
                     C4.EAh_s.toggle() ; break ;
-        case   10:  C4.EAh_s.toggle() ; break ;
-        case   11:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; break ;
+        case    7:  C4.EAh_s.toggle() ; break ;
+        case    8:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ;
 
-        case   12:  C3.ALU_op = ALU_PASS ; 
+                    C3.ALU_op = ALU_PASS ; 
                     C3.ALU_e.toggle() ; 
                     C4.EAl_s.toggle() ; break ;
-        case   13:  C4.EAl_s.toggle() ; break ;
-        case   14:  C3.ALU_op = 0 ;
+        case    9:  C4.EAl_s.toggle() ; break ;
+        case   10:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ; 
         
-        case   15:  C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
+        case   11:  C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
                     C3.B_s.toggle() ; break ;
-        case   16:  C3.B_s.toggle() ; break ;
-        case   17:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; break ;
+        case   12:  C3.B_s.toggle() ; break ;
+        case   13:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ;
         
-        case   18:  C3.ALU_op = ALU_ADD ; 
+                    C3.ALU_op = ALU_ADD ; 
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; 
                     C4.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case   19:  C4.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
-        case   20:  C3.ALU_op = 0 ;
+        case   14:  C4.EAl_s.toggle() ; C5.ST_s.toggle() ; break ;
+        case   15:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; C5.ST_ALU_C_s.toggle() ; break ;
         
-        case   21:  C1.A_s.toggle() ; break ;
-        case   22:  C1.A_s.toggle() ; break ;
+        case   16:  C1.A_s.toggle() ; break ;
+        case   17:  C1.A_s.toggle() ; break ;
         
-        case   23:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; 
+        case   18:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; 
                     C3.B_s.toggle() ; break ;
-        case   24:  C3.B_s.toggle() ; break ;
-        case   25:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   19:  C3.B_s.toggle() ; break ;
+        case   20:  C4.Ah2D_e.toggle() ; C4.EAh_e.toggle() ;
 
-        case   26:  C3.ALU_op = ALU_ADC ; 
+                    C3.ALU_op = ALU_ADC ; 
                     C3.ALU_e.toggle() ; 
                     C4.EAh_s.toggle() ; break ;
-        case   27:  C4.EAh_s.toggle() ; break ;
-        case   28:  C3.ALU_op = 0 ;
+        case   21:  C4.EAh_s.toggle() ; break ;
+        case   22:  C3.ALU_op = 0 ;
                     C3.ALU_e.toggle() ; break ;
 
-        case   29:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
+        case   23:  C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C2.RAM_e.toggle() ; 
                     C3.B_s.toggle() ; break ;
-        case   30:  C3.B_s.toggle() ; break ;
-        case   31:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
+        case   24:  C3.B_s.toggle() ; break ;
+        case   25:  C2.RAM_e.toggle() ; C4.EAl_e.toggle() ; C4.EAh_e.toggle() ; break ;
 
         default:    return 0 ;
     } 
