@@ -196,9 +196,9 @@ class CONTROL_5_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> ST_bi, ST_NZ_s, ST_I_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
+        output<1> ST_bi, ST_NZ_s, ST_I_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_clk ;
 
-        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this) {
+        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), ST_clk(1) {
         } ;
 
         uint8_t make_cw(){
@@ -210,7 +210,7 @@ class CONTROL_5_ROM : public component {
                 ST_C_s          << 3 |
                 ST_ALU_C_s      << 2 |
                 ST_ALU_C_from_C << 1 |
-                ST_s            << 0 ;
+                ST_clk          << 0 ;
         }
 
         void always(const void *trigger){
@@ -224,7 +224,7 @@ class CONTROL_5_ROM : public component {
             set_signal_1(ST_C_s,            3) ;
             set_signal_1(ST_ALU_C_s,        2) ;
             set_signal_1(ST_ALU_C_from_C,   1) ;
-            set_signal_1(ST_s,              0) ;
+            set_signal_1(ST_clk,            0) ;
         } ;
 } ;
 

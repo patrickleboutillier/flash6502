@@ -8,7 +8,7 @@ TEST(test_pl6502, STATUS){
     output<1> n_in, v_in, i_in, z_in, c_in ;
     output<1> nz_set, v_set, i_set, c_set, alu_c_set, alu_c_from_C ;
     output<8> data_in ;
-    output<1> data_enable(1), src_data(1), status_set ;
+    output<1> data_enable(1), src_data(1), status_clk(1) ;
     STATUS status ;
     n_in.connect(status.n_in) ;
     v_in.connect(status.v_in) ;
@@ -24,7 +24,7 @@ TEST(test_pl6502, STATUS){
     data_in.connect(status.data_in) ;
     src_data.connect(status.src_data) ;
     data_enable.connect(status.data_enable) ;
-    status_set.connect(status.set) ;
+    status_clk.connect(status.clk) ;
 
     // Normal operation mode, with data_enable
     data_enable = 0 ;
@@ -47,8 +47,7 @@ TEST(test_pl6502, STATUS){
         alu_c_from_C = i >> 1 ;
         alu_c_set = i >> 0 ;
 
-        status_set = 1 ;
-        status_set = 0 ;
+        status_clk.pulse() ;
 
         EXPECT_EQ(status.N.get_value(), (nz_set ? n_in.get_value() : n_old)) ;
         EXPECT_EQ(status.V.get_value(), (v_set ? v_in.get_value() : v_old)) ;
@@ -91,8 +90,7 @@ TEST(test_pl6502, STATUS){
         c_set = 1 ;
         i_set = 1 ;
 
-        status_set = 1 ;
-        status_set = 0 ;
+        status_clk.pulse() ;
         
         // One bits 5 and 4 because they are constant, zero-out bit 2 (D) because they will always be 0.
         uint32_t p = ((data | 0b00110000) & 0b11110111) ;
