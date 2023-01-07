@@ -57,14 +57,14 @@ CTRLSIG ST_I_s(&E3, 4) ;
 CTRLSIG ST_C_s(&E3, 3) ;
 CTRLSIG ST_ALU_C_s(&E3, 2) ;
 CTRLSIG ST_ALU_C_from_C(&E3, 0) ;
-CTRLSIG ST_s(&E3, 1, true) ;
+CTRLSIG ST_clk(&E3, 1, true) ;
 
 VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
-bool DEBUG_STEP = false ;
-#define MON_EVERY 1000
+bool DEBUG_STEP = true ;
+#define MON_EVERY 1
 
 byte INST = 0 ;
 bool INST_done = 0 ; 
@@ -111,7 +111,7 @@ void setup() {
   EAl_e.setup() ; PCl_s.setup() ;
   RAM_s.setup() ; RAM_e.setup() ;
   
-  ST_s.setup() ;
+  ST_clk.setup() ;
   ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
   ST_ALU_C_from_C.setup() ;
 
@@ -128,7 +128,7 @@ void setup() {
     DEBUG_MON = true ;
   }
   reset6502(prog) ;
-  //set_pc(0x35a7) ;
+  set_pc(0x059e) ;
 }
 
 

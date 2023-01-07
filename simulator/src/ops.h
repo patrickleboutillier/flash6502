@@ -126,7 +126,7 @@ uint8_t bcc(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
 
             default:    return 0 ;
@@ -166,7 +166,7 @@ uint8_t bcs(uint8_t step) {
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -205,7 +205,7 @@ uint8_t beq(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -269,7 +269,7 @@ uint8_t bmi(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -308,7 +308,7 @@ uint8_t bne(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;                        
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -347,7 +347,7 @@ uint8_t bpl(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -563,7 +563,7 @@ uint8_t bvc(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -602,7 +602,7 @@ uint8_t bvs(uint8_t step){
             case NEXT:  break ;
             case NEXT:  break ;
             case NEXT:  break ;
-
+            case NEXT:  break ;
             case NEXT:  C1.INST_done = 1 ; break ;
             
             default:    return 0 ;
@@ -699,16 +699,16 @@ uint8_t cmp(uint8_t step) {
         case NEXT:  C1.ACC_e.toggle() ;
                     C1.A_s.toggle() ; break ;
         case NEXT:  C1.A_s.toggle() ; break ;
-        case NEXT:  C1.ACC_e.toggle() ;
+        case NEXT:  C1.ACC_e.toggle() ; break ;
         
-                    C3.ALU_op = ALU_CMP ; 
+        case NEXT:  C3.ALU_op = ALU_CMP ; 
                     C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ;
                     C5.ST_clk.toggle() ; break ;
         case NEXT:  C5.ST_clk.toggle() ; break ;
         case NEXT:  C3.ALU_op = 0 ; 
-                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ;
+                    C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
 
-                    C1.INST_done = 1 ; break ;
+        case NEXT:  C1.INST_done = 1 ; break ;
 
         default:    return 0 ;
     }

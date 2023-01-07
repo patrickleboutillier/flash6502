@@ -90,20 +90,26 @@ void generate_microcode(){
     assert(CU.make_cw() == CU.get_default_cw()) ;
     
     printf("uint64_t microcode[] = {\n") ;
-    for (int i = 0 ; i < 4096 ; i++){
+    for (uint16_t i = 0 ; i < 4096 ; i++){
         uint8_t flags = i & 0b1111 ;
         uint8_t inst = i >> 4 ;
+        
+        // Set INST and FLAGS       
+        INST = inst ;
+        STATUS.N = (flags >> 3) & 1 ;
+        STATUS.V = (flags >> 2) & 1 ;
+        STATUS.Z = (flags >> 1) & 1 ;
+        STATUS.C = (flags >> 0) & 1 ;
 
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false ;
         int step = 0 ;
         for (; step < 64 ; step++){
-            // Set INST and FLAGS
-            INST = inst ;
-            STATUS.N = (flags >> 3) & 1 ;
-            STATUS.V = (flags >> 2) & 1 ;
-            STATUS.Z = (flags >> 1) & 1 ;
-            STATUS.C = (flags >> 0) & 1 ;
+            assert(INST == inst) ;
+            assert(STATUS.N == ((flags >> 3) & 1)) ;
+            assert(STATUS.V == ((flags >> 2) & 1)) ;
+            assert(STATUS.Z == ((flags >> 1) & 1)) ;
+            assert(STATUS.C == ((flags >> 0) & 1)) ;
 
             if (! fetch_done){
                 if (fetch(step)){
@@ -121,6 +127,7 @@ void generate_microcode(){
                 addr_done = true ;
                 op_start = step ;
             }
+            
             uint8_t more = (*optable[inst])(step - op_start) ;
             uint64_t cw = (more ? CU.make_cw() : CU.get_default_cw()) ;
             write_mc(inst, flags, step, cw) ;

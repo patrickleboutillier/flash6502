@@ -407,15 +407,15 @@ int main(int argc, char *argv[]){
     reset6502(prog) ;
 
     // Start processing instructions.
-    int nb_insts = 0, nb_steps = 0 ;
+    int nb_insts = 2, nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
     int max_steps = 0 ; 
     uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         if (DEBUG_STEP){
-            printf("PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X  X:0x%02X  Y:0x%02X  ACC:0x%02X\n", 
-                (uint8_t)PCh, (uint8_t)PCl, (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl, 
+            printf("%8d  PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X  X:0x%02X  Y:0x%02X  ACC:0x%02X\n", 
+                nb_insts, (uint8_t)PCh, (uint8_t)PCl, (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl, 
                 (uint8_t)X, (uint8_t)Y, (uint8_t)ACC) ;
         }
         if (pc == prev_pc){
