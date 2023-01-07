@@ -18,9 +18,6 @@
 BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
 CTRLSIG CTRL_src(NULL, 13) ;
 CTRL_OUT CTRL_OUT ;
-//CTRLSIG CLK_async(NULL, 10, true) ;
-//CTRLSIG STEP_clr(NULL, 11, true) ;
-//CTRLSIG PC_clr(NULL, A1, true) ;
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
@@ -60,14 +57,14 @@ CTRLSIG ST_I_s(&E3, 4) ;
 CTRLSIG ST_C_s(&E3, 3) ;
 CTRLSIG ST_ALU_C_s(&E3, 2) ;
 CTRLSIG ST_ALU_C_from_C(&E3, 0) ;
-CTRLSIG ST_s(&E3, 1) ;
+CTRLSIG ST_s(&E3, 1, true) ;
 
 VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
-#define MON_EVERY 2000
+#define MON_EVERY 1000
 
 byte INST = 0 ;
 bool INST_done = 0 ; 
@@ -94,9 +91,7 @@ void setup() {
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
-  //PC_clr.setup() ;
-  //CLK_async.setup() ;
-  //STEP_clr.setup() ;
+  CTRL_src.setup() ;
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
@@ -123,7 +118,7 @@ void setup() {
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
   
-  //CTRLSIG::check() ;
+  CTRLSIG::check() ;
   
   prog->describe() ;
   Serial.println() ;
@@ -133,6 +128,7 @@ void setup() {
     DEBUG_MON = true ;
   }
   reset6502(prog) ;
+  //set_pc(0x35a7) ;
 }
 
 
@@ -151,13 +147,24 @@ void loop(){
       } 
       prev_pc = pc ;
 
-      /* if (pc == 0x0608){
-        DEBUG_STEP = true ;
+      /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
         DEBUG_MON = true ;
+        DEBUG_STEP = true ;
+      }
+      else {
+        DEBUG_MON = false ;       
+        DEBUG_STEP = false ;
       } */
       
-      if (((inst_cnt % MON_EVERY) == 0)||(DEBUG_MON)){
-        monitor6502(true) ; Serial.println() ;
+      if (DEBUG_MON){
+        monitor6502(true) ; 
+        Serial.println() ;
+      }
+      if ((inst_cnt % MON_EVERY) == 0){
+        monitor6502(true) ; 
+        //Serial.print("  RAM[0x04E6]:0x") ;
+        //Serial.print(peek_ram(0x04e6), HEX) ;
+        Serial.println() ;
       }
       process_inst(0, 0xFF, DEBUG_STEP) ; 
 

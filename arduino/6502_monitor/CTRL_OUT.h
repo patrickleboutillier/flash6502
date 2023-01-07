@@ -20,7 +20,7 @@ class CTRL_OUT {
       DDRB |= 0b00011100 ;
     }
     
-    inline void pulse(uint16_t cmd){
+    inline void pulse(uint8_t cmd){
         // Set control bits (bits 4, 3, 2), which are already 0.
         PORTB |= cmd ;
         // Clear control bits

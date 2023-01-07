@@ -32,8 +32,8 @@ inline uint8_t analogRead2Digital(int apin){
 }
 
 
-void step(){
-   Serial.println(F("\nSTEP:")) ;
+void pause(){
+   Serial.println(F("\nPAUSE:")) ;
    while (! button_pressed(STEP)){} ; 
 }
 
@@ -69,6 +69,35 @@ uint16_t get_ea(){
   ea |= DATA.read() << 8 ;
   EAh_e.toggle() ; Ah2D_e.toggle() ;   
   return ea ; 
+}
+
+
+void set_ea(uint16_t ea){
+  DATA.write(ea >> 8) ;
+  EAh_s.pulse() ;
+  DATA.reset() ;
+  DATA.write(ea & 0xFF) ;
+  EAl_s.pulse() ;
+  DATA.reset() ;
+}
+
+
+uint8_t get_ram_ea(){
+  EAl_e.toggle() ; 
+  EAh_e.toggle() ;
+  RAM_e.toggle() ;
+  uint8_t data = DATA.read() ;
+  RAM_e.toggle() ;
+  EAl_e.toggle() ; 
+  EAh_e.toggle() ;
+  return data ;  
+}
+
+
+uint8_t peek_ram(uint16_t addr){
+  set_ea(addr) ;
+  uint8_t data = get_ram_ea() ;
+  return data ;
 }
 
 
@@ -109,18 +138,18 @@ uint8_t get_y(){
 }
 
 
-uint8_t get_status(){
+/* uint8_t get_status(){
   ST_e.toggle() ;
   uint8_t status = DATA.read() ;
   ST_e.toggle() ;
   return status ;
-}
+} */
 
 
-uint8_t set_status(uint8_t s){
+/* uint8_t set_status(uint8_t s){
   DATA.write(s) ;
   ST_src.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; ST_C_s.toggle() ;
   ST_s.pulse() ;
   ST_src.toggle() ; ST_NZ_s.toggle() ; ST_V_s.toggle() ; ST_C_s.toggle() ;
   DATA.reset() ;
-}
+} */

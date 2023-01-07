@@ -1,7 +1,7 @@
 #include "inst.h"
+#include "utils.h"
 #include "addrmodes.h"
 #include "ops.h"
-#include "utils.h"
 
 
 typedef uint8_t (*func6502)(uint8_t step) ;
@@ -52,11 +52,11 @@ PROGMEM const func6502 optable[256] = {
 unsigned long inst_cnt = 0 ;
 void monitor6502(bool idle){
   static char buf[128] ;
-  sprintf(buf, "INST:0x%02X", INST) ;
+  sprintf(buf, "%8lu  INST:0x%02X", inst_cnt, INST) ;
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%3u  X:%3u  Y:%3u %8lu",
-        get_pc(), get_ea(), get_sp(), get_status(), get_acc(), get_x(), get_y(), inst_cnt) ;
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  ACC:%3u  X:%3u  Y:%3u",
+        get_pc(), get_ea(), get_sp(), get_acc(), get_x(), get_y()) ;
       Serial.print(buf) ;
   }
 }
@@ -107,7 +107,9 @@ void process_ctrl(){
 }
 
 
-bool post_step(bool prev_ctrl){
+bool post_step(bool prev_ctrl, bool debug, const char *msg, uint8_t step){   
+  CTRL_OUT.pulse(CLK_SYNC) ;  
+    
   // bool ctrl = digitalRead(CTRL) ;
   bool ctrl = PINC & 0b100 ; // A2
   if (ctrl){
@@ -117,8 +119,10 @@ bool post_step(bool prev_ctrl){
     DATA.reset() ;
   }
   
-  CTRL_OUT.pulse(CLK_SYNC) ;  
-
+  if (debug){
+    step6502(msg, step) ;
+  }
+  
   return ctrl ;
 }
 
@@ -130,20 +134,16 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false ;
     bool prev_ctrl = 0, ctrl = 0 ; 
-    for (int step = start_step ; step < max_steps ; step++){
+    for (uint8_t step = start_step ; step < max_steps ; step++){
         prev_ctrl = ctrl ;
 
         if (step > 0){
-          //CLK_async.pulse() ; // down/up  
-          CTRL_OUT.pulse(CLK_ASYNC) ;     
+          CTRL_OUT.pulse(CLK_ASYNC) ;    
         }
-        
+   
         if (! fetch_done){
             if (fetch(step)){
-                ctrl = post_step(prev_ctrl) ;
-                if (debug){
-                    step6502("fetch", step) ;
-                }
+                ctrl = post_step(prev_ctrl, debug, "fetch", step) ;
                 continue ;
             } 
             fetch_done = true ;
@@ -152,10 +152,7 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
-                ctrl = post_step(prev_ctrl) ;
-                if (debug){
-                  step6502("addr", step - addr_start) ;
-                }
+                ctrl = post_step(prev_ctrl, debug, "addr", step - addr_start) ;
                 continue ;
             }
             addr_done = true ;
@@ -165,16 +162,12 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
         {
           func6502 f = pgm_read_word(&(optable[INST])) ;
           if (f(step - op_start)){
-              ctrl = post_step(prev_ctrl) ;
-              if (debug){
-                step6502("oper", step - op_start) ;
-              }
+              ctrl = post_step(prev_ctrl, debug, "oper", step - op_start) ;
               continue ;
           }
         }
         
         // Reset step counter.
-        //STEP_clr.pulse() ;
         CTRL_OUT.pulse(STEP_CLR) ;
         CTRL_OUT.pulse(CLK_SYNC) ;
         
@@ -187,7 +180,6 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
 
 
 void insert_inst(uint8_t opcode){
-    //STEP_clr.pulse() ;
     CTRL_OUT.pulse(STEP_CLR) ;
     DATA.write(opcode) ;
     PC_e.toggle() ;
@@ -209,9 +201,9 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
     
-    //STEP_clr.pulse() ;
     CTRL_OUT.pulse(STEP_CLR) ;
-    //PC_clr.pulse() ;
+    // Reset latches
+    CTRL_OUT.pulse(CLK_SYNC) ;
     CTRL_OUT.pulse(PC_CLR) ;
 
     inst_cnt = 0 ;
@@ -224,9 +216,7 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     insert_inst(INST_RST1) ;
 
     Serial.println(F("- Loading program to RAM...")) ;
-    //STEP_clr.pulse() ;
     CTRL_OUT.pulse(STEP_CLR) ;
-    //PC_clr.pulse() ;
     CTRL_OUT.pulse(PC_CLR) ;
     for (int i = 0 ; i < prog->len() ; i++){
         byte inst = prog->get_byte(i) ;
