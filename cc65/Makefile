@@ -3,8 +3,11 @@
 lib:
 	cp supervision.lib flash6502.lib
 	ca65 crt0.s
-	ar65 d flash6502.lib crt0.o supervision-stdjoy.o joy_stat_stddrv.o libref.o
+	ar65 d flash6502.lib crt0.o supervision-stdjoy-joy.o joy_stat_stddrv.o libref.o
 	ar65 a flash6502.lib crt0.o
+
+clean:
+	rm -f *.o flash6502.lib
 
 
 #$ cc65 -t none -O --cpu 65sc02 main.c
