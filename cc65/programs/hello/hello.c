@@ -29,10 +29,6 @@ int main(){
 
     print(buf) ;
     print("12\n") ;
-    /*int i = 0 ;
-    for (; hello[i] != '\0' ; i++){
-        *STDOUT = hello[i] ;
-    }*/
 
     return 0 ;
 }
