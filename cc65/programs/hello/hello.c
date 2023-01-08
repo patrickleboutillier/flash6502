@@ -18,14 +18,8 @@ void print(char *str){
 int main(){
     char buf[16] ;
     
-    buf[0] = 't' ;
-    buf[1] = 'e' ;
-    buf[2] = 's' ;
-    buf[3] = 't' ;
-    buf[4] = '\n' ;
-    buf[5] = '\0' ;
     // Adding this string copy breaks the program...
-    //strcpy(buf, "test\n") ;
+    strcpy(buf, "test\n") ;
 
     print(buf) ;
     print("12\n") ;

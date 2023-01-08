@@ -11,12 +11,15 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.forceimport	__STARTUP__
+	.import		_strcpy
 	.export		_print
 	.export		_main
 
 .segment	"RODATA"
 
 S0001:
+	.byte	$74,$65,$73,$74,$0A,$00
+S0002:
 	.byte	$31,$32,$0A,$00
 
 ; ---------------------------------------------------------------
@@ -75,29 +78,17 @@ L0004:	jsr     ldax0sp
 
 	ldy     #$10
 	jsr     subysp
-	lda     #$74
-	ldy     #$00
-	sta     (sp),y
-	lda     #$65
-	iny
-	sta     (sp),y
-	lda     #$73
-	iny
-	sta     (sp),y
-	lda     #$74
-	iny
-	sta     (sp),y
-	lda     #$0A
-	iny
-	sta     (sp),y
-	lda     #$00
-	iny
-	sta     (sp),y
+	lda     sp
+	ldx     sp+1
+	jsr     pushax
+	lda     #<(S0001)
+	ldx     #>(S0001)
+	jsr     _strcpy
 	lda     sp
 	ldx     sp+1
 	jsr     _print
-	lda     #<(S0001)
-	ldx     #>(S0001)
+	lda     #<(S0002)
+	ldx     #>(S0002)
 	jsr     _print
 	ldx     #$00
 	txa
