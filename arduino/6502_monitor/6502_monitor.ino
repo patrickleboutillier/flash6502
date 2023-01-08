@@ -63,8 +63,8 @@ VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
-bool DEBUG_STEP = true ;
-#define MON_EVERY 1
+bool DEBUG_STEP = false ;
+#define MON_EVERY 1000
 
 byte INST = 0 ;
 bool INST_done = 0 ; 
@@ -128,7 +128,7 @@ void setup() {
     DEBUG_MON = true ;
   }
   reset6502(prog) ;
-  set_pc(0x059e) ;
+  //set_pc(0x059e) ;
 }
 
 
