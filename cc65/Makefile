@@ -7,8 +7,8 @@ runtime:
 	ca65 --cpu 6502 interrupt.s
 	ca65 --cpu 6502 vectors.s
 	ar65 d flash6502.lib crt0.o supervision-stdjoy-joy.o joy_stat_stddrv.o libref.o
-	ar65 r flash6502.lib crt0.o
-
+	ar65 r flash6502.lib crt0.o 
+	
 
 clean:
 	rm -f *.o flash6502.lib

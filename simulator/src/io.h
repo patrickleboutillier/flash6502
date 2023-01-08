@@ -26,8 +26,8 @@ class IO {
             case 0x2: // stderr
               fprintf(stderr, "%c", data) ;
               return ;
-            case 0x9: // halt 
-              printf("HALTED!\n") ;
+            case 0x9: // halt
+              fprintf(stderr, "HALTED!\n") ;
               exit(0) ;
               return ;
         }

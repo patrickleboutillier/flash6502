@@ -252,6 +252,7 @@ void process_ctrl(){
         }
         else {
             ctrl_DATA = VECTORS.get_byte(addr) ;
+            printf("vector read addr:%02X, data:%02X\n", addr, (uint8_t)ctrl_DATA) ;
         }
     }
     else {
@@ -266,6 +267,7 @@ void process_ctrl(){
         }
         else {
             VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
+            printf("vector write addr:%02X data:%02X\n", addr, (uint8_t)DATA.data_out) ;
         }
     }
 }
@@ -395,6 +397,9 @@ int main(int argc, char *argv[]){
     printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
 
+    if (getenv("DEBUG_STEP")){
+        DEBUG_STEP = true ;
+    }
 
     // Reset the processor
     reset6502(prog) ;
@@ -407,9 +412,9 @@ int main(int argc, char *argv[]){
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         if (DEBUG_STEP){
-            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X RAM[SP+1]:0x%02X RAM[SP+2]:0x%02X RAM[SP+3]:0x%02X\n", 
+            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X ACC:0x%02X X:0x%02X\n", 
                 pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-                RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
+                (uint8_t)ACC, (uint8_t)X) ;
         }
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;

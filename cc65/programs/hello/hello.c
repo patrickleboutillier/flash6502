@@ -1,14 +1,38 @@
 
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 
-char *STDOUT = (char *)0xFFF1 ;
-char *HALT2 = (char *)0xFFF9 ;
+
+#define STDOUT 0xFFF1
+
+
+void print(char *str){
+    int i = 0 ;
+    while (str[i] != '\0'){
+        *(char *)STDOUT = str[i++] ;
+    }
+}
+
 
 int main(){
-    char *hello = "Hello, World!\n" ;
-    int i = 0 ;
+    char buf[16] ;
+    
+    buf[0] = 't' ;
+    buf[1] = 'e' ;
+    buf[2] = 's' ;
+    buf[3] = 't' ;
+    buf[4] = '\n' ;
+    buf[5] = '\0' ;
+    // Adding this string copy breaks the program...
+    strcpy(buf, "test\n") ;
+
+    print(buf) ;
+    print("12\n") ;
+    /*int i = 0 ;
     for (; hello[i] != '\0' ; i++){
         *STDOUT = hello[i] ;
-    }
+    }*/
 
     return 0 ;
 }

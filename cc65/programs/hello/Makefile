@@ -8,7 +8,7 @@ build:
 	ca65 --cpu 6502 hello.s
 	ld65 -C $(CFG) -m hello.map hello.o $(OBJECTS) $(RUNTIME)
 
-test:
+test: build
 	cd ../../../simulator/ && src/fake6502 ../cc65/programs/hello/a.out
 
 clean:

@@ -26,6 +26,7 @@ _irq_int:  PHA                    ; Save accumulator contents to stack
            TSX                    ; Transfer stack pointer to X
            INX                    ; Increment X so it points to the status
            INX                    ;   register value saved on the stack
+           INX
            LDA $100,X             ; Load status register contents
            AND #$10               ; Isolate B status bit
            BNE break              ; If B = 1, BRK detected
