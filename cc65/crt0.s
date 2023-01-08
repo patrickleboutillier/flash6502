@@ -2,7 +2,7 @@
 ; crt0.s
 ; ---------------------------------------------------------------------------
 ;
-; Startup code for cc65 (Single Board Computer version)
+; Startup code for cc65 (Flash6502 version)
 
 .export   _init, _exit
 .import   _main

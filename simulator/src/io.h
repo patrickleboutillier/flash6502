@@ -21,7 +21,14 @@ class IO {
             case 0x0: // stdin
               return ;
             case 0x1: // stdout 
-              printf("%c", data) ;
+              fprintf(stdout, "%c", data) ;
+              return ;
+            case 0x2: // stderr
+              fprintf(stderr, "%c", data) ;
+              return ;
+            case 0x9: // halt 
+              printf("HALTED!\n") ;
+              exit(0) ;
               return ;
         }
     }

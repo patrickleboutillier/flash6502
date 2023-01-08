@@ -386,13 +386,8 @@ int main(int argc, char *argv[]){
 
     // Default program
     PROG *prog = &progTestSuite ;
-    if (argc >= 2){
-        if (strcmp(argv[1], "star") == 0){
-            prog = &progStar ;
-        }
-        else if (strcmp(argv[1], "hello") == 0){
-            prog = &progHello ;
-        }
+    if ((argc >= 2)&&((access(argv[1], F_OK) == 0))){
+        prog = new PROG(argv[1], argv[1]) ;
     }
     prog->describe() ;
     printf("\n") ;

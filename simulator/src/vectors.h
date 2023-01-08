@@ -46,6 +46,7 @@ class VECTORS {
 
     // Not the real address here, just the lower 4 bits.
     void set_byte(uint8_t addr, uint8_t data){
+        printf("vector write addr:%d data:%d\n", addr, data) ;
          switch (addr){
             case 0xF: _inth = data ; return ;
             case 0xE: _intl = data ; return ;
