@@ -25,7 +25,7 @@ int main(){
     buf[4] = '\n' ;
     buf[5] = '\0' ;
     // Adding this string copy breaks the program...
-    strcpy(buf, "test\n") ;
+    //strcpy(buf, "test\n") ;
 
     print(buf) ;
     print("12\n") ;
