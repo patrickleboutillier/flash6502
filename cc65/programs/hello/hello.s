@@ -11,21 +11,20 @@
 	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
 	.macpack	longbranch
 	.forceimport	__STARTUP__
-	.import		_strcat
-	.import		_itoa
-	.import		_print
-	.export		_buf
+	.import		_stdout
+	.import		_stderr
+	.import		_fprintf
+	.import		_printf
 	.export		_main
 
 .segment	"RODATA"
 
+S0002:
+	.byte	$73,$74,$64,$6F,$75,$74,$20,$76,$69,$61,$20,$66,$64,$0A,$00
+S0003:
+	.byte	$73,$74,$64,$65,$72,$72,$20,$76,$69,$61,$20,$66,$64,$0A,$00
 S0001:
-	.byte	$0A,$00
-
-.segment	"BSS"
-
-_buf:
-	.res	16,$00
+	.byte	$73,$74,$64,$6F,$75,$74,$3A,$20,$25,$64,$0A,$00
 
 ; ---------------------------------------------------------------
 ; int __near__ main (void)
@@ -38,31 +37,37 @@ _buf:
 .segment	"CODE"
 
 ;
-; itoa(42, buf, 10) ;
+; printf("stdout: %d\n", 134 / 56) ;
 ;
-	lda     #$2A
-	jsr     pusha0
-	lda     #<(_buf)
-	ldx     #>(_buf)
-	jsr     pushax
-	ldx     #$00
-	lda     #$0A
-	jsr     _itoa
-;
-; strcat(buf, "\n") ;
-;
-	lda     #<(_buf)
-	ldx     #>(_buf)
-	jsr     pushax
 	lda     #<(S0001)
 	ldx     #>(S0001)
-	jsr     _strcat
+	jsr     pushax
+	lda     #$02
+	jsr     pusha0
+	ldy     #$04
+	jsr     _printf
 ;
-; print(buf) ;
+; fprintf(stdout, "stdout via fd\n") ;
 ;
-	lda     #<(_buf)
-	ldx     #>(_buf)
-	jsr     _print
+	lda     _stdout
+	ldx     _stdout+1
+	jsr     pushax
+	lda     #<(S0002)
+	ldx     #>(S0002)
+	jsr     pushax
+	ldy     #$04
+	jsr     _fprintf
+;
+; fprintf(stderr, "stderr via fd\n") ;
+;
+	lda     _stderr
+	ldx     _stderr+1
+	jsr     pushax
+	lda     #<(S0003)
+	ldx     #>(S0003)
+	jsr     pushax
+	ldy     #$04
+	jsr     _fprintf
 ;
 ; return 0 ;
 ;

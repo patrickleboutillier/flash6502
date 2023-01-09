@@ -5,16 +5,10 @@
 #include "../../flash6502.h"
 
 
-char buf[16] ;
-
 int main(){
-    //char buf[16] ;
-    //strcpy(buf, "test\n") ;
-    //print(buf) ;
-
-    itoa(42, buf, 10) ;
-    strcat(buf, "\n") ;
-    print(buf) ;
+    printf("stdout: %d\n", 134 / 56) ;
+    fprintf(stdout, "stdout via fd\n") ;
+    fprintf(stderr, "stderr via fd\n") ;
 
     return 0 ;
 }
