@@ -4,7 +4,7 @@ OBJECTS=../../interrupt.o ../../vectors.o
 
 
 build:
-	cc65 -t none -O --cpu 6502 hello.c
+	cc65 -t none -O -T --cpu 6502 hello.c
 	ca65 --cpu 6502 hello.s
 	ld65 -C $(CFG) -m hello.map hello.o $(OBJECTS) $(RUNTIME)
 
