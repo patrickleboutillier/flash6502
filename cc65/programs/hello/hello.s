@@ -12,16 +12,20 @@
 	.macpack	longbranch
 	.forceimport	__STARTUP__
 	.import		_strcat
-	.import		_strcpy
-	.import		_utoa
+	.import		_itoa
 	.import		_print
+	.export		_buf
 	.export		_main
 
 .segment	"RODATA"
 
 S0001:
-	.byte	$74,$65,$73,$74,$0A,$00
-S0002	:=	S0001+4
+	.byte	$0A,$00
+
+.segment	"BSS"
+
+_buf:
+	.res	16,$00
 
 ; ---------------------------------------------------------------
 ; int __near__ main (void)
@@ -34,47 +38,30 @@ S0002	:=	S0001+4
 .segment	"CODE"
 
 ;
-; strcpy(buf, "test\n") ;
-;
-	ldy     #$10
-	jsr     subysp
-	lda     sp
-	ldx     sp+1
-	jsr     pushax
-	lda     #<(S0001)
-	ldx     #>(S0001)
-	jsr     _strcpy
-;
-; print(buf) ;
-;
-	lda     sp
-	ldx     sp+1
-	jsr     _print
-;
-; utoa(42, buf, 10) ;
+; itoa(42, buf, 10) ;
 ;
 	lda     #$2A
 	jsr     pusha0
-	lda     #$02
-	jsr     leaa0sp
+	lda     #<(_buf)
+	ldx     #>(_buf)
 	jsr     pushax
 	ldx     #$00
 	lda     #$0A
-	jsr     _utoa
+	jsr     _itoa
 ;
 ; strcat(buf, "\n") ;
 ;
-	lda     sp
-	ldx     sp+1
+	lda     #<(_buf)
+	ldx     #>(_buf)
 	jsr     pushax
-	lda     #<(S0002)
-	ldx     #>(S0002)
+	lda     #<(S0001)
+	ldx     #>(S0001)
 	jsr     _strcat
 ;
 ; print(buf) ;
 ;
-	lda     sp
-	ldx     sp+1
+	lda     #<(_buf)
+	ldx     #>(_buf)
 	jsr     _print
 ;
 ; return 0 ;
@@ -84,8 +71,7 @@ S0002	:=	S0001+4
 ;
 ; }
 ;
-	ldy     #$10
-	jmp     addysp
+	rts
 
 .endproc
 

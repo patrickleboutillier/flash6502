@@ -5,12 +5,14 @@
 #include "../../flash6502.h"
 
 
-int main(){
-    char buf[16] ;
-    strcpy(buf, "test\n") ;
-    print(buf) ;
+char buf[16] ;
 
-    utoa(42, buf, 10) ;
+int main(){
+    //char buf[16] ;
+    //strcpy(buf, "test\n") ;
+    //print(buf) ;
+
+    itoa(42, buf, 10) ;
     strcat(buf, "\n") ;
     print(buf) ;
 

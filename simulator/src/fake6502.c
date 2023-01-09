@@ -416,9 +416,10 @@ int main(int argc, char *argv[]){
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         if (DEBUG_STEP){
-            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X\n", 
-                pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-                (uint8_t)ACC, (uint8_t)X, (uint8_t)Y) ;
+            uint16_t ea = EAh << 8 | EAl ;
+            printf("%8d  PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X RAM[EA]:0x%02X\n", 
+                nb_insts, pc, (uint8_t)INST, (uint8_t)SP, STATUS.P(),
+                (uint8_t)ACC, (uint8_t)X, (uint8_t)Y, ea, RAM.peek(ea)) ;
         }
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;
