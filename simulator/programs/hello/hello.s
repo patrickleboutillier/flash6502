@@ -1,5 +1,6 @@
 
 STDOUT = $FFF1
+HALT =   $FFF9
 
 	.org $0000
 	jmp main
@@ -19,8 +20,16 @@ loop:
 	iny
 	jmp loop
 done:
-	jmp *
+	sta HALT
 
+nmi:
+irq:
+	rti
+
+	.org $fffa
+  	.word nmi
+  	.word main
+  	.word irq
 
 
 

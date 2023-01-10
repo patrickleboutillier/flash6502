@@ -64,19 +64,14 @@ uint8_t asl(uint8_t step) {
     }
     else {
         switch (step) { 
-            case    0:  C1.ACC_e.toggle() ; break ;
-            case    1:  C1.A_s.toggle() ; C3.B_s.toggle() ; break ;
-            case    2:  C1.A_s.toggle() ; C3.B_s.toggle() ; break ;
-            case    3:  C1.ACC_e.toggle() ; break ;
-
-            case    4:  C3.ALU_op = ALU_ADD ; 
+            case    0:  C3.ALU_op = ALU_ADD ; 
                         C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
-            case    5:  C2.RAM_s.toggle() ; C5.ST_s.toggle() ; break ;
-            case    6:  C2.RAM_s.toggle() ; C5.ST_s.toggle() ; break ;
-            case    7:  C3.ALU_op = 0 ; 
+            case    1:  C2.RAM_s.toggle() ; C5.ST_s.toggle() ; break ;
+            case    2:  C2.RAM_s.toggle() ; C5.ST_s.toggle() ; break ;
+            case    3:  C3.ALU_op = 0 ; 
                         C4.EAh_e.toggle() ; C4.EAl_e.toggle() ; C3.ALU_e.toggle() ; C5.ST_C_s.toggle() ; C5.ST_NZ_s.toggle() ; break ;
             
-            case    8:  C1.INST_done = 1 ; break ;
+            case    4:  C1.INST_done = 1 ; break ;
 
             default:    return 0 ;
         }

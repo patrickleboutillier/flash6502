@@ -6,10 +6,18 @@ class IO {
     // Not the real address here, just the lower 4 bits.
     uint8_t get_byte(uint8_t addr){
         switch (addr){
-            case 0x0:
-              return 0 ; // stdin
-            case 0x1: 
-              return 0 ; // stdout
+            case 0x0: {
+              uint8_t b = 0 ;
+              int rc = read(0, &b, 1) ;
+              //printf("[%c]\n", b) ;
+              if (rc == -1){
+                if (errno != EAGAIN){
+                  fprintf(stderr, "read error\n") ;
+                  exit(1) ;
+                }
+              }
+              return b ; // stdin
+            }
         }
         
         return 0 ;
@@ -21,7 +29,14 @@ class IO {
             case 0x0: // stdin
               return ;
             case 0x1: // stdout 
-              printf("%c", data) ;
+              write(1, &data, 1) ;
+              return ;
+            case 0x2: // stderr
+              write(2, &data, 1) ;
+              return ;
+            case 0x9: // halt
+              fprintf(stderr, "HALTED!\n") ;
+              exit(0) ;
               return ;
         }
     }

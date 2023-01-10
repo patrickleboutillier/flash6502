@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
 
 #include "circuit.h"
 #include "reg.h"
@@ -243,18 +245,27 @@ void init6502(){
 
 
 void process_ctrl(){
+    static uint8_t cache = 0 ;
+
+    //printf("ctrl addr:%02X\n", CTRL_IN.get_addr()) ;
     if (! CTRL_IN.out3){   // RAM_e
-        uint8_t addr = CTRL_IN.get_addr() ;
-        // read from vectors or IO
-        ctrl_DATA.drive(true) ;
-        if (addr < 0xA){
-            ctrl_DATA = IO.get_byte(addr) ;
-        }
-        else {
-            ctrl_DATA = VECTORS.get_byte(addr) ;
+        if (! cache){
+            uint8_t addr = CTRL_IN.get_addr() ;
+            // read from vectors or IO
+            ctrl_DATA.drive(true) ;
+            if (addr < 0xA){
+                cache = IO.get_byte(addr) ;
+                ctrl_DATA = cache ;
+                //printf("io read %d addr:%02X, data:%02X\n", step, addr, (uint8_t)ctrl_DATA) ;
+            }
+            else {
+                ctrl_DATA = VECTORS.get_byte(addr) ;
+                // printf("vector read addr:%02X, data:%02X\n", addr, (uint8_t)ctrl_DATA) ;
+            }
         }
     }
     else {
+        cache = 0 ;
         ctrl_DATA.drive(false) ;
     }
 
@@ -266,6 +277,7 @@ void process_ctrl(){
         }
         else {
             VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
+            // printf("vector write addr:%02X data:%02X\n", addr, (uint8_t)DATA.data_out) ;
         }
     }
 }
@@ -273,6 +285,7 @@ void process_ctrl(){
 
 int process_inst(uint8_t max_steps = 0xFF){
     int nb_steps = 1 ;
+
     while (1){
         CTRL_OUT.pulse(CLK_ASYNC) ;
         // Check if the controller needs to do something
@@ -311,11 +324,6 @@ void insert_inst(uint8_t opcode){
 
 
 void reset6502(PROG *prog){
-    // Install vectors in controller
-    VECTORS.set_reset(prog->start_addr()) ;
-    VECTORS.set_int(prog->int_addr()) ;
-    VECTORS.set_nmi(prog->nmi_addr()) ;
-
     // Clear step counter and program counter
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
@@ -331,9 +339,9 @@ void reset6502(PROG *prog){
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
-    for (uint32_t i = 0 ; i < prog->len() ; i++){
+    for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
         ctrl_DATA.drive(true) ;
-        ctrl_DATA = prog->get_byte(i) ;
+        ctrl_DATA = data ;
         ctrl_PC_e.toggle() ;
         CTRL_OUT.pulse(RAM_S) ;
         ctrl_PC_e.toggle() ;
@@ -343,6 +351,15 @@ void reset6502(PROG *prog){
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     
+    // Print program info
+    prog->describe() ;
+    printf("\n") ;
+
+    // Now that program is transfered, install vectors in controller
+    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_int(prog->int_addr()) ;
+    VECTORS.set_nmi(prog->nmi_addr()) ;
+
     // Reset PC here to be safe?
     insert_inst(INST_RST2) ;
 
@@ -378,28 +395,41 @@ void process_interrupt(uint8_t inst){
 }
 
 
+bool caught_irq = false ;
+bool caught_nmi = false ;
+void int_handler(int signum){
+    if (signum == SIGUSR1){ // INT
+        // Process interrupt only if interrupt disable is off.
+        if (! STATUS.I){
+            caught_irq = true ;
+        }
+    }
+    else if (signum == SIGUSR2){ // NMI    
+        caught_nmi = true ;
+    }
+}
+
+
 int main(int argc, char *argv[]){
-    // Set STDIN to non-blocking
-    fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK) ;
+    signal(SIGUSR1, int_handler) ;
+    signal(SIGUSR2, int_handler) ;
 
     init6502() ;
 
     // Default program
     PROG *prog = &progTestSuite ;
-    if (argc >= 2){
-        if (strcmp(argv[1], "star") == 0){
-            prog = &progStar ;
-        }
-        else if (strcmp(argv[1], "hello") == 0){
-            prog = &progHello ;
-        }
+    if ((argc >= 2)&&((access(argv[1], F_OK) == 0))){
+        prog = new PROG(argv[1], argv[1]) ;
     }
-    prog->describe() ;
     printf("\n") ;
 
     printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
-
+    printf("PID is %d\n", getpid()) ;
+    
+    if (getenv("DEBUG_STEP")){
+        DEBUG_STEP = true ;
+    }
 
     // Reset the processor
     reset6502(prog) ;
@@ -412,9 +442,10 @@ int main(int argc, char *argv[]){
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
         if (DEBUG_STEP){
-            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X RAM[SP+1]:0x%02X RAM[SP+2]:0x%02X RAM[SP+3]:0x%02X\n", 
-                pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-                RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
+            uint16_t ea = EAh << 8 | EAl ;
+            printf("%8d  PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X RAM[EA]:0x%02X\n", 
+                nb_insts, pc, (uint8_t)INST, (uint8_t)SP, STATUS.P(),
+                (uint8_t)ACC, (uint8_t)X, (uint8_t)Y, ea, RAM.peek(ea)) ;
         }
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;
@@ -438,23 +469,14 @@ int main(int argc, char *argv[]){
             printf("%d instructions executed (pc:0x%04X).\n", nb_insts, pc) ;
         }
 
-        // Check for interrupts from stdio
-        char buf[9] ;
-        int n = read(0, buf, 8) ;
-        if (n > 0){
-            char itype = buf[0] ;
-            switch (itype){
-                case 'i':
-                    // Process interrupt only if interrupt disable is off.
-                    // TODO: Check for this in process_inst using actual gates.
-                    if (! STATUS.I){
-                        process_interrupt(INST_IRQ) ;
-                    }
-                    break ;
-                case 'n':
-                    process_interrupt(INST_NMI) ;
-                    break ;
-            }
+        // Check for interrupts
+        if (caught_irq){
+            process_interrupt(INST_IRQ) ;
+            caught_irq = false ;
+        }
+        if (caught_nmi){
+            process_interrupt(INST_NMI) ;
+            caught_nmi = false ;
         }
     }
 }
