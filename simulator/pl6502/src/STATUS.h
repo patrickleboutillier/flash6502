@@ -3,7 +3,7 @@
 
 
 #include "circuit.h"
-#include "reg.h"
+#include "regclk.h"
 #include "STATUS_ROM.h"
 
 /*
@@ -32,25 +32,25 @@ class STATUS : public component {
     public:
         input<1> n_in, v_in, z_in, c_in, i_in ;
         input<1> nz_set, v_set, c_set, i_set, alu_c_set, alu_c_from_C, src_data ;
-        input<1> set ;
+        input<1> clk ;
         input<8> data_in ;
         input<1> data_enable ;
         output<1> N, V, Z, C, I, alu_c ;
         output<8> data_out ;
-        reg<8> sreg ;
+        regclk<8> sreg ;
     private:
         STATUS_ROM srom ;
         output<1> srom_n_in, srom_v_in, srom_z_in, srom_c_in, srom_i_in ;
         output<1> srom_nz_set, srom_v_set, srom_c_set, srom_i_set, srom_alu_c_set, srom_alu_c_from_C ;
         output<1> srom_n_old, srom_v_old, srom_z_old, srom_c_old, srom_i_old, srom_alu_c_old ;
-        output<1> sreg_enable, sreg_set ;
+        output<1> sreg_enable, sreg_clk ;
         output<8> sreg_data_in ;
     public:
         STATUS() : n_in(this),   v_in(this),  z_in(this), c_in(this), i_in(this), 
                    nz_set(this), v_set(this), c_set(this), i_set(this), alu_c_set(this), alu_c_from_C(this),
-                   src_data(this), set(this), data_in(this), data_enable(this), 
+                   src_data(this), clk(this), data_in(this), data_enable(this), 
                    sreg_enable(1) {
-            sreg_set.connect(sreg.set) ;
+            sreg_clk.connect(sreg.clk) ;
             sreg_enable.connect(sreg.enable) ;
             sreg_data_in.connect(sreg.data_in) ;
             sreg_enable = 0 ; // always enabled
@@ -76,10 +76,10 @@ class STATUS : public component {
             data_out.drive(false) ;
         } ;
 
-        void always(){ 
-            sreg_data_in = srom.I << 5 | srom.N << 4 | srom.V << 3 | srom.Z << 2 |  srom.C << 1 | srom.alu_c ; 
+        void always(const void *trigger){
+            sreg_data_in = srom.I << 5 | srom.N << 4 | srom.V << 3 | srom.Z << 2 | srom.C << 1 | srom.alu_c ; 
 
-            sreg_set = set ;
+            sreg_clk = clk ;
 
             srom_i_old = sreg.data_out >> 5 ;
             srom_n_old = sreg.data_out >> 4 ;

@@ -42,7 +42,7 @@ class ALUl : public component {
         ALUl() : c_in(this), s_in(this), n_in(this), a(this), b(this), op(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             switch (op.get_value()){
                 case ALU_ADC: {
                     uint32_t tmp = a + b + c_in ;

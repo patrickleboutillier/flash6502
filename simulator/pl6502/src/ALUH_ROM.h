@@ -22,7 +22,7 @@ class ALUh : public component {
         ALUh() : c_in(this), s_in(this), z_in(this), a(this), b(this), op(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             uint8_t vb = b ;
 
             switch (op.get_value()){

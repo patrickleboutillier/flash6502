@@ -36,7 +36,7 @@ template <uint32_t W> class counter_updown : public component {
             return _cnt ;
         }
 
-        void always(){
+        void always(const void *trigger){
             if (clear){
                 _cnt = 0 ;
             }
@@ -90,7 +90,7 @@ template <uint32_t W> class counter : public component {
             return _cnt ;
         }
 
-        void always(){
+        void always(const void *trigger){
             if (! clear){
                 _cnt = 0 ;
             }

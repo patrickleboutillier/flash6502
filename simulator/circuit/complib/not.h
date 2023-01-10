@@ -13,7 +13,7 @@ template <uint32_t W> class not_ : public component {
         not_() : a(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             b.set_value(~a.get_value()) ;
         } ;
 } ;

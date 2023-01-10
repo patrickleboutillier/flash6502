@@ -21,7 +21,7 @@ class ALU : public component {
         output<4> alul_a, alul_b ;
         ALUh aluh ;
         output<1> aluh_c_in, aluh_s_in, aluh_z_in ;
-        output<4> aluh_a, aluh_b ;
+        output<4> aluh_a, aluh_b, alu_op ;
 
     public:
         ALU() : c_in(this), a(this), b(this), op(this), enable(this) {
@@ -35,7 +35,9 @@ class ALU : public component {
             aluh_z_in.connect(aluh.z_in) ;
             aluh_a.connect(aluh.a) ;
             aluh_b.connect(aluh.b) ;
-            
+            alu_op.connect(alul.op) ;
+            alu_op.connect(aluh.op) ;
+
             res.drive(false) ;
             n.drive(false) ;
             z.drive(false) ;
@@ -43,9 +45,8 @@ class ALU : public component {
             v.drive(false) ;
         } ;
 
-        void always(){
-            alul.op = op ;
-            aluh.op = op ;
+        void always(const void *trigger){
+            alu_op = op ;
             alul_a = a & 0xF ;
             aluh_a = a >> 4 ;
             alul_b = b & 0xF ;

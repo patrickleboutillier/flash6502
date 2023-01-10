@@ -182,7 +182,7 @@ void init6502(){
     C5.ST_I_s.connect(STATUS.i_set) ;
     C5.ST_ALU_C_s.connect(STATUS.alu_c_set) ;
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
-    C5.ST_s.connect(STATUS.set) ;
+    C5.ST_clk.connect(STATUS.clk) ;
     C3.ST_e.connect(STATUS.data_enable) ;
     C3.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
@@ -288,6 +288,8 @@ int process_inst(uint8_t max_steps = 0xFF){
 
     while (1){
         CTRL_OUT.pulse(CLK_ASYNC) ;
+        CTRL_OUT.pulse(CLK_SYNC) ;
+
         // Check if the controller needs to do something
         if (CTRL_IN.out1){ // RAM.ctrl
             process_ctrl() ;
@@ -435,7 +437,7 @@ int main(int argc, char *argv[]){
     reset6502(prog) ;
 
     // Start processing instructions.
-    int nb_insts = 0, nb_steps = 0 ;
+    int nb_insts = 2, nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
     int max_steps = 0 ; 
     uint8_t max_inst = 0 ;

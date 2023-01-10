@@ -5,21 +5,21 @@ INPUT/OUTPUT:
 INPUT:
     - Use SN74HC157 chip, pin 13 as selector
       - A:
-        - CTRL: A0
-        - INST_done: A1
+        - CTRL: A2
+        - INST_done: A3
         - RAM_e: A6
         - RAM_s: A7
       - B:
-        - ADDRl: A0, A1, A6, A7
+        - ADDRl: A2, A3, A6, A7
     - IRQ: A4
     - NMI: A5
 
 OUTPUT:
-    - PC_e: A2
+    - PC_e: A0
     - Use SN74HC138 decoder (10-12), all negative logic signals:
         - 0: nothing
         - 1: CLK_async
-        - 2: CLK_sync
+        - 2: CLK_sync (using a NOT gate)
         - 3: RAM_s
         - 4: PC_up
         - 5: STEP_clr
