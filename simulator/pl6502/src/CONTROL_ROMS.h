@@ -23,28 +23,28 @@ class CONTROL_1_ROM : public component {
 
         uint8_t make_cw(){
             return 
-                X_s << 0 |
-                X_e << 1 |
-                Y_s << 2 |
-                Y_e << 3 |
-                ACC_s << 4 |
-                ACC_e << 5 |
-                A_s << 6 |
-                INST_done << 7 ;
+                INST_done   << 7 |
+                X_e         << 6 |
+                Y_e         << 5 |
+                ACC_e       << 4 |
+                X_s         << 3 |
+                Y_s         << 2 |
+                ACC_s       << 1 |
+                A_s         << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 0) & 0xFF ;
 
-            set_signal_1(X_s, 0) ;
-            set_signal_1(X_e, 1) ;
-            set_signal_1(Y_s, 2) ;
-            set_signal_1(Y_e, 3) ;
-            set_signal_1(ACC_s, 4) ;
-            set_signal_1(ACC_e, 5) ;
-            set_signal_1(A_s, 6) ;
             set_signal_1(INST_done, 7) ;
+            set_signal_1(X_e,       6) ;
+            set_signal_1(Y_e,       5) ;
+            set_signal_1(ACC_e,     4) ;
+            set_signal_1(X_s,       3) ;
+            set_signal_1(Y_s,       2) ;
+            set_signal_1(ACC_s,     1) ;
+            set_signal_1(A_s,       0) ;
         } ;
 } ;
 
@@ -62,30 +62,30 @@ class CONTROL_2_ROM : public component {
 
         uint8_t make_cw(){
             return 
-                SP_down << 0 |
-                SP_s << 1 |
-                SP_e << 2 |
-                PC_up << 3 |
-                PC_e  << 4 |
-                INST_s << 5 |
-                RAM_s << 6 |
-                RAM_e << 7 ;
+                SP_down << 7 |
+                SP_s    << 6 |
+                SP_e    << 5 |
+                PC_up   << 4 |
+                PC_e    << 3 |
+                INST_s  << 2 |
+                RAM_s   << 1 |
+                RAM_e   << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 8) & 0xFF ;
 
-            set_signal_1(SP_down, 0) ;
-            set_signal_1(SP_s, 1) ;
-            set_signal_1(SP_e, 2) ;
+            set_signal_1(SP_down,   7) ;
+            set_signal_1(SP_s,      6) ;
+            set_signal_1(SP_e,      5) ;
             
             // PC_up for reset sequence.
             if (! n){
                 PC_up = 0 ;
             }
             else {
-                set_signal_1(PC_up, 3) ;
+                set_signal_1(PC_up, 4) ;
             }
 
             // PC_e for reset sequence.
@@ -93,7 +93,7 @@ class CONTROL_2_ROM : public component {
                 PC_e = 0 ;
             }
             else {
-                set_signal_1(PC_e, 4) ;
+                set_signal_1(PC_e,  3) ;
             }
 
             // INST_s for reset sequence and interrupts
@@ -101,7 +101,7 @@ class CONTROL_2_ROM : public component {
                 INST_s = 1 ;
             }
             else {
-                set_signal_1(INST_s, 5) ;
+                set_signal_1(INST_s, 2) ;
             }
             
             // RAM_s for reset sequence.
@@ -109,10 +109,10 @@ class CONTROL_2_ROM : public component {
                 RAM_s = 0 ;
             }
             else {
-                set_signal_1(RAM_s, 6) ;
+                set_signal_1(RAM_s, 1) ;
             }
             
-            set_signal_1(RAM_e, 7) ;
+            set_signal_1(RAM_e,     0) ;
         } ;
 } ;
 
@@ -131,22 +131,22 @@ class CONTROL_3_ROM : public component {
 
         uint8_t make_cw(){
             return 
-                ALU_op << 4 |
-                ALU_e << 3 |
-                B_s << 2 |
-                ST_e << 1 |
-                ST_src << 0 ;
+                ALU_op  << 4 |
+                ST_src  << 3 |
+                B_s     << 2 |
+                ST_e    << 1 |
+                ALU_e   << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 16) & 0xFF ;
 
-            set_signal_4(ALU_op, 4) ; 
-            set_signal_1(ALU_e, 3) ;
-            set_signal_1(B_s, 2) ; 
-            set_signal_1(ST_e, 1) ; 
-            set_signal_1(ST_src, 0) ;
+            set_signal_4(ALU_op,    4) ; 
+            set_signal_1(ST_src,    3) ;
+            set_signal_1(B_s,       2) ; 
+            set_signal_1(ST_e,      1) ; 
+            set_signal_1(ALU_e,     0) ;
         } ;
 } ;
 
@@ -165,28 +165,28 @@ class CONTROL_4_ROM : public component {
         // TODO: Rearrange signal order for optimal layout.
         uint8_t make_cw(){
             return 
-                Ah2D_e << 0 |
-                EAl_s << 1 |
-                EAl_e << 2 |
-                PCl_s << 3 |
-                Al2D_e << 4 |
-                EAh_s << 5 |
-                EAh_e << 6 |
-                PCh_s << 7 ;               
+                EAl_e  << 7 |
+                Al2D_e << 6 |
+                Ah2D_e << 5 |
+                EAh_e  << 4 |
+                PCl_s  << 3 |
+                EAl_s  << 2 |
+                EAh_s  << 1 |
+                PCh_s  << 0 ;               
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 24) & 0xFF ;
 
-            set_signal_1(Ah2D_e, 0) ;
-            set_signal_1(EAl_s, 1) ;
-            set_signal_1(EAl_e, 2) ;
+            set_signal_1(EAl_e, 7) ;
+            set_signal_1(Al2D_e, 6) ;
+            set_signal_1(Ah2D_e, 5) ;
+            set_signal_1(EAh_e, 4) ;
             set_signal_1(PCl_s, 3) ;
-            set_signal_1(Al2D_e, 4) ;
-            set_signal_1(EAh_s, 5) ;
-            set_signal_1(EAh_e, 6) ;
-            set_signal_1(PCh_s, 7) ;
+            set_signal_1(EAl_s, 2) ;
+            set_signal_1(EAh_s, 1) ;
+            set_signal_1(PCh_s, 0) ;
         } ;
 } ;
 
@@ -196,35 +196,35 @@ class CONTROL_5_ROM : public component {
         input<8> inst ;
         input<1> n, v, z, c ;
         input<6> step ;
-        output<1> ST_bi, ST_NZ_s, ST_I_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_s ;
+        output<1> ST_bi, ST_NZ_s, ST_I_s, ST_V_s, ST_C_s, ST_ALU_C_s, ST_ALU_C_from_C, ST_clk ;
 
-        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this) {
+        CONTROL_5_ROM() :   inst(this), n(this), v(this), z(this), c(this), step(this), ST_clk(1) {
         } ;
 
         uint8_t make_cw(){
             return 
-                ST_bi << 7 |
-                ST_NZ_s << 6 |
-                ST_V_s << 5 |
-                ST_I_s << 4 |
-                ST_C_s << 3 |
-                ST_ALU_C_s << 2 |
+                ST_bi           << 7 |
+                ST_NZ_s         << 6 |
+                ST_V_s          << 5 |
+                ST_I_s          << 4 |
+                ST_C_s          << 3 |
+                ST_ALU_C_s      << 2 |
                 ST_ALU_C_from_C << 1 |
-                ST_s << 0 ;
+                ST_clk          << 0 ;
         }
 
-        void always(){
+        void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 32) & 0xFF ;
 
-            set_signal_1(ST_bi, 7) ;
-            set_signal_1(ST_NZ_s, 6) ;
-            set_signal_1(ST_V_s, 5) ;
-            set_signal_1(ST_I_s, 4) ;
-            set_signal_1(ST_C_s, 3) ;
-            set_signal_1(ST_ALU_C_s, 2) ;
-            set_signal_1(ST_ALU_C_from_C, 1) ;
-            set_signal_1(ST_s, 0) ;
+            set_signal_1(ST_bi,             7) ;
+            set_signal_1(ST_NZ_s,           6) ;
+            set_signal_1(ST_V_s,            5) ;
+            set_signal_1(ST_I_s,            4) ;
+            set_signal_1(ST_C_s,            3) ;
+            set_signal_1(ST_ALU_C_s,        2) ;
+            set_signal_1(ST_ALU_C_from_C,   1) ;
+            set_signal_1(ST_clk,            0) ;
         } ;
 } ;
 

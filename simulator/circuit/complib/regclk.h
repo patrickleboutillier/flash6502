@@ -1,46 +1,34 @@
-#ifndef REGISTER_H
-#define REGISTER_H
+#ifndef REGCLK_H
+#define REGCLK_H
 
 
 #include "circuit.h"
 
 
-template <uint32_t W> class reg : public component {
+template <uint32_t W> class regclk : public component {
     public:
         input<W> data_in ;
-        input<1> set, enable ;
+        input<1> clk, enable ;
         output<W> data_out ;
-    //private:
+    private:
         uint32_t _mem ;
-
+        uint8_t _prev_clk ;
     public:
-        reg() : data_in(this), set(this), enable(this) {
+        regclk() : data_in(this), clk(this), enable(this) {
             _mem = rand() ; // Initialize with random value
             data_out.drive(false) ;
+            _prev_clk = 1 ;
         } ;
-
-        void operator=(reg<W> r){
-            _mem = r._mem ;
-            always() ;
-        }
-
-        void operator=(uint32_t v){
-            _mem = v & ((1 << W) - 1) ;
-            always() ;
-        }
 
         operator uint32_t(){
             return _mem ;
         }
 
         void always(const void *trigger){
-            if (set){
+            if ((clk)&&(! _prev_clk)){
                 _mem = data_in ;
             }
-            else if (trigger == &data_in){
-                // Ignore changes on the data bus if set is not active.
-                return ;    
-            }
+            _prev_clk = clk ;
             if (! enable){ // negative logic
                 data_out.drive(true) ;
                 data_out = _mem ;

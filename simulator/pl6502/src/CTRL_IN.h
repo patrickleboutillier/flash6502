@@ -22,7 +22,7 @@ class CTRL_IN : public component {
         } ;
 
 
-        void always(){
+        void always(const void *trigger){
             bool ctrl = !ctrl_or_addr ;
             out1 = (ctrl ? ctrl1 : (addrl >> 0)) ;
             out2 = (ctrl ? ctrl2 : (addrl >> 1)) ;

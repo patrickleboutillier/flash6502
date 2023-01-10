@@ -1,7 +1,7 @@
 #include "inst.h"
+#include "utils.h"
 #include "addrmodes.h"
 #include "ops.h"
-#include "utils.h"
 
 
 typedef uint8_t (*func6502)(uint8_t step) ;
@@ -52,11 +52,11 @@ PROGMEM const func6502 optable[256] = {
 unsigned long inst_cnt = 0 ;
 void monitor6502(bool idle){
   static char buf[128] ;
-  sprintf(buf, "INST:0x%02X", INST) ;
+  sprintf(buf, "%8lu  INST:0x%02X", inst_cnt, INST) ;
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  STATUS:0x%02X  ACC:%3u  X:%3u  Y:%3u %8lu",
-        get_pc(), get_ea(), get_sp(), get_status(), get_acc(), get_x(), get_y(), inst_cnt) ;
+      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  ACC:%3u  X:%3u  Y:%3u",
+        get_pc(), get_ea(), get_sp(), get_acc(), get_x(), get_y()) ;
       Serial.print(buf) ;
   }
 }
@@ -75,13 +75,15 @@ void step6502(const char *msg, int step, bool idle = false){
     Serial.print(step) ;
   }
   Serial.println() ;
-  while (! analog_button_pressed(STEP)){} ;
+  while (! button_pressed(STEP)){} ;
 }
 
 
 void process_ctrl(){
     if (! RAM_e.read()){
-        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 1 ;
+        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 0 ;
         // read from vectors or IO
         uint8_t data = (addr < 0xA ? IO.get_byte(addr) : VECTORS.get_byte(addr)) ;
         DATA.write(data) ;
@@ -92,7 +94,9 @@ void process_ctrl(){
 
     if (! RAM_s.read()){
         // write to vectors or IO
-        uint8_t addr = digitalRead(CTRL_ADDR3) << 3 | digitalRead(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 1 ;
+        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+        CTRL_src = 0 ;
         if (addr < 0xA){
             IO.set_byte(addr, DATA.read()) ;
         }
@@ -103,6 +107,26 @@ void process_ctrl(){
 }
 
 
+bool post_step(bool prev_ctrl, bool debug, const char *msg, uint8_t step){   
+  CTRL_OUT.pulse(CLK_SYNC) ;  
+    
+  // bool ctrl = digitalRead(CTRL) ;
+  bool ctrl = PINC & 0b100 ; // A2
+  if (ctrl){
+    process_ctrl() ; 
+  }
+  else if (prev_ctrl){
+    DATA.reset() ;
+  }
+  
+  if (debug){
+    step6502(msg, step) ;
+  }
+  
+  return ctrl ;
+}
+
+
 unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
@@ -110,22 +134,16 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     uint8_t addr_start = 0, op_start = 0 ;
     bool fetch_done = false, addr_done = false ;
     bool prev_ctrl = 0, ctrl = 0 ; 
-    for (int step = start_step ; step < max_steps ; step++){
+    for (uint8_t step = start_step ; step < max_steps ; step++){
         prev_ctrl = ctrl ;
-        
+
+        if (step > 0){
+          CTRL_OUT.pulse(CLK_ASYNC) ;    
+        }
+   
         if (! fetch_done){
             if (fetch(step)){
-                ctrl = digitalRead(CTRL) ;
-                if (ctrl){
-                  process_ctrl() ; 
-                }
-                else if (prev_ctrl){
-                  DATA.reset() ;
-                }
-                CLK_async.pulse() ; // down/up
-                if (debug){
-                    step6502("fetch", step) ;
-                }
+                ctrl = post_step(prev_ctrl, debug, "fetch", step) ;
                 continue ;
             } 
             fetch_done = true ;
@@ -134,38 +152,24 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
             if (f(step - addr_start)){
-                ctrl = digitalRead(CTRL) ;
-                if (ctrl){
-                  process_ctrl() ;
-                }
-                else if (prev_ctrl){
-                  DATA.reset() ;
-                }
-                CLK_async.pulse() ; // down/up
-                if (debug){
-                  step6502("addr", step - addr_start) ;
-                }
+                ctrl = post_step(prev_ctrl, debug, "addr", step - addr_start) ;
                 continue ;
             }
             addr_done = true ;
             op_start = step ;
         }
-        
-        func6502 f = pgm_read_word(&(optable[INST])) ;
-        if (f(step - op_start)){
-            ctrl = digitalRead(CTRL) ;
-            if (ctrl){
-              process_ctrl() ;
-            }
-            else if (prev_ctrl){
-              DATA.reset() ;
-            }
-            CLK_async.pulse() ; // down/up
-            if (debug){
-              step6502("oper", step - op_start) ;
-            }
-            continue ;
+
+        {
+          func6502 f = pgm_read_word(&(optable[INST])) ;
+          if (f(step - op_start)){
+              ctrl = post_step(prev_ctrl, debug, "oper", step - op_start) ;
+              continue ;
+          }
         }
+        
+        // Reset step counter.
+        CTRL_OUT.pulse(STEP_CLR) ;
+        CTRL_OUT.pulse(CLK_SYNC) ;
         
         inst_cnt++ ;
         return inst_cnt ;
@@ -176,7 +180,7 @@ unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
 
 
 void insert_inst(uint8_t opcode){
-    STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     DATA.write(opcode) ;
     PC_e.toggle() ;
     RAM_s.pulse() ;
@@ -197,8 +201,10 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
     
-    STEP_clr.pulse() ;
-    PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    // Reset latches
+    CTRL_OUT.pulse(CLK_SYNC) ;
+    CTRL_OUT.pulse(PC_CLR) ;
 
     inst_cnt = 0 ;
     // Clear INST register
@@ -210,8 +216,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     insert_inst(INST_RST1) ;
 
     Serial.println(F("- Loading program to RAM...")) ;
-    STEP_clr.pulse() ;
-    PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
     for (int i = 0 ; i < prog->len() ; i++){
         byte inst = prog->get_byte(i) ;
         DATA.write(inst) ;
@@ -243,13 +249,16 @@ void process_interrupt(uint8_t inst){
     monitor6502(true) ;
     Serial.println() ; 
 
+    //DEBUG_MON = true ;
+    //DEBUG_STEP = true ;
+    
     // Prime INST with our fake interrupt instruction. This will alter the normal
     // fetch stage. See fetch() in addrmodes.h
     DATA.write(inst) ;
     INST_s.pulse() ;
     INST = inst ;
     process_inst(0, 3, DEBUG_STEP) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
-    DATA.reset() ;              // Reset the data bus
+    DATA.reset() ;                          // Reset the data bus
     process_inst(3, 0xFF, DEBUG_STEP) ;     // finish the instruction
 
     Serial.print(F("      <- ")) ;
@@ -259,7 +268,7 @@ void process_interrupt(uint8_t inst){
     //printf("      <- PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X  RAM[SP+1]:0x%02X  RAM[SP+2]:0x%02X  RAM[SP+3]:0x%02X\n", 
     //    pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
     //    RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
-
+    
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     DATA.write(INST_NOP) ;
     INST_s.pulse() ;
