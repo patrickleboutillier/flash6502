@@ -1,15 +1,16 @@
 ;
-; Ullrich von Bassewitz, 2003-04-13
+; 2014-08-22, Greg King
 ;
-; int write (int fd, const void* buf, int count);
+; int read (int fd, void* buf, unsigned count);
 ;
 
-        .export         _write
+        .export         _read
+
         .import         popax, popptr1, _FD_BASE
-        .importzp       ptr1, ptr2, ptr3, tmp1
+        .importzp       ptr1, ptr2, ptr3
 
 
-.proc   _write
+.proc   _read
 
         sta     ptr3
         stx     ptr3+1          ; save count as result
@@ -27,23 +28,20 @@
 L1:     dec     ptr2
         bne     L2
         dec     ptr2+1
-        beq     L9
+        beq     L9              ; no more room in buf
 
-L2:     ldy     #0
-        lda     (ptr1),y
-
-L3:     sta     _FD_BASE,x
+L2:     lda     _FD_BASE,x      ; get char
+        ldy     #0
+        sta     (ptr1),y
         inc     ptr1
         bne     L1
         inc     ptr1+1
-        jmp     L1
+        bne     L1              ; branch always
 
-; No error, return count
+; No error, return count.
 
 L9:     lda     ptr3
         ldx     ptr3+1
         rts
 
 .endproc
-
-

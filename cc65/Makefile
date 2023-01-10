@@ -6,11 +6,12 @@ runtime:
 	ca65 --cpu 6502 crt0.s
 	ca65 --cpu 6502 interrupt.s
 	ca65 --cpu 6502 vectors.s
+	ca65 --cpu 6502 read.s
 	ca65 --cpu 6502 write.s
 	cc65 -t none -O -T --cpu 6502 flash6502.c
 	ca65 --cpu 6502 flash6502.s
 	ar65 d flash6502.lib crt0.o
-	ar65 r flash6502.lib crt0.o write.o flash6502.o 
+	ar65 r flash6502.lib crt0.o read.o write.o flash6502.o 
 
 
 clean:
