@@ -33,6 +33,10 @@ template <uint32_t W> class input {
             return ! _drivers.empty() ;
         }
 
+        int nb_drivers(){
+            return _drivers.size() ;
+        }
+
         void add_driver(output<W> *d){
             if (find(_drivers.begin(), _drivers.end(), d) == _drivers.end()) {
                 _drivers.push_back(d) ;
