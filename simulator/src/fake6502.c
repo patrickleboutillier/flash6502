@@ -370,7 +370,11 @@ void reset6502(PROG *prog){
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
-    for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
+    uint8_t ram0 = 0 ;
+    for (int data = prog->get_next_byte(), n = 0 ; data != -1 ; data = prog->get_next_byte(), n++){
+        if (n == 0){
+            ram0 = data ;
+        }
         ctrl_DATA.drive(true) ;
         ctrl_DATA = data ;
         ctrl_PC_e.toggle() ;
@@ -391,8 +395,16 @@ void reset6502(PROG *prog){
     VECTORS.set_int(prog->int_addr()) ;
     VECTORS.set_nmi(prog->nmi_addr()) ;
 
-    // Reset PC here to be safe?
+    CTRL_OUT.pulse(PC_CLR) ;
     insert_inst(INST_RST2) ;
+    // TODO: Inserting the RST2 instruction squished the byte at RAM[0], we must put it back (it was saved in ram0)
+    /* This doenst work since PC is already at the reset vector value.
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = ram0 ;
+    ctrl_PC_e.toggle() ;
+    CTRL_OUT.pulse(RAM_S) ;
+    ctrl_PC_e.toggle() ;
+    ctrl_DATA.drive(false) ; */
 
     printf("RESET -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
