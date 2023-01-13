@@ -1,9 +1,10 @@
 
 STDOUT = $FFF1
+HALT =   $FFF9
+
 
 	.org $0000
-	jmp main
-
+	.byte 0x00		; skip, $0000 clobbered by CPU at reset
 hello:
 	.asciiz "Hello World!", 0xa
 ptr:
@@ -19,8 +20,16 @@ loop:
 	iny
 	jmp loop
 done:
-	jmp *
+	sta HALT
 
+nmi:
+irq:
+	rti
+
+	.org $fffa
+  	.word nmi
+  	.word main
+  	.word irq
 
 
 

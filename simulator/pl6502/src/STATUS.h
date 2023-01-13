@@ -130,6 +130,10 @@ class STATUS : public component {
                 data_out.drive(false) ;
             }
         } ;
+
+        uint8_t P(){
+            return (N << 7 | V << 6 | 1 << 5 | i_in << 4 | I << 2 | Z << 1 | C) ;
+        }
 } ;
 
 

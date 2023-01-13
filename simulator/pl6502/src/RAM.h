@@ -46,6 +46,7 @@ class RAM : public component {
             }
 
             if (! set){ // negative logic
+                //printf("write %02X%02X\n", (uint8_t)addrh, (uint8_t)addrl) ;
                 _mem[addrh][addrl] = data_in ;
             }
             else if (trigger == &data_in){
@@ -54,6 +55,7 @@ class RAM : public component {
             }
 
             if (! enable){ // negative logic
+                //printf("read %02X%02X\n", (uint8_t)addrh, (uint8_t)addrl) ;
                 // Here we use a soft drive here since there are sometimes race conditions with the controller
                 // The controller can drive the bridge a bit longer (see process_ctrl()) after an address change
                 // (from the controller range to the RAM range) and the RAM_e signal has not been turned off yet,
