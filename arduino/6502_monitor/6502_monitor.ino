@@ -6,6 +6,7 @@
 #include "STATUS.h"
 #include "VECTORS.h"
 #include "IO.h"
+#include "PROG.h"
 
 // Push button
 #define STEP A0         // push button
@@ -63,22 +64,21 @@ VECTORS VECTORS ;
 IO IO ;
 
 bool DEBUG_MON = false ;
-bool DEBUG_STEP = false ;
 #define MON_EVERY 1000
 
 byte INST = 0 ;
 bool INST_done = 0 ; 
 
-
-#include "PROG.h"
-#include "fake6502.h"
 #include "PROGRAMS.h"
-
 
 // Program to run
 PROG *prog = &progTestSuite ;
 //PROG *prog = &progStar ;
 //PROG *prog = &progHello ;
+
+
+#include "fake6502.h"
+
   
 void setup() {
   // Faster analog reads
@@ -129,51 +129,4 @@ void setup() {
   }
   reset6502(prog) ;
   //set_pc(0x059e) ;
-}
-
-
-// See simulator main while loop
-void loop(){
-  // Start processing instructions.
-  uint16_t prev_pc = 0xFFFF ;
-  while (1) {
-      uint16_t pc = get_pc() ;
-      if (pc == prev_pc){
-          bool done = prog->is_done(pc) ;
-          Serial.print(F("---\nTRAP! -> ")) ;
-          monitor6502(true) ; 
-          Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
-          while (1){} ;
-      } 
-      prev_pc = pc ;
-
-      /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
-        DEBUG_MON = true ;
-        DEBUG_STEP = true ;
-      }
-      else {
-        DEBUG_MON = false ;       
-        DEBUG_STEP = false ;
-      } */
-      
-      if (DEBUG_MON){
-        monitor6502(true) ; 
-        Serial.println() ;
-      }
-      if ((inst_cnt % MON_EVERY) == 0){
-        monitor6502(true) ; 
-        //Serial.print("  RAM[0x04E6]:0x") ;
-        //Serial.print(peek_ram(0x04e6), HEX) ;
-        Serial.println() ;
-      }
-      process_inst(0, 0xFF, DEBUG_STEP) ; 
-
-      if (! DEBUG_STEP){
-        if (button_pressed(STEP)){
-          //DEBUG_STEP = true ;
-          //DEBUG_MON = true ;
-          process_interrupt(INST_NMI) ;
-        }
-      }
-  }
 }
