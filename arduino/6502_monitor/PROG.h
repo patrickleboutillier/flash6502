@@ -3,14 +3,17 @@
 
 #include "Extension.h"
 
+// A program definition in a stream of bytes
 
 class PROG {
   private:
     Extension *_e ;
     bool _progmem ;
+    bool _serial ;
     const char *_name ;
     const uint8_t *_bytes ;
     uint32_t _len ;
+    uint32_t _pc ;
     uint16_t _start_addr ;
     uint16_t _int_addr ;
     uint16_t _nmi_addr ;
@@ -19,6 +22,7 @@ class PROG {
   public:
     // Program that is defined in the Arduino RAM or flash
     PROG(const char *name, const uint8_t *bytes, uint16_t len, bool progmem = false, uint16_t start_addr = 0, uint16_t int_addr = 0, uint16_t nmi_addr = 0, uint16_t done_addr = 0){
+        _pc = 0 ;
         _name = name ;
         _bytes = bytes ;
         _len = len ;
@@ -27,11 +31,13 @@ class PROG {
         _nmi_addr = nmi_addr ;
         _done_addr = done_addr ;
         _progmem = progmem ;
+        _serial  = false ;
         _e = NULL ;
     }
 
     // Program that is defined in an Arduino Entension
     PROG(const char *name, Extension *e, uint16_t len, uint16_t start_addr = 0, uint16_t int_addr = 0, uint16_t nmi_addr = 0, uint16_t done_addr = 0){
+        _pc = 0 ;
         _name = name ;
         _bytes = NULL ;
         _len = len ;
@@ -40,9 +46,25 @@ class PROG {
         _nmi_addr = nmi_addr ;
         _done_addr = done_addr ;
         _progmem = false ;
+        _serial  = false ;
         _e = e ;
     }
 
+    // Program that is defined though the serial port
+    PROG(const char *name){
+        _pc = 0 ;
+        _name = name ;
+        _bytes = NULL ;
+        _len = 0x10000 ;
+        _start_addr = 0 ;
+        _int_addr = 0 ;
+        _nmi_addr = 0 ;
+        _done_addr = 0 ;
+        _progmem = false ;
+        _serial  = true ;
+        _e = NULL ;
+    }
+    
     const char *name(){
         return _name ;
     }
@@ -51,20 +73,37 @@ class PROG {
         return _len ;
     }
 
-    uint8_t get_byte(uint16_t addr){
-        if (addr < _len){
-            if (_e != NULL){
-                return _e->pgm_read_byte_(addr) ;
-            }
-            else if (_progmem){
-                return pgm_read_byte(_bytes + addr) ;
-            } 
-            else {
-                return ((byte *)_bytes)[addr] ;
-            }
+    int get_next_byte(){
+        if (_pc >= _len){
+            return -1 ;
+        }
+
+        uint8_t data = 0 ;
+        if (_e != NULL){
+            data = _e->pgm_read_byte_(_pc) ;
+        }
+        else if (_serial){
+            Serial.readBytes(&data, 1) ;
+        } 
+        else if (_progmem){
+            data = pgm_read_byte(_bytes + _pc) ;
+        } 
+        else {
+            data = ((byte *)_bytes)[_pc] ;
         }
         
-        return 0 ;
+        switch (_pc){
+            case 0xFFFA: _nmi_addr = data ; break ;
+            case 0XFFFB: _nmi_addr |= data << 8 ; break ;
+            case 0xFFFC: _start_addr = data ; break ;
+            case 0XFFFD: _start_addr |= data << 8 ; break ;
+            case 0xFFFE: _int_addr = data ; break ;
+            case 0XFFFF: _int_addr |= data << 8 ; break ;
+        }
+        
+        _pc++ ;
+        
+        return data ;
     }
 
     uint16_t start_addr(){

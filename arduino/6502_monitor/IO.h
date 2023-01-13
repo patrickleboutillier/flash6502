@@ -12,8 +12,6 @@ class IO {
         switch (addr){
             case 0x0:
               return 0 ; // stdin
-            case 0x1: 
-              return 0 ; // stdout
         }
         
         return 0 ;
@@ -25,6 +23,9 @@ class IO {
             case 0x0: // stdin
               return ;
             case 0x1: // stdout 
+              Serial.print((char)data) ;
+              return ;
+            case 0x2: // stderr 
               Serial.print((char)data) ;
               return ;
         }

@@ -78,7 +78,7 @@ bool INST_done = 0 ;
 // Program to run
 PROG *prog = &progTestSuite ;
 //PROG *prog = &progStar ;
-
+//PROG *prog = &progHello ;
   
 void setup() {
   // Faster analog reads

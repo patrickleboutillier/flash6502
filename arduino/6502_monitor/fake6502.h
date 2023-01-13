@@ -218,9 +218,8 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     Serial.println(F("- Loading program to RAM...")) ;
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
-    for (int i = 0 ; i < prog->len() ; i++){
-        byte inst = prog->get_byte(i) ;
-        DATA.write(inst) ;
+    for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
+        DATA.write(data) ;
         PC_e.toggle() ; 
         RAM_s.pulse() ;
         PC_e.toggle() ;
