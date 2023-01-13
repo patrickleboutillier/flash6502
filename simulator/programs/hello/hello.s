@@ -2,9 +2,9 @@
 STDOUT = $FFF1
 HALT =   $FFF9
 
-	.org $0000
-	jmp main
 
+	.org $0000
+	.byte 0x00		; skip, $0000 clobbered by CPU at reset
 hello:
 	.asciiz "Hello World!", 0xa
 ptr:
