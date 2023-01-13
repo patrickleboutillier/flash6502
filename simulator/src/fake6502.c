@@ -261,47 +261,40 @@ void trace(){
 }
 
 
+uint8_t ctrl_cache = 0 ;
 void process_ctrl(){
-    static uint8_t cache = 0 ;
-
-    if (CTRL_IN.out1){ // RAM.ctrl
-        //printf("ctrl addr:%02X cache:%02X\n", CTRL_IN.get_addr(), cache) ;
-        if (! CTRL_IN.out3){   // RAM_e
-            uint8_t addr = CTRL_IN.get_addr() ;
-            // read from vectors or IO
-            ctrl_DATA.drive(true) ;
-            if (addr < 0xA){
-                if (! cache){
-                    cache = IO.get_byte(addr) ;
-                    //printf("io read %d addr:%02X, data:%02X\n", step, addr, (uint8_t)ctrl_DATA) ;
-                }
-                ctrl_DATA = cache ;
+    //printf("ctrl addr:%02X cache:%02X\n", CTRL_IN.get_addr(), cache) ;
+    if (! CTRL_IN.out3){   // RAM_e
+        uint8_t addr = CTRL_IN.get_addr() ;
+        // read from vectors or IO
+        ctrl_DATA.drive(true) ;
+        if (addr < 0xA){
+            if (! ctrl_cache){
+                ctrl_cache = IO.get_byte(addr) ;
+                //printf("io read %d addr:%02X, data:%02X\n", step, addr, (uint8_t)ctrl_DATA) ;
             }
-            else {
-                ctrl_DATA = VECTORS.get_byte(addr) ;
-                // printf("vector read addr:%02X, data:%02X\n", addr, (uint8_t)ctrl_DATA) ;
-            }
+            ctrl_DATA = ctrl_cache ;
         }
         else {
-            cache = 0 ;
-            ctrl_DATA.drive(false) ;
-        }
-
-        if (! CTRL_IN.out4){    // RAM_s
-            uint8_t addr = CTRL_IN.get_addr() ;
-            // write to vectors or IO
-            if (addr < 0xA){
-                IO.set_byte(addr, (uint8_t)DATA.data_out) ;
-            }
-            else {
-                VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
-                // printf("vector write addr:%02X data:%02X\n", addr, (uint8_t)DATA.data_out) ;
-            }
+            ctrl_DATA = VECTORS.get_byte(addr) ;
+            // printf("vector read addr:%02X, data:%02X\n", addr, (uint8_t)ctrl_DATA) ;
         }
     }
     else {
-        cache = 0 ;
+        ctrl_cache = 0 ;
         ctrl_DATA.drive(false) ;
+    }
+
+    if (! CTRL_IN.out4){    // RAM_s
+        uint8_t addr = CTRL_IN.get_addr() ;
+        // write to vectors or IO
+        if (addr < 0xA){
+            IO.set_byte(addr, (uint8_t)DATA.data_out) ;
+        }
+        else {
+            VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
+            // printf("vector write addr:%02X data:%02X\n", addr, (uint8_t)DATA.data_out) ;
+        }
     }
 }
 
@@ -311,13 +304,23 @@ int process_inst(uint8_t max_steps = 0xFF){
         trace() ;
     }
 
+    bool prev_ctrl = false ;
     while (STEP_CNT < max_steps){
+
         CTRL_OUT.pulse(CLK_ASYNC) ;
         CTRL_OUT.pulse(CLK_SYNC) ;
         STEP_CNT++ ;
 
         // Check if the controller needs to do something
-        process_ctrl() ;
+        if (CTRL_IN.out1){ // RAM.ctrl
+            process_ctrl() ;
+            prev_ctrl = true ;
+        }
+        else if (prev_ctrl){
+            ctrl_cache = 0 ;
+            ctrl_DATA.drive(false) ;
+            prev_ctrl = false ;
+        }
 
         if (DEBUG_STEP){
             trace() ;
@@ -330,9 +333,6 @@ int process_inst(uint8_t max_steps = 0xFF){
             STEP_CNT = 0 ;
             INST_CNT++ ;
             return steps ;
-        }
-        if (STEP_CNT == max_steps){
-            break ;
         }
     }
 
@@ -421,7 +421,7 @@ void process_interrupt(uint8_t inst){
     ctrl_DATA.drive(true) ;
     ctrl_DATA = inst ;
     CTRL_OUT.pulse(INST_S) ;
-    process_inst(2) ;           // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
+    process_inst(2) ;    // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
     ctrl_DATA.drive(false) ;    // Reset the data bus
     process_inst() ;            // Finish the instruction
  
