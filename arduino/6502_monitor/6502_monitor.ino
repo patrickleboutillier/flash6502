@@ -63,9 +63,6 @@ CTRLSIG ST_clk(&E3, 1, true) ;
 VECTORS VECTORS ;
 IO IO ;
 
-bool DEBUG_MON = false ;
-#define MON_EVERY 1000
-
 byte INST = 0 ;
 bool INST_done = 0 ; 
 
@@ -86,8 +83,8 @@ void setup() {
 
   Serial.begin(115200) ;
   Serial.println(F("Starting Flash6502.")) ;
-  Serial.print(CTRLSIG::count()) ;
-  Serial.println(F(" control signals defined.")) ;
+  //Serial.print(CTRLSIG::count()) ;
+  //Serial.println(F(" control signals defined.")) ;
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
@@ -118,15 +115,14 @@ void setup() {
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
   
-  CTRLSIG::check() ;
+  //CTRLSIG::check() ;
   
-  prog->describe() ;
-  Serial.println() ;
   if (! digitalRead(STEP)){
     Serial.println(F("STEP button held down, entering step mode.\n")) ;
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
+  
   reset6502(prog) ;
   //set_pc(0x059e) ;
 }

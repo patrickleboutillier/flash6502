@@ -50,6 +50,8 @@ PROGMEM const func6502 optable[256] = {
 
 
 // Some globals useful for debugging.
+bool DEBUG_MON = false ;
+int MON_EVERY = 1000 ; 
 bool DEBUG_STEP = false ;
 unsigned long INST_CNT = 0 ;
 int STEP_CNT = 0 ;
@@ -209,21 +211,13 @@ void insert_inst(uint8_t opcode){
 
 
 void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
-    //if (DEBUG_STEP){
-    //  step6502("reset", 0xFF) ;
-    //}
-            
-    // Install vectors in controller
-    Serial.println(F("Starting reset sequence...")) ;
-    VECTORS.set_reset(start_addr != 0xFF ? start_addr : prog->start_addr()) ;
-    VECTORS.set_int(prog->int_addr()) ;
-    VECTORS.set_nmi(prog->nmi_addr()) ;
-    
+    // Clear step counter and program counter
     CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
     // Reset latches
     CTRL_OUT.pulse(CLK_SYNC) ;
-    CTRL_OUT.pulse(PC_CLR) ;
 
+    // Initialize INST register to BOOT
     // Clear INST register
     DATA.write(INST_BOOT) ;
     INST_s.pulse() ;
@@ -235,6 +229,7 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
     Serial.println(F("- Loading program to RAM...")) ;
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
+    // Load the program to RAM
     for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
         DATA.write(data) ;
         PC_e.toggle() ; 
@@ -242,14 +237,21 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
         PC_e.toggle() ;
         DATA.reset() ;
         PC_up.pulse() ;
-    }
-        
+    }        
     Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
-    Serial.print(F("      -> ")) ;
-    trace(true) ;
     
+    // Print program info
+    prog->describe() ;
+    Serial.println() ;
+
+    // Now that program is transfered, install vectors in controller
+    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_int(prog->int_addr()) ;
+    VECTORS.set_nmi(prog->nmi_addr()) ;
+
+    CTRL_OUT.pulse(STEP_CLR) ;
     insert_inst(INST_RST2) ;
     
     Serial.print(F("RESET -> ")) ;

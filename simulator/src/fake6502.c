@@ -453,30 +453,7 @@ void int_handler(int signum){
 }
 
 
-int main(int argc, char *argv[]){
-    signal(SIGUSR1, int_handler) ;
-    signal(SIGUSR2, int_handler) ;
-
-    init6502() ;
-
-    // Default program
-    PROG *prog = &progTestSuite ;
-    if ((argc >= 2)&&((access(argv[1], F_OK) == 0))){
-        prog = new PROG(argv[1], argv[1]) ;
-    }
-    printf("\n") ;
-
-    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
-        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
-    printf("PID is %d\n", getpid()) ;
-    
-    if (getenv("DEBUG_STEP")){
-        DEBUG_STEP = true ;
-    }
-
-    // Reset the processor
-    reset6502(prog) ;
-
+void loop(){
     // Start processing instructions.
     int nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
@@ -515,4 +492,32 @@ int main(int argc, char *argv[]){
             caught_nmi = false ;
         }
     }
+}
+
+
+int main(int argc, char *argv[]){
+    signal(SIGUSR1, int_handler) ;
+    signal(SIGUSR2, int_handler) ;
+
+    init6502() ;
+
+    // Default program
+    PROG *prog = &progTestSuite ;
+    if ((argc >= 2)&&((access(argv[1], F_OK) == 0))){
+        prog = new PROG(argv[1], argv[1]) ;
+    }
+    printf("\n") ;
+
+    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
+    printf("PID is %d\n", getpid()) ;
+    
+    if (getenv("DEBUG_STEP")){
+        DEBUG_STEP = true ;
+    }
+
+    // Reset the processor
+    reset6502(prog) ;
+
+    loop() ;
 }
