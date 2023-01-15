@@ -319,7 +319,7 @@ void loop(){
             DEBUG_STEP = false ;
         } */
       
-        if ((INST_CNT % MON_EVERY) == 0){
+        if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
             trace(true) ; 
         }
         process_inst() ; 

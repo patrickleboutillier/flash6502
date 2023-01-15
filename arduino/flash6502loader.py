@@ -35,14 +35,15 @@ while True:
         if cmd[0] == LOADER_UPLOAD:
             # Send program to Arduino
             port.write(prog)
-        # Do stuff with byte.
         elif cmd[0] == LOADER_STDIN:
             # Read byte from sdtin
-            pass
+            port.write(sys.stdin.read(1).encode('utf-8'))
         elif cmd[0] == LOADER_STDOUT:    
             sys.stdout.write(port.read(1).decode("utf-8"))
+            sys.stdout.flush()
         elif cmd[0] == LOADER_STDERR:    
             sys.stderr.write(port.read(1).decode("utf-8"))
+            sys.stdout.flush()
         elif cmd[0] == LOADER_HALT: 
             sys.exit(0)   
     else:

@@ -6,6 +6,7 @@
 #include "STATUS.h"
 #include "VECTORS.h"
 
+#define SERIAL_TIMEOUT 1000
 bool HALTED = false ;
 #include "IO.h"
 
@@ -85,7 +86,7 @@ void setup() {
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
   Serial.begin(9600) ;
-  Serial.setTimeout(1000) ;
+  Serial.setTimeout(SERIAL_TIMEOUT) ;
   // Send null byte to indicate we have finished booting, in case a loader is present.
   Serial.write(0) ;
   Serial.println(F("Starting Flash6502")) ;  
@@ -143,6 +144,7 @@ PROG *check_for_loader(){
   if ((magic[0] == 0x65)&&(magic[1] == 0x02)){
     Serial.println(F("Loader detected, program will be requested from loader.")) ;
     IO.set_loader() ;
+    MON_EVERY = 0 ;
     return new PROG("@loader") ;
   }
   else {

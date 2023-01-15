@@ -25,8 +25,16 @@ class IO {
     // Not the real address here, just the lower 4 bits.
     uint8_t get_byte(uint8_t addr){
         switch (addr){
-            case 0x0:
-              return 0 ; // stdin
+            case 0x0: {
+              if (_loader){
+                Serial.write(LOADER_CMD) ;
+                Serial.write(LOADER_STDIN) ;
+              }
+              uint8_t data ;
+              while (!Serial.available()) ;
+              Serial.readBytes(&data, 1) ;
+              return data ; // stdin
+            }
         }
         
         return 0 ;
