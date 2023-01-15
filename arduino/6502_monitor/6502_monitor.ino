@@ -82,7 +82,7 @@ void setup() {
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
   Serial.begin(115200) ;
-  Serial.println(F("Starting Flash6502.")) ;
+  Serial.println(F("Starting Flash6502")) ;
   //Serial.print(CTRLSIG::count()) ;
   //Serial.println(F(" control signals defined.")) ;
   pinMode(CTRL, INPUT) ;

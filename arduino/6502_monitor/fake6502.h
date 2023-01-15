@@ -59,33 +59,25 @@ int STEP_CNT = 0 ;
 
 void trace(bool idle, bool ln = true){
   static char buf[128] ;
-  sprintf(buf, "%8lu  INST:0x%02X", INST_CNT, INST) ;
+  if (STEP_CNT == 0){
+    sprintf(buf, "%8lu  ", INST_CNT) ;
+  }
+  else {
+    sprintf(buf, "          ") ;
+  }
   Serial.print(buf) ;
   if (idle){
-      sprintf(buf, "  PC:0x%04X  EA:0x%04X  SP:0x%04X  ACC:%3u  X:%3u  Y:%3u",
-        get_pc(), get_ea(), get_sp(), get_acc(), get_x(), get_y()) ;
-      Serial.print(buf) ;
+    sprintf(buf, "%2d  INST:0x%02X  PC:0x%04X  SP:0x%04X  ACC:%3u  X:%3u  Y:%3u  EA:0x%04X",
+      STEP_CNT, INST, get_pc(), get_sp(), get_acc(), get_x(), get_y(), get_ea()) ;
+    Serial.print(buf) ;
+  }
+  else {
+    sprintf(buf, "%2d  INST:0x%02X", STEP_CNT, INST) ;
+    Serial.print(buf) ;   
   }
   if (ln){
     Serial.println() ;
   }
-}
-
-
-void step6502(const char *msg, int step, bool idle = false){
-  Serial.print(F("STEP  -> ")) ;
-  trace(idle, false) ;
-  Serial.print(F(" ")) ;
-  Serial.print(msg) ;
-  Serial.print(F(" ")) ;
-  if (step < 0){
-    Serial.print("X") ;    
-  }
-  else {
-    Serial.print(step) ;
-  }
-  Serial.println() ;
-  while (! button_pressed(STEP)){} ;
 }
 
 
@@ -126,75 +118,90 @@ void process_ctrl(){
 }
 
 
-bool post_step(bool prev_ctrl, bool debug, const char *msg, uint8_t step){   
-  CTRL_OUT.pulse(CLK_SYNC) ;  
-    
-  // bool ctrl = digitalRead(CTRL) ;
-  bool ctrl = PINC & 0b100 ; // A2
-  if (ctrl){
-    process_ctrl() ; 
-  }
-  else if (prev_ctrl){
-    DATA.reset() ;
-  }
-  
-  if (debug){
-    step6502(msg, step) ;
-  }
-  
-  return ctrl ;
-}
+const char msg_fetch[] = "fetch" ;
+const char msg_addr[] = "addr" ;
+const char msg_oper[] = "oper" ; 
+void process_inst(uint8_t max_steps = 0xFF){
+    //if (DEBUG_MON){
+    //    trace(true) ; 
+    //}
 
-
-unsigned long process_inst(uint8_t start_step, uint8_t max_steps, bool debug){
     // Update the flags values for use in branch instructions. 
     STATUS.latch() ;
     
-    uint8_t addr_start = 0, op_start = 0 ;
+    uint8_t step_offset = 0 ;
     bool fetch_done = false, addr_done = false ;
-    bool prev_ctrl = 0, ctrl = 0 ; 
-    for (uint8_t step = start_step ; step < max_steps ; step++){
-        prev_ctrl = ctrl ;
-
-        if (step > 0){
+    bool prev_ctrl = false ; 
+    while (STEP_CNT < max_steps){
+        if (STEP_CNT > 0){
+          // This already happened for step 0 when we called STEP_CLR
           CTRL_OUT.pulse(CLK_ASYNC) ;    
         }
-   
+
+        const char *msg = NULL ;
         if (! fetch_done){
-            if (fetch(step)){
-                ctrl = post_step(prev_ctrl, debug, "fetch", step) ;
-                continue ;
+            if (fetch(STEP_CNT)){
+                msg = msg_fetch ;
+                goto SYNC ;
             } 
             fetch_done = true ;
-            addr_start = step ;
+            step_offset = STEP_CNT ;
         }
         if (! addr_done){
             func6502 f = pgm_read_word(&(addrtable[INST])) ;
-            if (f(step - addr_start)){
-                ctrl = post_step(prev_ctrl, debug, "addr", step - addr_start) ;
-                continue ;
+            if (f(STEP_CNT - step_offset)){
+                msg = msg_addr ;
+                goto SYNC ;
             }
             addr_done = true ;
-            op_start = step ;
+            step_offset = STEP_CNT ;
         }
 
         {
           func6502 f = pgm_read_word(&(optable[INST])) ;
-          if (f(step - op_start)){
-              ctrl = post_step(prev_ctrl, debug, "oper", step - op_start) ;
-              continue ;
+          if (f(STEP_CNT - step_offset)){
+              msg = msg_oper ;
+              goto SYNC ;
           }
         }
         
-        // Reset step counter.
-        CTRL_OUT.pulse(STEP_CLR) ;
-        CTRL_OUT.pulse(CLK_SYNC) ;
+        SYNC:
+        CTRL_OUT.pulse(CLK_SYNC) ;  
+      
+        // bool ctrl = digitalRead(CTRL) ;
+        if (PINC & 0b100){ // A2, RAM.ctrl
+          process_ctrl() ;
+          prev_ctrl = true ;
+        }
+        else if (prev_ctrl){
+          ctrl_cache = 0 ;
+          DATA.reset() ;
+        }
         
-        INST_CNT++ ;
-        return INST_CNT ;
-    }
+        if (DEBUG_MON){
+          trace(STEP_CNT == 0, false) ;
+          if (DEBUG_STEP){
+            Serial.print(F("  ")) ;
+            Serial.print(msg) ;
+            Serial.print(F(" ")) ;
+            Serial.print(STEP_CNT - step_offset) ;
+            Serial.print(" done...") ;
+            while (! button_pressed(STEP)){} ;
+          }
+          Serial.println() ;
+        }
+                
+        if (INST_done){
+          // Reset step counter.
+          int steps = STEP_CNT ;
+          CTRL_OUT.pulse(STEP_CLR) ;
+          STEP_CNT = 0 ;
+          INST_CNT++ ;
+          return ;
+        }
 
-    return INST_CNT ;
+        STEP_CNT++ ;
+    }
 }
 
 
@@ -206,11 +213,11 @@ void insert_inst(uint8_t opcode){
     PC_e.toggle() ;
     DATA.reset() ;
 
-    process_inst(0, 0xFF, false) ;
+    process_inst() ;
 }
 
 
-void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
+void reset6502(PROG *prog){
     // Clear step counter and program counter
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
@@ -226,7 +233,7 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
 
     insert_inst(INST_RST1) ;
 
-    Serial.println(F("- Loading program to RAM...")) ;
+    Serial.print(F("- Loading program to RAM...")) ;
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
@@ -238,6 +245,7 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
         DATA.reset() ;
         PC_up.pulse() ;
     }        
+    Serial.println(F("done")) ;
     Serial.print(F("LOAD  -> ")) ;
     Serial.print(prog->len()) ;
     Serial.println(F(" program bytes loaded")) ;
@@ -263,27 +271,19 @@ void reset6502(PROG *prog, uint16_t start_addr = 0xFF){
 void process_interrupt(uint8_t inst){   
     Serial.print(F("INTR  -> ")) ;
     trace(true) ;
-
-    //DEBUG_MON = true ;
-    //DEBUG_STEP = true ;
     
     // Prime INST with our fake interrupt instruction. This will alter the normal
     // fetch stage. See fetch() in addrmodes.h
     DATA.write(inst) ;
     INST_s.pulse() ;
     INST = inst ;
-    process_inst(0, 3, DEBUG_STEP) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
-    DATA.reset() ;                          // Reset the data bus
-    process_inst(3, 0xFF, DEBUG_STEP) ;     // finish the instruction
+    process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
+    DATA.reset() ;              // Reset the data bus
+    process_inst() ;     // finish the instruction
 
     Serial.print(F("      <- ")) ;
     trace(true) ;
  
-    //pc = PCh.data_out << 8 | PCl.data_out ;
-    //printf("      <- PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X  RAM[SP+1]:0x%02X  RAM[SP+2]:0x%02X  RAM[SP+3]:0x%02X\n", 
-    //    pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-    //    RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
-    
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     DATA.write(INST_NOP) ;
     INST_s.pulse() ;
@@ -315,13 +315,10 @@ void loop(){
             DEBUG_STEP = false ;
         } */
       
-        if (DEBUG_MON){
-            trace(true) ; 
-        }
         if ((INST_CNT % MON_EVERY) == 0){
             trace(true) ; 
         }
-        process_inst(0, 0xFF, DEBUG_STEP) ; 
+        process_inst() ; 
 
         if (! DEBUG_STEP){
             if (button_pressed(STEP)){

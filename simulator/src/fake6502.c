@@ -453,7 +453,7 @@ void int_handler(int signum){
 }
 
 
-void loop(){
+void loop(PROG *prog){
     // Start processing instructions.
     int nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
@@ -519,5 +519,5 @@ int main(int argc, char *argv[]){
     // Reset the processor
     reset6502(prog) ;
 
-    loop() ;
+    loop(prog) ;
 }
