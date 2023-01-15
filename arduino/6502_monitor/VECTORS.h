@@ -47,7 +47,6 @@ class VECTORS {
         return 0 ;
     }
 
-
     // Not the real address here, just the lower 4 bits.
     void set_byte(uint8_t addr, uint8_t data){
         switch (addr){

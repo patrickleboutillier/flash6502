@@ -70,14 +70,12 @@ byte INST = 0 ;
 bool INST_done = 0 ; 
 
 #include "PROG.h"
-#include "PROGRAMS.h"
+PROG TestSuite("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 
 // Program to run
-PROG *prog = &progTestSuite ;
-//PROG *prog = &progStar ;
-//PROG *prog = &progHello ;
+PROG *prog = NULL ;
 
-bool LOADER = false ;
+
 #include "fake6502.h"
 
   
@@ -90,7 +88,7 @@ void setup() {
   // Send null byte to indicate we have finished booting, in case a loader is present.
   Serial.write(0) ;
   Serial.println(F("Starting Flash6502")) ;  
-  prog = check_for_loader() ;
+  prog = detect_loader() ;
 
   //Serial.print(CTRLSIG::count()) ;
   //Serial.println(F(" control signals defined.")) ;
@@ -137,7 +135,7 @@ void setup() {
 }
 
 
-PROG *check_for_loader(){
+PROG *detect_loader(){
   // Read the magic numer that indicates our loader is present.
   byte magic[2] ;
   int nb = Serial.readBytes(magic, 2) ;
@@ -147,9 +145,8 @@ PROG *check_for_loader(){
     MON_EVERY = 0 ;
     return new PROG("@loader") ;
   }
-  else {
-    Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
-  }
-  
-  return &progTestSuite ;
+
+  Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
+
+  return new PROG("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 }

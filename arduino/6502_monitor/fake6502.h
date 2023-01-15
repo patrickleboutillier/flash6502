@@ -1,8 +1,14 @@
-#include "inst.h"
 #include "utils.h"
+
+#define INST_BOOT    0xF0
+#define INST_RST1    0x02
+#define INST_RST2    0x03
+#define INST_NOP     0xEA
+#define INST_IRQ     0xFF
+#define INST_NMI     0xFB
+
 #include "addrmodes.h"
 #include "ops.h"
-
 
 typedef uint8_t (*func6502)(uint8_t step) ;
 
@@ -226,6 +232,7 @@ void reset6502(PROG *prog){
 
     // Initialize INST register to BOOT
     // Clear INST register
+    // TODO: Is this really necessary?
     DATA.write(INST_BOOT) ;
     INST_s.pulse() ;
     INST = INST_BOOT ;
