@@ -46,8 +46,8 @@ uint8_t acc(uint8_t step) { // 1 cycle
     
     switch (step){
         case NEXT:  ACC_e.toggle() ;
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  ACC_e.toggle() ; break ;
         default:    return 0 ;
     }
@@ -60,10 +60,20 @@ uint8_t imm(uint8_t step) { // 1 cycle
     #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
     
     switch (step){
-        case NEXT:  PC_e.toggle() ; RAM_e.toggle() ;
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; PC_up.toggle() ; break ;
-        case NEXT:  RAM_e.toggle() ; PC_e.toggle() ; PC_up.toggle() ;  break ;
+        case NEXT:  PC_e.toggle() ; Ah2D_e.toggle() ;
+                    EAh_s.toggle() ; break ;
+        case NEXT:  EAh_s.toggle() ; break ;
+        case NEXT:  Ah2D_e.toggle() ; PC_e.toggle() ; break ;
+
+        case NEXT:  PC_e.toggle() ; Al2D_e.toggle() ;
+                    EAl_s.toggle() ; break ;
+        case NEXT:  EAl_s.toggle() ; break ;
+        case NEXT:  Al2D_e.toggle() ; PC_e.toggle() ; break ;
+
+        case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; PC_up.toggle() ; break ;
+        case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; PC_up.toggle() ; break ;
         default:    return 0 ;
     }
     return 1 ;
@@ -84,8 +94,8 @@ uint8_t zp(uint8_t step) { // 3 cycles
         case NEXT:  PC_e.toggle() ; break ;
 
         case NEXT:  EAl_e.toggle() ;
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; PC_up.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; PC_up.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
@@ -120,8 +130,8 @@ uint8_t zpx(uint8_t step) { // 5 cycles
                     ALU_e.toggle() ; break ;
     
         case NEXT:  EAl_e.toggle() ; RAM_e.toggle() ;  
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; PC_up.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; PC_up.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
@@ -156,8 +166,8 @@ uint8_t zpy(uint8_t step) { // 5 cycles
                     ALU_e.toggle() ; break ;
     
         case NEXT:  EAl_e.toggle() ; RAM_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; PC_up.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; PC_up.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; PC_up.toggle() ; break ;
 
         default:    return 0 ;
@@ -233,8 +243,8 @@ uint8_t abso(uint8_t step) { // 3 cycles
         case NEXT:  PC_e.toggle() ; PC_up.toggle() ; break ;
 
         case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -281,8 +291,8 @@ uint8_t absx(uint8_t step) { // 7 cycles
                     ALU_e.toggle() ; break ;
         
         case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -329,8 +339,8 @@ uint8_t absy(uint8_t step) { // 7 cycles
                     ALU_e.toggle() ; break ;
         
         case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -452,8 +462,8 @@ uint8_t indx(uint8_t step) { // 10 cycles
                     ALU_e.toggle() ; break ;
 
         case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; break ;
 
         default:    return 0 ;
@@ -524,8 +534,8 @@ uint8_t indy(uint8_t step) { // 10 cycles
                     ALU_e.toggle() ; break ;
 
         case NEXT:  EAh_e.toggle() ; EAl_e.toggle() ; RAM_e.toggle() ; 
-                    B_s.toggle() ; break ;
-        case NEXT:  B_s.toggle() ; break ;
+                    A_s.toggle() ; B_s.toggle() ; break ;
+        case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
         case NEXT:  RAM_e.toggle() ; EAl_e.toggle() ; EAh_e.toggle() ; break ;
 
         default:    return 0 ;

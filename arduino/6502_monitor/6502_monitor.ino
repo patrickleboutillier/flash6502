@@ -5,8 +5,10 @@
 #include "ALU.h"
 #include "STATUS.h"
 #include "VECTORS.h"
+
+bool HALTED = false ;
 #include "IO.h"
-#include "PROG.h"
+
 
 // Push button
 #define STEP A0         // push button
@@ -66,6 +68,7 @@ IO IO ;
 byte INST = 0 ;
 bool INST_done = 0 ; 
 
+#include "PROG.h"
 #include "PROGRAMS.h"
 
 // Program to run
@@ -73,7 +76,7 @@ PROG *prog = &progTestSuite ;
 //PROG *prog = &progStar ;
 //PROG *prog = &progHello ;
 
-
+bool LOADER = false ;
 #include "fake6502.h"
 
   
@@ -81,8 +84,13 @@ void setup() {
   // Faster analog reads
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
-  Serial.begin(115200) ;
-  Serial.println(F("Starting Flash6502")) ;
+  Serial.begin(9600) ;
+  Serial.setTimeout(1000) ;
+  // Send null byte to indicate we have finished booting, in case a loader is present.
+  Serial.write(0) ;
+  Serial.println(F("Starting Flash6502")) ;  
+  prog = check_for_loader() ;
+
   //Serial.print(CTRLSIG::count()) ;
   //Serial.println(F(" control signals defined.")) ;
   pinMode(CTRL, INPUT) ;
@@ -125,4 +133,21 @@ void setup() {
   
   reset6502(prog) ;
   //set_pc(0x059e) ;
+}
+
+
+PROG *check_for_loader(){
+  // Read the magic numer that indicates our loader is present.
+  byte magic[2] ;
+  int nb = Serial.readBytes(magic, 2) ;
+  if ((magic[0] == 0x65)&&(magic[1] == 0x02)){
+    Serial.println(F("Loader detected, program will be requested from loader.")) ;
+    IO.set_loader() ;
+    return new PROG("@loader") ;
+  }
+  else {
+    Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
+  }
+  
+  return &progTestSuite ;
 }

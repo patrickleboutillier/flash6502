@@ -83,6 +83,10 @@ class PROG {
             data = _e->pgm_read_byte_(_pc) ;
         }
         else if (_serial){
+            if (_pc == 0){
+                Serial.write(LOADER_CMD) ;
+                Serial.write(LOADER_UPLOAD) ;
+            }
             Serial.readBytes(&data, 1) ;
         } 
         else if (_progmem){

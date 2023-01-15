@@ -4,9 +4,10 @@ import sys
 
 LOADER_CMD =    0x1B
 LOADER_UPLOAD = 0xFF
-LOADER_STDIN =  0x00
+LOADER_STDIN  = 0x00
 LOADER_STDOUT = 0x01
 LOADER_STDERR = 0x02
+LOADER_HALT   = 0x09
 
 
 parser = argparse.ArgumentParser(prog = 'flash6502loader')
@@ -15,7 +16,10 @@ parser.add_argument('PROG')           # 64k program file
 args = parser.parse_args()
 
 # Configure the serial connection
-port = serial.Serial(port=args.PORT, baudrate=115200)
+port = serial.Serial(port=args.PORT, baudrate=9600)
+# Wait for Arduino to send null byte after reboot 
+port.read(1)
+# Send our magic number
 port.write(b'\x65\x02')
 
 # Read in binary file
@@ -24,20 +28,23 @@ with open(args.PROG, "rb") as f:
     
 while True:
     data = port.read(1)
-    if data == LOADER_CMD:
+    # print("data:{:02X}".format(data[0]))
+    if data[0] == LOADER_CMD:
         cmd = port.read(1)
-        if cmd == LOADER_UPLOAD:
+        # print("cmd:{:02X}".format(cmd[0]))
+        if cmd[0] == LOADER_UPLOAD:
             # Send program to Arduino
-            for b in prog:
-                port.write(b)
+            port.write(prog)
         # Do stuff with byte.
-        elif cmd == LOADER_STDIN:
+        elif cmd[0] == LOADER_STDIN:
             # Read byte from sdtin
             pass
-        elif cmd == LOADER_STDOUT:    
-            sys.stdout.write(port.read(1))
-        elif cmd == LOADER_STDERR:    
-            sys.stderr.write(port.read(1))
+        elif cmd[0] == LOADER_STDOUT:    
+            sys.stdout.write(port.read(1).decode("utf-8"))
+        elif cmd[0] == LOADER_STDERR:    
+            sys.stderr.write(port.read(1).decode("utf-8"))
+        elif cmd[0] == LOADER_HALT: 
+            sys.exit(0)   
     else:
         sys.stdout.write(data.decode("utf-8"))
         sys.stdout.flush()

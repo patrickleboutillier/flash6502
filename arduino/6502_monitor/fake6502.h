@@ -296,6 +296,10 @@ void loop(){
     // Start processing instructions.
     uint16_t prev_pc = 0xFFFF ;
     while (1) {
+        if (HALTED){
+            // Infinite loop...
+            continue ;
+        }
         uint16_t pc = get_pc() ;
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;
