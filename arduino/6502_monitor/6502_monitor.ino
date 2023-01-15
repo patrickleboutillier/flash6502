@@ -16,9 +16,9 @@
 #define CTRL_ADDR2 A6
 #define CTRL_ADDR3 A7
 
-BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
+BUS DATA ;                    // 9, 8, 7, 6, 5, 4, 3, 2
 CTRLSIG CTRL_src(NULL, 13) ;
-CTRL_OUT CTRL_OUT ;
+CTRL_OUT CTRL_OUT ;           // 12, 11, 10
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
