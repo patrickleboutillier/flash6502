@@ -3,24 +3,55 @@
 
 #include "Arduino.h"
 
+// Pins 9, 8, 7, 6, 5, 4, 3, 2 -> PORTB:bits 2,3,4,5,6,7, PORTD:bits 0, 1
+
 class BUS {
-  public:
-    BUS(int pin_bit7, int pin_bit6, int pin_bit5, int pin_bit4, int pin_bit3, int pin_bit2, int pin_bit1, int pin_bit0) ;
-    void setup() ;
-    void reset() ;
-    byte read() ;
-    void write(byte b) ;    
   private:
     bool _enabled ;
     byte _cache ;
-    int _pin_bit7 ;
-    int _pin_bit6 ;
-    int _pin_bit5 ;
-    int _pin_bit4 ;
-    int _pin_bit3 ;
-    int _pin_bit2 ;
-    int _pin_bit1 ; 
-    int _pin_bit0 ;
+    
+  public:
+    BUS(){
+       _enabled = false ;
+      _cache = 0 ;
+    }
+    
+    void setup(){
+        DDRB &= ~0b00000011 ;
+        DDRD &= ~0b11111100 ;    
+    }
+    
+    void reset(){
+      if (_enabled){
+        DDRB &= ~0b00000011 ;
+        DDRD &= ~0b11111100 ;
+        _enabled = false ;  
+      }
+    }
+    
+    byte read(){
+      if (_enabled){
+        // One part wants to read from the BUS, while another one is writing.
+        // We give the reader the out cached value.
+        return _cache ;
+      }
+      
+      return (PINB & 0b00000011) << 6 | (PIND & 0b11111100) >> 2 ;
+    }
+    
+    void write(byte b){
+      if (! _enabled){
+        DDRB |= 0b00000011 ;
+        DDRD |= 0b11111100 ;
+        _enabled = true ;
+      }
+
+      PORTB = (PORTB & ~0b00000011) | b >> 6 ;
+      PORTD = (PORTD & ~0b11111100) | b << 2 ;
+    
+      _cache = b ;      
+    }
+
 } ;
 
 #endif

@@ -1,9 +1,15 @@
 
 STDOUT = $FFF1
+HALT   = $FFF9
 
 
 	.org $0000
+	.byte 0x00		; skip, $0000 clobbered by CPU at reset
+ptr:
+	.word star		; initialize ptr to star which is $0200
 
+
+	.org $0200 
 star:
 	.byte     "*       *", $0a
 	.byte "    **     **", $0a
@@ -23,20 +29,16 @@ star:
 	.byte "    **     **", $0a
 	.byte "    *       *", $0a
 
-ptr:
-	.word star		; initialize ptr to star which is $0000
 
-
-	.org $0100
-
+	.org $0300
 main:
 	; print ' '
-	lda #32
+	lda #' '
 	sta STDOUT
 	sta STDOUT
 	sta STDOUT
 	sta STDOUT
-
+	
 	ldy #0
 loop:				
 	lda (ptr),y
@@ -46,7 +48,17 @@ next:
 	iny
 	bne loop
 done:
-	jmp *
+	sta HALT
+
+
+nmi:
+irq:
+	rti
+
+	.org $fffa
+  	.word nmi
+  	.word main
+  	.word irq
 
 
 

@@ -14,7 +14,7 @@ template <uint32_t W> class bus : public component {
         bus() : data_in(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             data_out = data_in ;
         } ;
 } ;

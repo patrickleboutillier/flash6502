@@ -41,13 +41,15 @@ class CTRLSIG {
     }
         
     void write(uint8_t v){
-      _cache = v ;
-      if (_e != NULL){
-        _e->digitalWriteFast(_pin, v) ;
-        delayMicroseconds(25) ;
-      }
-      else {
-        digitalWrite(_pin, v) ;
+      if (_setup){
+        _cache = v ;
+        if (_e != NULL){
+          _e->digitalWriteFast(_pin, v) ;
+          delayMicroseconds(25) ;
+        }
+        else {
+          digitalWrite(_pin, v) ;
+        }
       }
     }
 

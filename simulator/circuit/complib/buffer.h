@@ -13,7 +13,7 @@ template <uint32_t W> class buffer : public component {
         buffer() : a(this) {
         } ;
 
-        void always(){
+        void always(const void *trigger){
             b.set_value(a) ;
         } ;
 } ;

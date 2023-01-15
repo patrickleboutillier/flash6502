@@ -33,9 +33,9 @@ template <uint32_t W> class output {
                 _set = true ;
                 if (_drive){
                     // Iterate through all the connected_inputs and call always()
-                    typename unordered_set<input<W> *>::iterator i ;
-                    for (i = _connected_inputs.begin(); i != _connected_inputs.end() ; i++){
-                        (*i)->always() ;
+                    typename unordered_set<input<W> *>::iterator it ;
+                    for (it = _connected_inputs.begin() ; it != _connected_inputs.end() ; it++){
+                        (*it)->always() ;
                     }
                 }
             }
@@ -74,42 +74,38 @@ template <uint32_t W> class output {
         void connect(input<W> &i){
             _connected_inputs.insert(&i) ;
             if (_drive){
-                i._driver = this ;          
+                i.add_driver(this) ;          
             }
         }
 
         void disconnect(input<W> &i){
             _connected_inputs.erase(&i) ;
-            if (i._driver == this){
-                i._driver = nullptr ;
-            }
+            i.remove_driver(this) ;
         }
 
-        void drive(bool d, bool hard = true){
-            if (! d){
-                // Simulate pull down resistor...
-                set_value(0) ;
-            }
-
+        void drive(bool d){
             _drive = d ;
 
-            typename unordered_set<input<W> *>::iterator i ;
-            for (i = _connected_inputs.begin(); i != _connected_inputs.end() ; i++){
+            typename unordered_set<input<W> *>::iterator it ;
+            for (it = _connected_inputs.begin(); it != _connected_inputs.end() ; it++){
                 if (_drive){
-                    if ((*i)->_driver != this){
-                        if (hard){
-                            assert((*i)->_driver == nullptr) ;
-                        }
-                        (*i)->_driver = this ;
-                        (*i)->always() ;
-                    }
+                    (*it)->add_driver(this) ;
+                    (*it)->always() ;
                 }
                 else {
-                    if ((*i)->_driver == this){
-                        (*i)->_driver = nullptr ;
+                    (*it)->remove_driver(this) ;
+                    if ((*it)->driven()){
+                        // Refresh current driver.
+                        (*it)->always() ;
+                    }
+                    else {
+                        // Simulate pull down resistor
+                        set_value(0) ;
+                        (*it)->always() ;
                     }
                 }
             }
+
         }
 } ;
 

@@ -8,11 +8,11 @@ test: build
 
 .PHONY: hello
 hello: build
-	@./src/fake6502 hello
+	@./src/fake6502 ./programs/hello/hello.bin
 
 .PHONY: star
 star: build
-	@./src/fake6502 star
+	@./src/fake6502 ./programs/star/star.bin
 
 .PHONY: clean
 clean:

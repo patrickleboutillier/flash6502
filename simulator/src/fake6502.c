@@ -4,16 +4,21 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <signal.h>
 
 #include "circuit.h"
 #include "reg.h"
 #include "bus.h"
 #include "tristate.h"
 #include "counter.h"
+#include "not.h"
 
 #include "RAM.h"
 #include "ALU.h"
 #include "STATUS.h"
+#include "CTRL_IN.h"
+#include "CTRL_OUT.h"
 #include "CONTROL_ROMS.h"
 #include "vectors.h"
 #include "io.h"
@@ -27,6 +32,11 @@ CONTROL_3_ROM C3 ;
 CONTROL_4_ROM C4 ;
 CONTROL_5_ROM C5 ;
 CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
+
+output<1> ctrl_in_src ;
+CTRL_IN CTRL_IN(&ctrl_in_src) ;
+output<3> ctrl_out_cmd ;
+CTRL_OUT CTRL_OUT(&ctrl_out_cmd) ;
 
 bus<8> DATA, ADDRh, ADDRl ;
 tristate<8> Ah2D, Al2D ;
@@ -50,13 +60,10 @@ STATUS STATUS ;
 reg<8> INST ;
 output<1> INST_e(1) ;
 
-// TODO: replace with 2 4-bit counters. Maybe?
 counter<6> STEP ;
-output<1> CLK(1) ; 
-
-output<1> ctrl_RAM_s(1), ctrl_INST_s ; 
-output<1> ctrl_PC_e(1), ctrl_PC_up(1), ctrl_PC_clr ;
-output<1> ctrl_STEP_clr(1), STEP_cnt_e ;
+ 
+output<1> ctrl_PC_e(1) ;
+not_<1> not_INST_s, not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -64,7 +71,9 @@ output<1> GND(0), VCC(1) ;
 VECTORS VECTORS ;
 IO IO ;
 
-
+// Some globals useful for debugging.
+int INST_CNT = 0 ;
+int STEP_CNT = 0 ;
 bool DEBUG_STEP = false ;
 
 
@@ -100,7 +109,8 @@ void init6502(){
     C4.PCl_s.connect(PCl.load) ;
     C2.PC_up.connect(PCl.up) ;
     VCC.connect(PCl.down) ;
-    ctrl_PC_clr.connect(PCl.clear) ;
+    CTRL_OUT.PC_clr.connect(not_PC_clr.a) ;
+    not_PC_clr.b.connect(PCl.clear) ;
     PCl.data_out.connect(PClt.data_in) ;
     C2.PC_e.connect(PClt.enable) ;
     PClt.data_out.connect(ADDRl.data_in) ;
@@ -109,7 +119,7 @@ void init6502(){
     C4.PCh_s.connect(PCh.load) ;
     PCl.co.connect(PCh.up) ;
     PCl.bo.connect(PCh.down) ;
-    ctrl_PC_clr.connect(PCh.clear) ;
+    not_PC_clr.b.connect(PCh.clear) ;
     PCh.data_out.connect(PCht.data_in) ;
     C2.PC_e.connect(PCht.enable) ;
     PCht.data_out.connect(ADDRh.data_in) ;
@@ -174,7 +184,7 @@ void init6502(){
     C5.ST_I_s.connect(STATUS.i_set) ;
     C5.ST_ALU_C_s.connect(STATUS.alu_c_set) ;
     C5.ST_ALU_C_from_C.connect(STATUS.alu_c_from_C) ;
-    C5.ST_s.connect(STATUS.set) ;
+    C5.ST_clk.connect(STATUS.clk) ;
     C3.ST_e.connect(STATUS.data_enable) ;
     C3.ST_src.connect(STATUS.src_data) ;
     DATA.data_out.connect(STATUS.data_in) ;
@@ -185,25 +195,25 @@ void init6502(){
     INST_e.connect(INST.enable) ;
     INST_e = 0 ; // always enabled
 
-    CLK.connect(STEP.clk) ;
-    C1.STEP_clr.connect(STEP.clear) ;
+    CTRL_OUT.CLK_async.connect(STEP.clk) ;
+    CTRL_OUT.STEP_clr.connect(STEP.clear) ;
     VCC.connect(STEP.load) ;
-    STEP_cnt_e.connect(STEP.enable) ;
-    STEP_cnt_e = 1 ;
+    VCC.connect(STEP.enable) ;
 
     // Connect control unit.
     INST.data_out.connect(C1.inst) ;
-    ctrl_STEP_clr.connect(C1.n) ;
+    GND.connect(C1.n) ;
     GND.connect(C1.v) ;
     GND.connect(C1.z) ;
     GND.connect(C1.c) ;
     STEP.data_out.connect(C1.step) ;
 
     INST.data_out.connect(C2.inst) ;
-    ctrl_PC_up.connect(C2.n) ;
+    CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
-    ctrl_INST_s.connect(C2.z) ;
-    ctrl_RAM_s.connect(C2.c) ;
+    CTRL_OUT.INST_s.connect(not_INST_s.a) ;
+    not_INST_s.b.connect(C2.z) ;
+    CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
     INST.data_out.connect(C3.inst) ;
@@ -226,68 +236,117 @@ void init6502(){
     GND.connect(C5.z) ;
     GND.connect(C5.c) ;
     STEP.data_out.connect(C5.step) ;
+
+    ADDRl.data_out.connect(CTRL_IN.addrl) ;
+    RAM.ctrl.connect(CTRL_IN.ctrl1) ;
+    C1.INST_done.connect(CTRL_IN.ctrl2) ;
+    C2.RAM_e.connect(CTRL_IN.ctrl3) ;
+    C2.RAM_s.connect(CTRL_IN.ctrl4) ;
 }
 
 
+void trace(){
+    uint16_t pc = PCh << 8 | PCl ;
+    uint16_t ea = EAh << 8 | EAl ;
+    if (STEP_CNT == 0){
+        printf("%8d  ", INST_CNT) ;
+    }
+    else {
+        printf("          ") ;
+    }
+    printf("%2d PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X A:0x%02X B:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X RAM[EA]:0x%02X\n", 
+        STEP_CNT, pc, (uint8_t)INST, (uint8_t)SP, STATUS.P(),
+        (uint8_t)A, (uint8_t)B, (uint8_t)ACC, (uint8_t)X, (uint8_t)Y, ea, RAM.peek(ea)) ;
+    //printf("drivers: %d\n", DATA.data_in.nb_drivers()) ;
+}
+
+
+uint8_t ctrl_cache = 0 ;
 void process_ctrl(){
-    uint8_t addr = ADDRl.data_out & 0xF ;
-    if (! C2.RAM_e){
+    //printf("ctrl addr:%02X cache:%02X\n", CTRL_IN.get_addr(), cache) ;
+    if (! CTRL_IN.out3){   // RAM_e
+        uint8_t addr = CTRL_IN.get_addr() ;
         // read from vectors or IO
         ctrl_DATA.drive(true) ;
         if (addr < 0xA){
-            ctrl_DATA = IO.get_byte(addr) ;
+            if (! ctrl_cache){
+                ctrl_cache = IO.get_byte(addr) ;
+                //printf("io read %d addr:%02X, data:%02X\n", step, addr, (uint8_t)ctrl_DATA) ;
+            }
+            ctrl_DATA = ctrl_cache ;
         }
         else {
             ctrl_DATA = VECTORS.get_byte(addr) ;
+            // printf("vector read addr:%02X, data:%02X\n", addr, (uint8_t)ctrl_DATA) ;
         }
     }
     else {
+        ctrl_cache = 0 ;
         ctrl_DATA.drive(false) ;
     }
 
-    if (! C2.RAM_s){
+    if (! CTRL_IN.out4){    // RAM_s
+        uint8_t addr = CTRL_IN.get_addr() ;
         // write to vectors or IO
         if (addr < 0xA){
             IO.set_byte(addr, (uint8_t)DATA.data_out) ;
         }
         else {
             VECTORS.set_byte(addr, (uint8_t)DATA.data_out) ;
+            // printf("vector write addr:%02X data:%02X\n", addr, (uint8_t)DATA.data_out) ;
         }
     }
 }
 
 
 int process_inst(uint8_t max_steps = 0xFF){
-    int nb_steps = 1 ;
-    while (1){
-        CLK.pulse() ;
-        // Check if the controller needs to do something
-        if (RAM.ctrl.get_value()){
-            process_ctrl() ;
-        }
-
-        if (STEP == 0){
-            break ;
-        }
-        if (nb_steps == max_steps){
-            break ;
-        }
-        nb_steps++ ;
+    if (DEBUG_STEP){
+        trace() ;
     }
 
-    // printf("INST:0x%02X, steps:%d\n", (uint8_t)INST, nb_steps) ;
+    bool prev_ctrl = false ;
+    while (STEP_CNT < max_steps){
 
-    return nb_steps ;
+        CTRL_OUT.pulse(CLK_ASYNC) ;
+        CTRL_OUT.pulse(CLK_SYNC) ;
+        STEP_CNT++ ;
+
+        // Check if the controller needs to do something
+        if (CTRL_IN.out1){ // RAM.ctrl
+            process_ctrl() ;
+            prev_ctrl = true ;
+        }
+        else if (prev_ctrl){
+            ctrl_cache = 0 ;
+            ctrl_DATA.drive(false) ;
+            prev_ctrl = false ;
+        }
+
+        if (DEBUG_STEP){
+            trace() ;
+        }
+
+        if (CTRL_IN.out2){ // INST_done
+            int steps = STEP_CNT ; 
+            CTRL_OUT.pulse(STEP_CLR) ;
+            // In theory we should do process_ctrl here, but there is nthing happening on step 0...
+            STEP_CNT = 0 ;
+            INST_CNT++ ;
+            return steps ;
+        }
+    }
+
+    return STEP_CNT ;
 }
 
 
 void insert_inst(uint8_t opcode){
-    ctrl_STEP_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_DATA.drive(true) ;
     ctrl_DATA = opcode ;
     ctrl_PC_e.toggle() ;
-    ctrl_RAM_s.pulse() ;
+    CTRL_OUT.pulse(RAM_S) ;
     ctrl_PC_e.toggle() ;
     ctrl_DATA.drive(false) ;
 
@@ -296,40 +355,56 @@ void insert_inst(uint8_t opcode){
 
 
 void reset6502(PROG *prog){
-    // Install vectors in controller
-    VECTORS.set_reset(prog->start_addr()) ;
-    VECTORS.set_int(prog->int_addr()) ;
-    VECTORS.set_nmi(prog->nmi_addr()) ;
-
     // Clear step counter and program counter
-    ctrl_STEP_clr.pulse() ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
 
     // Initialize INST register to BOOT
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_BOOT ;
-    ctrl_INST_s.pulse() ;
+    CTRL_OUT.pulse(INST_S) ;
     ctrl_DATA.drive(false) ;
 
     insert_inst(INST_RST1) ;
 
-    ctrl_STEP_clr.pulse() ;
-    ctrl_PC_clr.pulse() ;
+    CTRL_OUT.pulse(STEP_CLR) ;
+    CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
-    for (uint32_t i = 0 ; i < prog->len() ; i++){
+    uint8_t ram0 = 0 ;
+    for (int data = prog->get_next_byte(), n = 0 ; data != -1 ; data = prog->get_next_byte(), n++){
+        if (n == 0){
+            ram0 = data ;
+        }
         ctrl_DATA.drive(true) ;
-        ctrl_DATA = prog->get_byte(i) ;
+        ctrl_DATA = data ;
         ctrl_PC_e.toggle() ;
-        ctrl_RAM_s.pulse() ;
+        CTRL_OUT.pulse(RAM_S) ;
         ctrl_PC_e.toggle() ;
         ctrl_DATA.drive(false) ;
-        ctrl_PC_up.pulse() ;
+        CTRL_OUT.pulse(PC_UP) ;
     }
     printf("LOAD  -> %d program bytes loaded\n", prog->len()) ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     
-    // Reset PC here to be safe?
+    // Print program info
+    prog->describe() ;
+    printf("\n") ;
+
+    // Now that program is transfered, install vectors in controller
+    VECTORS.set_reset(prog->start_addr()) ;
+    VECTORS.set_int(prog->int_addr()) ;
+    VECTORS.set_nmi(prog->nmi_addr()) ;
+
+    CTRL_OUT.pulse(PC_CLR) ;
     insert_inst(INST_RST2) ;
+    // TODO: Inserting the RST2 instruction squished the byte at RAM[0], we must put it back (it was saved in ram0)
+    /* This doenst work since PC is already at the reset vector value.
+    ctrl_DATA.drive(true) ;
+    ctrl_DATA = ram0 ;
+    ctrl_PC_e.toggle() ;
+    CTRL_OUT.pulse(RAM_S) ;
+    ctrl_PC_e.toggle() ;
+    ctrl_DATA.drive(false) ; */
 
     printf("RESET -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
         (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
@@ -345,10 +420,10 @@ void process_interrupt(uint8_t inst){
     // fetch stage. See fetch() in addrmodes.h
     ctrl_DATA.drive(true) ;
     ctrl_DATA = inst ;
-    ctrl_INST_s.pulse() ;
-    process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
-    ctrl_DATA.drive(false) ; // Reset the data bus
-    process_inst() ;         // finish the instruction
+    CTRL_OUT.pulse(INST_S) ;
+    process_inst(2) ;    // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
+    ctrl_DATA.drive(false) ;    // Reset the data bus
+    process_inst() ;            // Finish the instruction
  
     pc = PCh.data_out << 8 | PCl.data_out ;
     printf("      <- PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X  RAM[SP+1]:0x%02X  RAM[SP+2]:0x%02X  RAM[SP+3]:0x%02X\n", 
@@ -358,54 +433,39 @@ void process_interrupt(uint8_t inst){
     // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
     ctrl_DATA.drive(true) ;
     ctrl_DATA = INST_NOP ;
-    ctrl_INST_s.pulse() ;
+    CTRL_OUT.pulse(INST_S) ;
     ctrl_DATA.drive(false) ;
 }
 
 
-int main(int argc, char *argv[]){
-    // Set STDIN to non-blocking
-    fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK) ;
-
-    init6502() ;
-
-    // Default program
-    PROG *prog = &progTestSuite ;
-    if (argc >= 2){
-        if (strcmp(argv[1], "star") == 0){
-            prog = &progStar ;
-        }
-        else if (strcmp(argv[1], "hello") == 0){
-            prog = &progHello ;
+bool caught_irq = false ;
+bool caught_nmi = false ;
+void int_handler(int signum){
+    if (signum == SIGUSR1){ // INT
+        // Process interrupt only if interrupt disable is off.
+        if (! STATUS.I){
+            caught_irq = true ;
         }
     }
-    prog->describe() ;
-    printf("\n") ;
+    else if (signum == SIGUSR2){ // NMI    
+        caught_nmi = true ;
+    }
+}
 
-    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
-        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
 
-
-    // Reset the processor
-    reset6502(prog) ;
-
+void loop(PROG *prog){
     // Start processing instructions.
-    int nb_insts = 0, nb_steps = 0 ;
+    int nb_steps = 0 ;
     uint16_t prev_pc = 0xFFFF ;
     int max_steps = 0 ; 
     uint8_t max_inst = 0 ;
     while (1) {
         uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        if (DEBUG_STEP){
-            printf("PC:0x%04X INST:0x%02X STATUS:0x%02X SP:0x%02X RAM[SP+1]:0x%02X RAM[SP+2]:0x%02X RAM[SP+3]:0x%02X\n", 
-                pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-                RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
-        }
         if (pc == prev_pc){
             bool done = prog->is_done(pc) ;
 
             printf("---\nTRAP! -> PC:0x%04X  SREG:0x%02X  NB_INST:%d  NB_STEPS:%d  MAX_STEPS:%d  MAX_STEPS_INST:0x%02X  %s! \n", 
-                pc, (uint8_t)STATUS.sreg, nb_insts, nb_steps, max_steps, max_inst,
+                pc, (uint8_t)STATUS.sreg, INST_CNT, nb_steps, max_steps, max_inst,
                 (done ? "SUCCESS" : "ERROR")) ;
             fflush(stdout) ;
             exit(! done) ;
@@ -418,27 +478,46 @@ int main(int argc, char *argv[]){
             max_steps = inst_steps ;
             max_inst = INST ;
         }
-        nb_insts++ ;
-        if ((nb_insts % 100000) == 0){
-            printf("%d instructions executed (pc:0x%04X).\n", nb_insts, pc) ;
+        if ((INST_CNT % 100000) == 0){
+            printf("%d instructions executed (pc:0x%04X).\n", INST_CNT, pc) ;
         }
 
-        // Check for interrupts from stdio
-        char buf[9] ;
-        int n = read(0, buf, 8) ;
-        if (n > 0){
-            char itype = buf[0] ;
-            switch (itype){
-                case 'i':
-                    // Process interrupt only if interrupt disable is off.
-                    if (! STATUS.I){
-                        process_interrupt(INST_IRQ) ;
-                    }
-                    break ;
-                case 'n':
-                    process_interrupt(INST_NMI) ;
-                    break ;
-            }
+        // Check for interrupts
+        if (caught_irq){
+            process_interrupt(INST_IRQ) ;
+            caught_irq = false ;
+        }
+        if (caught_nmi){
+            process_interrupt(INST_NMI) ;
+            caught_nmi = false ;
         }
     }
+}
+
+
+int main(int argc, char *argv[]){
+    signal(SIGUSR1, int_handler) ;
+    signal(SIGUSR2, int_handler) ;
+
+    init6502() ;
+
+    // Default program
+    PROG *prog = &progTestSuite ;
+    if ((argc >= 2)&&((access(argv[1], F_OK) == 0))){
+        prog = new PROG(argv[1], argv[1]) ;
+    }
+    printf("\n") ;
+
+    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
+        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
+    printf("PID is %d\n", getpid()) ;
+    
+    if (getenv("DEBUG_STEP")){
+        DEBUG_STEP = true ;
+    }
+
+    // Reset the processor
+    reset6502(prog) ;
+
+    loop(prog) ;
 }
