@@ -5,7 +5,11 @@
 #include "ALU.h"
 #include "STATUS.h"
 #include "VECTORS.h"
+
+#define SERIAL_TIMEOUT 1000
+bool HALTED = false ;
 #include "IO.h"
+
 
 // Push button
 #define STEP A0         // push button
@@ -15,9 +19,9 @@
 #define CTRL_ADDR2 A6
 #define CTRL_ADDR3 A7
 
-BUS DATA(9, 8, 7, 6, 5, 4, 3, 2) ;
+BUS DATA ;                    // 9, 8, 7, 6, 5, 4, 3, 2
 CTRLSIG CTRL_src(NULL, 13) ;
-CTRL_OUT CTRL_OUT ;
+CTRL_OUT CTRL_OUT ;           // 12, 11, 10
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
@@ -62,32 +66,32 @@ CTRLSIG ST_clk(&E3, 1, true) ;
 VECTORS VECTORS ;
 IO IO ;
 
-bool DEBUG_MON = false ;
-bool DEBUG_STEP = false ;
-#define MON_EVERY 1000
-
 byte INST = 0 ;
 bool INST_done = 0 ; 
 
-
 #include "PROG.h"
-#include "fake6502.h"
-#include "PROGRAMS.h"
-
+PROG TestSuite("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 
 // Program to run
-PROG *prog = &progTestSuite ;
-//PROG *prog = &progStar ;
+PROG *prog = NULL ;
+
+
+#include "fake6502.h"
 
   
 void setup() {
   // Faster analog reads
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
-  Serial.begin(115200) ;
-  Serial.println(F("Starting Flash6502.")) ;
-  Serial.print(CTRLSIG::count()) ;
-  Serial.println(F(" control signals defined.")) ;
+  Serial.begin(9600) ;
+  Serial.setTimeout(SERIAL_TIMEOUT) ;
+  // Send null byte to indicate we have finished booting, in case a loader is present.
+  Serial.write(0) ;
+  Serial.println(F("Starting Flash6502")) ;  
+  prog = detect_loader() ;
+
+  //Serial.print(CTRLSIG::count()) ;
+  //Serial.println(F(" control signals defined.")) ;
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
@@ -118,62 +122,31 @@ void setup() {
   PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
   
-  CTRLSIG::check() ;
+  //CTRLSIG::check() ;
   
-  prog->describe() ;
-  Serial.println() ;
   if (! digitalRead(STEP)){
     Serial.println(F("STEP button held down, entering step mode.\n")) ;
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
+  
   reset6502(prog) ;
   //set_pc(0x059e) ;
 }
 
 
-// See simulator main while loop
-void loop(){
-  // Start processing instructions.
-  uint16_t prev_pc = 0xFFFF ;
-  while (1) {
-      uint16_t pc = get_pc() ;
-      if (pc == prev_pc){
-          bool done = prog->is_done(pc) ;
-          Serial.print(F("---\nTRAP! -> ")) ;
-          monitor6502(true) ; 
-          Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
-          while (1){} ;
-      } 
-      prev_pc = pc ;
-
-      /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
-        DEBUG_MON = true ;
-        DEBUG_STEP = true ;
-      }
-      else {
-        DEBUG_MON = false ;       
-        DEBUG_STEP = false ;
-      } */
-      
-      if (DEBUG_MON){
-        monitor6502(true) ; 
-        Serial.println() ;
-      }
-      if ((inst_cnt % MON_EVERY) == 0){
-        monitor6502(true) ; 
-        //Serial.print("  RAM[0x04E6]:0x") ;
-        //Serial.print(peek_ram(0x04e6), HEX) ;
-        Serial.println() ;
-      }
-      process_inst(0, 0xFF, DEBUG_STEP) ; 
-
-      if (! DEBUG_STEP){
-        if (button_pressed(STEP)){
-          //DEBUG_STEP = true ;
-          //DEBUG_MON = true ;
-          process_interrupt(INST_NMI) ;
-        }
-      }
+PROG *detect_loader(){
+  // Read the magic numer that indicates our loader is present.
+  byte magic[2] ;
+  int nb = Serial.readBytes(magic, 2) ;
+  if ((magic[0] == 0x65)&&(magic[1] == 0x02)){
+    Serial.println(F("Loader detected, program will be requested from loader.")) ;
+    IO.set_loader() ;
+    MON_EVERY = 0 ;
+    return new PROG("@loader") ;
   }
+
+  Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
+
+  return new PROG("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 }

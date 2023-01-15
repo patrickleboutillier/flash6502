@@ -76,11 +76,6 @@ uint8_t asl(uint8_t step) {
         #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
     
         switch (step) { 
-            case NEXT:  ACC_e.toggle() ;
-                        A_s.toggle() ; B_s.toggle() ; break ;
-            case NEXT:  A_s.toggle() ; B_s.toggle() ; break ;
-            case NEXT:  ACC_e.toggle() ; break ;
-
             case NEXT:  ALU_op = ALU_ADD ; 
                         EAh_e.toggle() ; EAl_e.toggle() ; ALU_e.toggle() ; ST_C_s.toggle() ; ST_NZ_s.toggle() ;
                         RAM_s.toggle() ; ST_clk.toggle() ; break ;
