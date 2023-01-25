@@ -38,27 +38,59 @@ The system is made up of 8 sections, which I will refer to using the following n
 
 ## Sections
 ### Registers
+![Registers](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/reg.jpg)
+
 The Registers section contains 3 registers, ACC, X and Y, implemented using SN74HC373 chips. These registers are connected to the Data Bus. There are 6 control signals used to set or enable each of these 3 registers: *ACC_e*, *ACC_s*, *X_e*, *X_s*, *Y_e*, *Y_s*.
 
 ### ALU
-The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 16 operations that can be selected using 4 controls bits.
+![ALU](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/alu.jpg)
+
+The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 15 operations that can be selected using 4 controls bits.
 The operations are defined as such:
+
+    #define ALU_ADC  0    // For ADC instruction
+    #define ALU_AND  1    // For AND instruction
+    #define ALU_BIT  2    // For BIT instruction
+    #define ALU_CMP  3    // For CMP instruction
+    #define ALU_DEC  4    // For DEC instruction
+    #define ALU_EOR  5    // For EOR instruction
+    #define ALU_INC  6    // For ADC instruction
+    #define ALU_LSR  7    // For LSR instruction
+    #define ALU_ORA  8    // For ORA instruction
+    #define ALU_ROL  9    // For ROL instruction
+    #define ALU_ROR  10   // For ROR instruction
+    #define ALU_SBC  11   // For SBC instruction
+    #define ALU_PASS 12   // Passes through the contents of the B register
+    #define ALU_ADD  13   // ADD w/o carry. Used mostly in address calculations
+    #define ALU_SXT  14   // Sign extention, used in relative address calculation
 
 Here are the details of each of the pins for the 2 Flash chips, ALU Low and ALU High:
 #### ALU Low
-- A16, A15, A12, A7: The lower nibble of the A register.
-- A3, A2, A1, A0: The lower nibble of the B register.
+- A16, A15, A12, A7: The low nibble of the A register.
+- A3, A2, A1, A0: The low nibble of the B register.
 - A13, A8, A9, A11: The ALU operation (see above).
 - A10: The "ALU carry" output of the Status section.
 - A17: Bit 4 of the B register. Used, for example, during the "shift right" operations.
 - A14: Bit 7 of the B register. Used during the "sign extend" operation. 
-- DQ3, DQ2, DQ1, DQ0: the result of the operation (these pins are connected to the Data Bus).
+- DQ3, DQ2, DQ1, DQ0: The low nibble of the result of the operation (these pins are connected to the Data Bus).
 - DQ6: The "zero" output of the operation.
 - DQ5: The "carry" output of the operation.
 - DQ4: The "shift" output of the operation.
 - OE#: Connected to the *ALU_e* control signal used to enable the result onto the Data Bus.
 
 #### ALU High
+- A16, A15, A12, A7: The high nibble of the A register.
+- A3, A2, A1, A0: The high nibble of the B register.
+- A13, A8, A9, A11: The ALU operation (see above).
+- A10: The "carry" output from ALU Low.
+- A17: The "shift" output fron ALU Low.
+- A14: The "zero" output fron ALU Low.
+- DQ3, DQ2, DQ1, DQ0: The high nobble of the result of the operation (these pins are connected to the Data Bus).
+- DQ7: The N output flag of the ALU.
+- DQ6: The Z output flag of the ALU.
+- DQ5: The C output flag of the ALU.
+- DQ4: The V output flag of the ALU.
+- OE#: Connected to the *ALU_e* control signal used to enable the result onto the Data Bus.
 
 #### Control signals
 The control signals for the sections are *ALU[3-0]*, *ALU_e*, *A_s* and *B_s*.
