@@ -38,9 +38,13 @@ The system is made up of 8 sections, which I will refer to using the following n
 
 ## Sections
 ### Registers
+![Registers](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/reg.jpg)
+
 The Registers section contains 3 registers, ACC, X and Y, implemented using SN74HC373 chips. These registers are connected to the Data Bus. There are 6 control signals used to set or enable each of these 3 registers: *ACC_e*, *ACC_s*, *X_e*, *X_s*, *Y_e*, *Y_s*.
 
 ### ALU
+![ALU](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/alu.jpg)
+
 The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 16 operations that can be selected using 4 controls bits.
 The operations are defined as such:
 
@@ -52,7 +56,7 @@ Here are the details of each of the pins for the 2 Flash chips, ALU Low and ALU 
 - A10: The "ALU carry" output of the Status section.
 - A17: Bit 4 of the B register. Used, for example, during the "shift right" operations.
 - A14: Bit 7 of the B register. Used during the "sign extend" operation. 
-- DQ3, DQ2, DQ1, DQ0: the result of the operation (these pins are connected to the Data Bus).
+- DQ3, DQ2, DQ1, DQ0: The result of the operation (these pins are connected to the Data Bus).
 - DQ6: The "zero" output of the operation.
 - DQ5: The "carry" output of the operation.
 - DQ4: The "shift" output of the operation.
