@@ -34,16 +34,16 @@ The system is made up of 8 sections, which I will refer to using the following n
 - **Control Unit**: contains the stepping logic and 5 ROM chips that handle the 40 control signals. Each ROM chip receives the output of the step counting (6 bits), the output of the INST register (8 bits), as well as 4 other input signals that vary depending on the chip.
 
 ### Breadboard Block Diagram
-![Block Diagram](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/block_architecture.jpeg)
+![Block Diagram](https://github.com/patrickleboutillier/flash6502/raw/master/images/block_architecture.jpeg)
 
 ## Sections
 ### Registers
-![Registers](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/reg.jpg)
+![Registers](https://github.com/patrickleboutillier/flash6502/raw/master/images/reg.jpg)
 
 The Registers section contains 3 registers, ACC, X and Y, implemented using SN74HC373 chips. These registers are connected to the Data Bus. There are 6 control signals used to set or enable each of these 3 registers: *ACC_e*, *ACC_s*, *X_e*, *X_s*, *Y_e*, *Y_s*.
 
 ### ALU
-![ALU](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/alu.jpg)
+![ALU](https://github.com/patrickleboutillier/flash6502/raw/master/images/alu.jpg)
 
 The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 15 operations that can be selected using 4 controls bits.
 The operations are defined as such:
@@ -98,10 +98,10 @@ The control signals for the sections are *ALU[3-0]*, *ALU_e*, *A_s* and *B_s*.
 ### Status
 ### Data Bus
 ### Address Low
-![Address Low](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/addrl.jpg)
+![Address Low](https://github.com/patrickleboutillier/flash6502/raw/master/images/addrl.jpg)
 ### Address High
-![Address High](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/addrh.jpg)
+![Address High](https://github.com/patrickleboutillier/flash6502/raw/master/images/addrh.jpg)
 ### RAM
-![RAM](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/ram.jpg)
+![RAM](https://github.com/patrickleboutillier/flash6502/raw/master/images/ram.jpg)
 ### Control Unit
 ### Arduino Controller
