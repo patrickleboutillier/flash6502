@@ -45,8 +45,24 @@ The Registers section contains 3 registers, ACC, X and Y, implemented using SN74
 ### ALU
 ![ALU](https://github.com/patrickleboutillier/flash6502/raw/feature/docs/images/alu.jpg)
 
-The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 16 operations that can be selected using 4 controls bits.
+The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 15 operations that can be selected using 4 controls bits.
 The operations are defined as such:
+
+    #define ALU_ADC  0    // For ADC instruction
+    #define ALU_AND  1    // For AND instruction
+    #define ALU_BIT  2    // For BIT instruction
+    #define ALU_CMP  3    // For CMP instruction
+    #define ALU_DEC  4    // For DEC instruction
+    #define ALU_EOR  5    // For EOR instruction
+    #define ALU_INC  6    // For ADC instruction
+    #define ALU_LSR  7    // For LSR instruction
+    #define ALU_ORA  8    // For ORA instruction
+    #define ALU_ROL  9    // For ROL instruction
+    #define ALU_ROR  10   // For ROR instruction
+    #define ALU_SBC  11   // For SBC instruction
+    #define ALU_PASS 12   // Passes through the contents of the B register
+    #define ALU_ADD  13   // ADD w/o carry. Used mostly in address calculations
+    #define ALU_SXT  14   // Sign extention, used in relative address calculation
 
 Here are the details of each of the pins for the 2 Flash chips, ALU Low and ALU High:
 #### ALU Low
