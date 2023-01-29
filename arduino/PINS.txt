@@ -7,8 +7,8 @@ INPUT:
       - A:
         - CTRL: A2
         - INST_done: A3
-        - RAM_e: A6
-        - RAM_s: A7
+        - RAM_s: A6
+        - RAM_e: A7
       - B:
         - ADDRl: A2, A3, A6, A7
     - IRQ: A4

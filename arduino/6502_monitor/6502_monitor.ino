@@ -137,16 +137,22 @@ void setup() {
 
 PROG *detect_loader(){
   // Read the magic numer that indicates our loader is present.
-  byte magic[2] ;
-  int nb = Serial.readBytes(magic, 2) ;
+  byte magic[3] ;
+  int nb = Serial.readBytes(magic, 3) ;
   if ((magic[0] == 0x65)&&(magic[1] == 0x02)){
-    Serial.println(F("Loader detected, program will be requested from loader.")) ;
     IO.set_loader() ;
-    MON_EVERY = 0 ;
-    return new PROG("@loader") ;
+    if (magic[2] == 0xFF){
+      MON_EVERY = 0 ;
+      Serial.println(F("Loader detected, program will be requested from loader.")) ;
+      return new PROG("@loader") ;
+    }
+    else {
+      Serial.println(F("Loader detected, continuing with built-in test suite.")) ;
+    }
   }
-
-  Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
+  else {
+    Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
+  }
 
   return new PROG("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 }

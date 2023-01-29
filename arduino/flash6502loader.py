@@ -11,8 +11,8 @@ LOADER_HALT   = 0x09
 
 
 parser = argparse.ArgumentParser(prog = 'flash6502loader')
-parser.add_argument('PORT')           # Serial port
-parser.add_argument('PROG')           # 64k program file
+parser.add_argument('PORT')             # Serial port
+parser.add_argument('PROG', nargs='?')  # 64k program file
 args = parser.parse_args()
 
 # Configure the serial connection
@@ -21,10 +21,15 @@ port = serial.Serial(port=args.PORT, baudrate=9600)
 port.read(1)
 # Send our magic number
 port.write(b'\x65\x02')
+if args.PROG is not None:
+    port.write(b'\xFF')     # Program will be uploaded by loader
+    # Read in binary file
+    with open(args.PROG, "rb") as f:
+        prog = f.read()
+else:
+    port.write(b'\x00')     # Use built-in test suite
 
-# Read in binary file
-with open(args.PROG, "rb") as f:
-    prog = f.read()
+
     
 while True:
     data = port.read(1)

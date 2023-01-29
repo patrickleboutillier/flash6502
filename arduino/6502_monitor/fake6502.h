@@ -89,254 +89,250 @@ void trace(bool idle, bool ln = true){
 
 uint8_t ctrl_cache = 0 ;
 void process_ctrl(){
-    if (! RAM_e.read()){
-        CTRL_src = 1 ;
-        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
-        CTRL_src = 0 ;
-        // read from vectors or IO
-        if (addr < 0xA){
-            if (! ctrl_cache){
-                ctrl_cache = IO.get_byte(addr) ;
-            }
-            DATA.write(ctrl_cache) ;
-        }
-        else {
-          DATA.write(VECTORS.get_byte(addr)) ;
-        }
+  if (! analogRead2Digital(CTRL_ADDR3)){  // RAM_e.read()
+    CTRL_src = 1 ;
+    uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+    CTRL_src = 0 ;
+    // read from vectors or IO
+    if (addr < 0xA){
+      if (! ctrl_cache){
+        ctrl_cache = IO.get_byte(addr) ;
+      }
+      DATA.write(ctrl_cache) ;
     }
     else {
-        ctrl_cache = 0 ;
-        DATA.reset() ;     
+      DATA.write(VECTORS.get_byte(addr)) ;
     }
+  }
+  else {
+    ctrl_cache = 0 ;
+    DATA.reset() ;     
+  }
 
-    if (! RAM_s.read()){
-        // write to vectors or IO
-        CTRL_src = 1 ;
-        uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
-        CTRL_src = 0 ;
-        if (addr < 0xA){
-            IO.set_byte(addr, DATA.read()) ;
-        }
-        else {
-            VECTORS.set_byte(addr, DATA.read()) ;
-        }
+  if (! analogRead2Digital(CTRL_ADDR2)){  // RAM_s.read()
+    // write to vectors or IO
+    CTRL_src = 1 ;
+    uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
+    CTRL_src = 0 ;
+    if (addr < 0xA){
+      IO.set_byte(addr, DATA.read()) ;
     }
+    else {
+      VECTORS.set_byte(addr, DATA.read()) ;
+    }
+  }
 }
 
 
 const char msg_fetch[] = "fetch" ;
 const char msg_addr[] = "addr" ;
 const char msg_oper[] = "oper" ; 
-void process_inst(uint8_t max_steps = 0xFF){
-    //if (DEBUG_MON){
-    //    trace(true) ; 
-    //}
-
-    // Update the flags values for use in branch instructions. 
-    STATUS.latch() ;
-    
-    uint8_t step_offset = 0 ;
-    bool fetch_done = false, addr_done = false ;
-    bool prev_ctrl = false ; 
-    while (STEP_CNT < max_steps){
-        if (STEP_CNT > 0){
-          // This already happened for step 0 when we called STEP_CLR
-          CTRL_OUT.pulse(CLK_ASYNC) ;    
-        }
-
-        const char *msg = NULL ;
-        if (! fetch_done){
-            if (fetch(STEP_CNT)){
-                msg = msg_fetch ;
-                goto SYNC ;
-            } 
-            fetch_done = true ;
-            step_offset = STEP_CNT ;
-        }
-        if (! addr_done){
-            func6502 f = pgm_read_word(&(addrtable[INST])) ;
-            if (f(STEP_CNT - step_offset)){
-                msg = msg_addr ;
-                goto SYNC ;
-            }
-            addr_done = true ;
-            step_offset = STEP_CNT ;
-        }
-
-        {
-          func6502 f = pgm_read_word(&(optable[INST])) ;
-          if (f(STEP_CNT - step_offset)){
-              msg = msg_oper ;
-              goto SYNC ;
-          }
-        }
-        
-        SYNC:
-        CTRL_OUT.pulse(CLK_SYNC) ;  
-      
-        // bool ctrl = digitalRead(CTRL) ;
-        if (PINC & 0b100){ // A2, RAM.ctrl
-          process_ctrl() ;
-          prev_ctrl = true ;
-        }
-        else if (prev_ctrl){
-          ctrl_cache = 0 ;
-          DATA.reset() ;
-        }
-        
-        if (DEBUG_MON){
-          trace(STEP_CNT == 0, false) ;
-          if (DEBUG_STEP){
-            Serial.print(F("  ")) ;
-            Serial.print(msg) ;
-            Serial.print(F(" ")) ;
-            Serial.print(STEP_CNT - step_offset) ;
-            Serial.print(" done...") ;
-            while (! button_pressed(STEP)){} ;
-          }
-          Serial.println() ;
-        }
-                
-        if (INST_done){
-          // Reset step counter.
-          int steps = STEP_CNT ;
-          CTRL_OUT.pulse(STEP_CLR) ;
-          STEP_CNT = 0 ;
-          INST_CNT++ ;
-          return ;
-        }
-
-        STEP_CNT++ ;
+void process_inst(uint8_t max_step = 0xFF){
+  // Update the flags values for use in branch instructions. 
+  STATUS.latch() ;
+  
+  uint8_t step_offset = 0 ;
+  bool fetch_done = false, addr_done = false ;
+  bool prev_ctrl = false ; 
+  while (STEP_CNT <= max_step){
+    if (STEP_CNT > 0){
+      // This already happened for step 0 when we called STEP_CLR
+      CTRL_OUT.pulse(CLK_ASYNC) ;    
     }
+
+    const char *msg = NULL ;
+    if (! fetch_done){
+      if (fetch(STEP_CNT)){
+        msg = msg_fetch ;
+        goto SYNC ;
+      } 
+      fetch_done = true ;
+      step_offset = STEP_CNT ;
+    }
+    if (! addr_done){
+      func6502 f = pgm_read_word(&(addrtable[INST])) ;
+      if (f(STEP_CNT - step_offset)){
+        msg = msg_addr ;
+        goto SYNC ;
+      }
+      addr_done = true ;
+      step_offset = STEP_CNT ;
+    }
+
+    {
+      func6502 f = pgm_read_word(&(optable[INST])) ;
+      if (f(STEP_CNT - step_offset)){
+        msg = msg_oper ;
+        goto SYNC ;
+      }
+    }
+    
+    SYNC:
+    CTRL_OUT.pulse(CLK_SYNC) ;  
+  
+    // bool ctrl = digitalRead(CTRL) ;
+    if (PINC & 0b100){ // A2, RAM.ctrl
+      process_ctrl() ;
+      prev_ctrl = true ;
+    }
+    else if (prev_ctrl){
+      ctrl_cache = 0 ;
+      DATA.reset() ;
+    }
+    
+    if (DEBUG_MON){
+      trace(STEP_CNT == 0, false) ;
+      if (DEBUG_STEP){
+        Serial.print(F("  ")) ;
+        Serial.print(msg) ;
+        Serial.print(F(" ")) ;
+        Serial.print(STEP_CNT - step_offset) ;
+        Serial.print(" done...") ;
+        while (! button_pressed(STEP)){} ;
+      }
+      Serial.println() ;
+    }
+                    
+    if (INST_done){
+      // Reset step counter.
+      int steps = STEP_CNT ;
+      CTRL_OUT.pulse(STEP_CLR) ;
+      STEP_CNT = 0 ;
+      INST_CNT++ ;
+      return ;
+    }
+
+    STEP_CNT++ ;
+  }
 }
 
 
 void insert_inst(uint8_t opcode){
-    CTRL_OUT.pulse(STEP_CLR) ;
-    DATA.write(opcode) ;
-    PC_e.toggle() ;
-    RAM_s.pulse() ;
-    PC_e.toggle() ;
-    DATA.reset() ;
+  CTRL_OUT.pulse(STEP_CLR) ;
+  DATA.write(opcode) ;
+  PC_e.toggle() ;
+  RAM_s.pulse() ;
+  PC_e.toggle() ;
+  DATA.reset() ;
 
-    process_inst() ;
+  process_inst() ;
 }
 
 
 void reset6502(PROG *prog){
-    // Clear step counter and program counter
-    CTRL_OUT.pulse(STEP_CLR) ;
-    CTRL_OUT.pulse(PC_CLR) ;
-    // Reset latches
-    CTRL_OUT.pulse(CLK_SYNC) ;
+  // Clear step counter and program counter
+  CTRL_OUT.pulse(STEP_CLR) ;
+  CTRL_OUT.pulse(PC_CLR) ;
+  // Reset latches
+  CTRL_OUT.pulse(CLK_SYNC) ;
 
-    // Initialize INST register to BOOT
-    // Clear INST register
-    // TODO: Is this really necessary?
-    DATA.write(INST_BOOT) ;
-    INST_s.pulse() ;
-    INST = INST_BOOT ;
+  // Initialize INST register to BOOT
+  // Clear INST register
+  // TODO: Is this really necessary?
+  DATA.write(INST_BOOT) ;
+  INST_s.pulse() ;
+  INST = INST_BOOT ;
+  DATA.reset() ;
+
+  insert_inst(INST_RST1) ;
+
+  Serial.print(F("- Loading program to RAM...")) ;
+  CTRL_OUT.pulse(STEP_CLR) ;
+  CTRL_OUT.pulse(PC_CLR) ;
+  // Load the program to RAM
+  for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
+    DATA.write(data) ;
+    PC_e.toggle() ; 
+    RAM_s.pulse() ;
+    PC_e.toggle() ;
     DATA.reset() ;
+    PC_up.pulse() ;
+  }        
+  Serial.println(F("done")) ;
+  Serial.print(F("LOAD  -> ")) ;
+  Serial.print(prog->len()) ;
+  Serial.println(F(" program bytes loaded")) ;
+  
+  // Print program info
+  prog->describe() ;
+  Serial.println() ;
 
-    insert_inst(INST_RST1) ;
+  // Now that program is transfered, install vectors in controller
+  VECTORS.set_reset(prog->start_addr()) ;
+  VECTORS.set_int(prog->int_addr()) ;
+  VECTORS.set_nmi(prog->nmi_addr()) ;
 
-    Serial.print(F("- Loading program to RAM...")) ;
-    CTRL_OUT.pulse(STEP_CLR) ;
-    CTRL_OUT.pulse(PC_CLR) ;
-    // Load the program to RAM
-    for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
-        DATA.write(data) ;
-        PC_e.toggle() ; 
-        RAM_s.pulse() ;
-        PC_e.toggle() ;
-        DATA.reset() ;
-        PC_up.pulse() ;
-    }        
-    Serial.println(F("done")) ;
-    Serial.print(F("LOAD  -> ")) ;
-    Serial.print(prog->len()) ;
-    Serial.println(F(" program bytes loaded")) ;
-    
-    // Print program info
-    prog->describe() ;
-    Serial.println() ;
-
-    // Now that program is transfered, install vectors in controller
-    VECTORS.set_reset(prog->start_addr()) ;
-    VECTORS.set_int(prog->int_addr()) ;
-    VECTORS.set_nmi(prog->nmi_addr()) ;
-
-    CTRL_OUT.pulse(STEP_CLR) ;
-    insert_inst(INST_RST2) ;
-    
-    Serial.print(F("RESET -> ")) ;
-    trace(true) ;
-    Serial.println(F("---")) ;
+  CTRL_OUT.pulse(STEP_CLR) ;
+  insert_inst(INST_RST2) ;
+  
+  Serial.print(F("RESET -> ")) ;
+  trace(true) ;
+  Serial.println(F("---")) ;
 }
 
 
 void process_interrupt(uint8_t inst){   
-    Serial.print(F("INTR  -> ")) ;
-    trace(true) ;
-    
-    // Prime INST with our fake interrupt instruction. This will alter the normal
-    // fetch stage. See fetch() in addrmodes.h
-    DATA.write(inst) ;
-    INST_s.pulse() ;
-    INST = inst ;
-    process_inst(2) ;        // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
-    DATA.reset() ;              // Reset the data bus
-    process_inst() ;     // finish the instruction
+  Serial.print(F("INTR  -> ")) ;
+  trace(true) ;
+  
+  // Prime INST with our fake interrupt instruction. This will alter the normal
+  // fetch stage. See fetch() in addrmodes.h
+  DATA.write(inst) ;
+  INST_s.pulse() ;
+  INST = inst ;
+  process_inst(2) ;    // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
+  DATA.reset() ;       // Reset the data bus
+  process_inst() ;     // Finish the instruction
 
-    Serial.print(F("      <- ")) ;
-    trace(true) ;
- 
-    // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
-    DATA.write(INST_NOP) ;
-    INST_s.pulse() ;
-    INST = INST_NOP ;
-    DATA.reset() ;
+  Serial.print(F("      <- ")) ;
+  trace(true) ;
+
+  // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
+  DATA.write(INST_NOP) ;
+  INST_s.pulse() ;
+  INST = INST_NOP ;
+  DATA.reset() ;
 }
 
 
 void loop(){
-    // Start processing instructions.
-    uint16_t prev_pc = 0xFFFF ;
-    while (1) {
-        if (HALTED){
-            // Infinite loop...
-            continue ;
-        }
-        uint16_t pc = get_pc() ;
-        if (pc == prev_pc){
-            bool done = prog->is_done(pc) ;
-            Serial.print(F("---\nTRAP! -> ")) ;
-            trace(true, false) ; 
-            Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
-            while (1){} ;
-        } 
-        prev_pc = pc ;
-
-        /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
-            DEBUG_MON = true ;
-            DEBUG_STEP = true ;
-        }
-        else {
-            DEBUG_MON = false ;       
-            DEBUG_STEP = false ;
-        } */
-      
-        if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
-            trace(true) ; 
-        }
-        process_inst() ; 
-
-        if (! DEBUG_STEP){
-            if (button_pressed(STEP)){
-                //DEBUG_STEP = true ;
-                //DEBUG_MON = true ;
-                process_interrupt(INST_NMI) ;
-            }
-        }
+  // Start processing instructions.
+  uint16_t prev_pc = 0xFFFF ;
+  while (1) {
+    if (HALTED){
+      // Infinite loop...
+      continue ;
     }
+    uint16_t pc = get_pc() ;
+    if (pc == prev_pc){
+      bool done = prog->is_done(pc) ;
+      Serial.print(F("---\nTRAP! -> ")) ;
+      trace(true, false) ; 
+      Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
+      while (1){} ;
+    } 
+    prev_pc = pc ;
+
+    /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
+        DEBUG_MON = true ;
+        DEBUG_STEP = true ;
+    }
+    else {
+        DEBUG_MON = false ;       
+        DEBUG_STEP = false ;
+    } */
+  
+    if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
+      trace(true) ; 
+    }
+    process_inst() ; 
+
+    if (! DEBUG_STEP){
+      if (button_pressed(STEP)){
+        //DEBUG_STEP = true ;
+        //DEBUG_MON = true ;
+        process_interrupt(INST_NMI) ;
+      }
+    }
+  }
 }
