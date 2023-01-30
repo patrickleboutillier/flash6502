@@ -39,7 +39,14 @@ while True:
         # print("cmd:{:02X}".format(cmd[0]))
         if cmd[0] == LOADER_UPLOAD:
             # Send program to Arduino
-            port.write(prog)
+            # TODO: See if we can write 64 1k blocks to be able to indicate progress...
+            offset = 0 
+            chunk = 2048
+            print()
+            while offset < 0x10000:
+                port.write(prog[offset:offset+chunk])
+                offset = offset + chunk
+                print("\r  {:3.0f}% loaded... ".format((offset / 0x10000) * 100), end="", flush=True)
         elif cmd[0] == LOADER_STDIN:
             # Read byte from sdtin
             port.write(sys.stdin.read(1).encode('utf-8'))
