@@ -169,8 +169,8 @@ class CONTROL_4_ROM : public component {
                 Al2D_e << 6 |
                 Ah2D_e << 5 |
                 EAh_e  << 4 |
-                PCl_s  << 3 |
-                EAl_s  << 2 |
+                EAl_s  << 3 |
+                PCl_s  << 2 |
                 EAh_s  << 1 |
                 PCh_s  << 0 ;               
         }
@@ -183,8 +183,8 @@ class CONTROL_4_ROM : public component {
             set_signal_1(Al2D_e, 6) ;
             set_signal_1(Ah2D_e, 5) ;
             set_signal_1(EAh_e, 4) ;
-            set_signal_1(PCl_s, 3) ;
-            set_signal_1(EAl_s, 2) ;
+            set_signal_1(EAl_s, 3) ;
+            set_signal_1(PCl_s, 2) ;
             set_signal_1(EAh_s, 1) ;
             set_signal_1(PCh_s, 0) ;
         } ;

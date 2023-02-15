@@ -1,8 +1,8 @@
 #include "utils.h"
 
-#define INST_BOOT    0xF0
-#define INST_RST1    0x02
-#define INST_RST2    0x03
+#define INST_MON     0x0F
+#define INST_RST1    0x1F
+#define INST_RST2    0x2F
 #define INST_NOP     0xEA
 #define INST_IRQ     0xFF
 #define INST_NMI     0xFB
@@ -14,31 +14,29 @@ typedef uint8_t (*func6502)(uint8_t step) ;
 
 PROGMEM const func6502 addrtable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
-/* 0 */     imp, indx,  imp,  imp,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 0 */
-/* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 1 */
-/* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 2 */
-/* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 3 */
-/* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, abso, /* 4 */
-/* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 5 */
-/* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, abso, /* 6 */
-/* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, absx, /* 7 */
-/* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* 8 */
-/* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* 9 */
-/* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* A */
-/* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, absy, /* B */
-/* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* C */
-/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, absx, /* D */
-/* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, abso, /* E */
-/* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx,  imp  /* F */
+/* 0 */     imp, indx,  imp,  imp,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 0 */
+/* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 1 */
+/* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 2 */
+/* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 3 */
+/* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 4 */
+/* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 5 */
+/* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, imp, /* 6 */
+/* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 7 */
+/* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* 8 */
+/* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, imp, /* 9 */
+/* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* A */
+/* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, imp, /* B */
+/* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* C */
+/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, imp, /* D */
+/* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* E */
+/* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, imp  /* F */
 } ;
-
-#define boot nop
 
 PROGMEM const func6502 optable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
-/* 0 */      brk,  ora,  rst1, rst2,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  boot, /* 0 */
-/* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  nop, /* 1 */
-/* 2 */      jsr,  and_, nop,  nop,  bit_,  and_,  rol,  nop,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  nop, /* 2 */
+/* 0 */      brk,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  mon, /* 0 */
+/* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  rst1, /* 1 */
+/* 2 */      jsr,  and_, nop,  nop,  bit_,  and_,  rol,  nop,  plp,  and_,  rol,  nop,  bit_,  and_,  rol,  rst2, /* 2 */
 /* 3 */      bmi,  and_, nop,  nop,  nop,  and_,  rol,  nop,  sec,  and_,  nop,  nop,  nop,  and_,  rol,  nop, /* 3 */
 /* 4 */      rti,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  nop, /* 4 */
 /* 5 */      bvc,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  cli_,  eor,  nop,  nop,  nop,  eor,  lsr,  nop, /* 5 */
@@ -62,28 +60,74 @@ bool DEBUG_STEP = false ;
 unsigned long INST_CNT = 0 ;
 int STEP_CNT = 0 ;
 
+struct {
+    uint16_t pc, ea ;
+    uint8_t inst, sp, acc, x, y, status ;
+} MONITOR ;
 
-void trace(bool idle, bool ln = true){
+
+void insert_inst(uint8_t opcode, bool grab_inst=true){
+  DATA.write(opcode) ;
+  if (grab_inst){
+    MONITOR.inst = opcode ;
+  }
+  INST_s.pulse() ;
+  DATA.reset() ;
+}
+
+
+void monitor(bool pc_only=false){    
+    insert_inst(INST_MON, false) ;
+    
+    CTRL_OUT.pulse(CLK_ASYNC) ;
+    MONITOR.pc = DATA.read() << 8 ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+    MONITOR.pc |= DATA.read() ;
+    CTRL_OUT.pulse(CLK_ASYNC) ;
+    if (! pc_only){
+        CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.ea = DATA.read() << 8 ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.ea |= DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.sp = DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.acc = DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.x = DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.y = DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
+        MONITOR.status = DATA.read() ;
+        CTRL_OUT.pulse(CLK_ASYNC) ;
+    }
+    CTRL_OUT.pulse(STEP_CLR) ;
+    
+    // Reset INST register to resume normal operation.
+    insert_inst(INST_NOP, false) ;
+}
+
+
+void trace(const char *label=nullptr){
   static char buf[128] ;
-  if (STEP_CNT == 0){
-    sprintf(buf, "%8lu  ", INST_CNT) ;
+
+  if (label != nullptr){
+    sprintf(buf, "%8s", label) ;
   }
   else {
-    sprintf(buf, "          ") ;
+    sprintf(buf, "%8d", INST_CNT) ;
   }
   Serial.print(buf) ;
-  if (idle){
-    sprintf(buf, "%2d  INST:0x%02X  PC:0x%04X  SP:0x%04X  ACC:%3u  X:%3u  Y:%3u  EA:0x%04X",
-      STEP_CNT, INST, get_pc(), get_sp(), get_acc(), get_x(), get_y(), get_ea()) ;
-    Serial.print(buf) ;
+
+  if (STEP_CNT == 0){
+    monitor() ;
+    sprintf(buf, "%2d PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X\n", 
+      STEP_CNT, MONITOR.pc, MONITOR.inst, MONITOR.sp, MONITOR.status, MONITOR.acc, MONITOR.x, MONITOR.y, MONITOR.ea) ;
   }
   else {
-    sprintf(buf, "%2d  INST:0x%02X", STEP_CNT, INST) ;
-    Serial.print(buf) ;   
+    sprintf(buf, "%2d  INST:0x%02X", STEP_CNT, MONITOR.inst) ;
   }
-  if (ln){
-    Serial.println() ;
-  }
+  Serial.print(buf) ;
 }
 
 
@@ -124,10 +168,10 @@ void process_ctrl(){
 }
 
 
-const char msg_fetch[] = "fetch" ;
-const char msg_addr[] = "addr" ;
-const char msg_oper[] = "oper" ; 
-void process_inst(uint8_t max_step = 0xFF){
+const char *msg_fetch = "fetch" ;
+const char *msg_addr = "addr" ;
+const char *msg_oper = "oper" ; 
+void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
   // Update the flags values for use in branch instructions. 
   STATUS.latch() ;
   
@@ -169,8 +213,11 @@ void process_inst(uint8_t max_step = 0xFF){
     
     SYNC:
     CTRL_OUT.pulse(CLK_SYNC) ;  
-  
-    // bool ctrl = digitalRead(CTRL) ;
+
+    if ((grab_inst)&&(STEP_CNT == 1)){
+      MONITOR.inst = DATA.read() ;
+    }
+
     if (PINC & 0b100){ // A2, RAM.ctrl
       process_ctrl() ;
       prev_ctrl = true ;
@@ -181,7 +228,7 @@ void process_inst(uint8_t max_step = 0xFF){
     }
     
     if (DEBUG_MON){
-      trace(STEP_CNT == 0, false) ;
+      trace() ;
       if (DEBUG_STEP){
         Serial.print(F("  ")) ;
         Serial.print(msg) ;
@@ -207,18 +254,6 @@ void process_inst(uint8_t max_step = 0xFF){
 }
 
 
-void insert_inst(uint8_t opcode){
-  CTRL_OUT.pulse(STEP_CLR) ;
-  DATA.write(opcode) ;
-  PC_e.toggle() ;
-  RAM_s.pulse() ;
-  PC_e.toggle() ;
-  DATA.reset() ;
-
-  process_inst() ;
-}
-
-
 void reset6502(PROG *prog){
   // Clear step counter and program counter
   CTRL_OUT.pulse(STEP_CLR) ;
@@ -226,15 +261,9 @@ void reset6502(PROG *prog){
   // Reset latches
   CTRL_OUT.pulse(CLK_SYNC) ;
 
-  // Initialize INST register to BOOT
-  // Clear INST register
-  // TODO: Is this really necessary?
-  DATA.write(INST_BOOT) ;
-  INST_s.pulse() ;
-  INST = INST_BOOT ;
-  DATA.reset() ;
-
+  // Initialize INST register to RST1
   insert_inst(INST_RST1) ;
+  process_inst(false) ;
 
   Serial.print(F("- Loading program to RAM...")) ;
   CTRL_OUT.pulse(STEP_CLR) ;
@@ -264,34 +293,26 @@ void reset6502(PROG *prog){
 
   CTRL_OUT.pulse(STEP_CLR) ;
   insert_inst(INST_RST2) ;
-  
-  Serial.print(F("RESET -> ")) ;
-  trace(true) ;
+  process_inst(false) ;
+
+  trace("RESET ->") ;
   Serial.println(F("---")) ;
 }
 
 
 void process_interrupt(uint8_t inst){   
-  Serial.print(F("INTR  -> ")) ;
-  trace(true) ;
+  trace("INTR  ->") ;
   
-  // Prime INST with our fake interrupt instruction. This will alter the normal
-  // fetch stage. See fetch() in addrmodes.h
-  DATA.write(inst) ;
-  INST_s.pulse() ;
-  INST = inst ;
+  insert_inst(inst) ;
+
+  DATA.write(inst) ;   // Enable opcode onto the data bus
   process_inst(2) ;    // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
   DATA.reset() ;       // Reset the data bus
   process_inst() ;     // Finish the instruction
 
-  Serial.print(F("      <- ")) ;
-  trace(true) ;
+  trace("      <-") ;
 
-  // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
-  DATA.write(INST_NOP) ;
-  INST_s.pulse() ;
-  INST = INST_NOP ;
-  DATA.reset() ;
+  insert_inst(INST_NOP, false) ;
 }
 
 
@@ -303,15 +324,15 @@ void loop(){
       // Infinite loop...
       continue ;
     }
-    uint16_t pc = get_pc() ;
-    if (pc == prev_pc){
+    monitor(true) ;
+    if (MONITOR.pc == prev_pc){
       bool done = prog->is_done(pc) ;
-      Serial.print(F("---\nTRAP! -> ")) ;
-      trace(true, false) ; 
+      Serial.println(F("---")) ;
+      trace("TRAP! ->") ;
       Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
       while (1){} ;
     } 
-    prev_pc = pc ;
+    prev_pc = MONITOR.pc ;
 
     /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
         DEBUG_MON = true ;
@@ -323,7 +344,7 @@ void loop(){
     } */
   
     if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
-      trace(true) ; 
+      trace() ; 
     }
     process_inst() ; 
 

@@ -1843,3 +1843,42 @@ uint8_t rst2(uint8_t step){
     }
     return 1 ;
 }
+
+
+uint8_t mon(uint8_t step){
+    enum { COUNTER_BASE = __COUNTER__ } ;
+    #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
+    
+    switch (step) {
+        // PCh
+        case NEXT:  C2.PC_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case NEXT:  C2.PC_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        // PCl
+        case NEXT:  C2.PC_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case NEXT:  C2.PC_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        // EAh
+        case NEXT:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        case NEXT:  C4.EAh_e.toggle() ; C4.Ah2D_e.toggle() ; break ;
+        // EAl
+        case NEXT:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case NEXT:  C4.EAl_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        // SP
+        case NEXT:  C2.SP_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        case NEXT:  C2.SP_e.toggle() ; C4.Al2D_e.toggle() ; break ;
+        // ACC
+        case NEXT:  C1.ACC_e.toggle() ; break ;
+        case NEXT:  C1.ACC_e.toggle() ; break ;
+        // X
+        case NEXT:  C1.X_e.toggle() ; break ;
+        case NEXT:  C1.X_e.toggle() ; break ;
+        // Y
+        case NEXT:  C1.Y_e.toggle() ; break ;
+        case NEXT:  C1.Y_e.toggle() ; break ;
+        // STATUS
+        case NEXT:  C3.ST_e.toggle() ; break ;
+        case NEXT:  C3.ST_e.toggle() ; break ;
+        
+        default:    return 0 ;
+    }
+    return 1 ;
+}
