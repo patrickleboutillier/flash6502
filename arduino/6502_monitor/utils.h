@@ -38,6 +38,7 @@ void pause(){
 }
 
 
+/*
 uint16_t get_pc(){
   PC_e.toggle() ; 
   Al2D_e.toggle() ;
@@ -136,7 +137,7 @@ uint8_t get_y(){
   Y_e.toggle() ; 
   return y ;  
 }
-
+*/
 
 /* uint8_t get_status(){
   ST_e.toggle() ;

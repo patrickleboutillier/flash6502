@@ -27,7 +27,7 @@ CTRL_OUT CTRL_OUT ;           // 12, 11, 10
 Extension E1(1, "X, Y, ACC, ADDRl") ;
 CTRLSIG X_e(&E1, 12, true), X_s(&E1, 11), Y_e(&E1, A0, true), Y_s(&E1, A1) ;
 CTRLSIG ACC_s(&E1, 9), ACC_e(&E1, 10, true) ;
-CTRLSIG SP_down(&E1, 8, true), SP_s(&E1, 7, true), SP_e(&E1, 6, true), EAl_s(&E1, 5), 
+CTRLSIG SP_down(&E1, 8, true), SP_s(&E1, 7, true), SP_e(&E1, 6, true),  
   PC_up(&E1, 4, true), PC_e(&E1, 3, true) ;
 CTRLSIG A_s(&E1, A2) ;
 CTRLSIG INST_s(&E1, 0) ; 
@@ -40,13 +40,13 @@ Extension E2(2, "ALU, RAM") ;
 ALU_OP ALU_op(new CTRLSIG(&E2, 8), new CTRLSIG(&E2, 7), new CTRLSIG(&E2, 6), new CTRLSIG(&E2, 5)) ; 
 CTRLSIG ALU_e(&E2, 4, true) ;
 CTRLSIG B_s(&E2, 3) ;
-
-Extension E3(3, "STATUS, ADDRh") ;
+CTRLSIG EAl_s(&E2, 9) ;
 CTRLSIG ST_src(&E2, 11, true) ;
 CTRLSIG ST_e(&E2, 12, true) ;
 
+Extension E3(3, "STATUS, ADDRh") ;
 // CTRL4
-CTRLSIG RAM_e(&E3, 13, true) ;
+CTRLSIG RAM_e(&E1, 5, true) ;
 CTRLSIG Ah2D_e(&E3, 11, true) ;
 CTRLSIG EAh_e(&E3, 10, true) ;
 CTRLSIG EAh_s(&E3, 9) ; 
@@ -99,7 +99,7 @@ void setup() {
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
-  SP_down.setup() ; SP_s.setup() ; SP_e.setup() ; EAl_s.setup() ; 
+  SP_down.setup() ; SP_s.setup() ; SP_e.setup() ; 
   PC_up.setup() ; PC_e.setup() ;
   A_s.setup() ;
 
@@ -111,15 +111,16 @@ void setup() {
   ST_src.setup() ; */
 
   INST_s.setup() ;
-  Al2D_e.setup() ; Ah2D_e.setup() ;
-  EAl_e.setup() ; PCl_s.setup() ;
   RAM_s.setup() ; RAM_e.setup() ;
   
+  Al2D_e.setup() ; EAl_e.setup() ; 
+  //PCl_s.setup() ; PCh_s.setup() ; EAh_s.setup() ; EAl_s.setup() ; 
+  //Ah2D_e.setup() ; EAh_e.setup() ; 
+    
   ST_clk.setup() ;
   ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
   ST_ALU_C_from_C.setup() ;
 
-  PCh_s.setup() ; EAh_e.setup() ; EAh_s.setup() ;
   STATUS.setup() ;
   
   //CTRLSIG::check() ;
@@ -129,9 +130,8 @@ void setup() {
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
-  
+
   reset6502(prog) ;
-  //set_pc(0x059e) ;
 }
 
 

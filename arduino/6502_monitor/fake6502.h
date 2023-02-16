@@ -7,6 +7,21 @@
 #define INST_IRQ     0xFF
 #define INST_NMI     0xFB
 
+
+// Some globals useful for debugging.
+bool DEBUG_MON = false ;
+int MON_EVERY = 1000 ; 
+bool DEBUG_STEP = false ;
+unsigned long INST_CNT = 0 ;
+int STEP_CNT = 0 ;
+
+struct {
+    uint16_t pc, ea ;
+    uint8_t inst, sp, acc, x, y, status ;
+} MONITOR ;
+
+#define INST MONITOR.inst
+
 #include "addrmodes.h"
 #include "ops.h"
 
@@ -53,61 +68,6 @@ PROGMEM const func6502 optable[256] = {
 } ;
 
 
-// Some globals useful for debugging.
-bool DEBUG_MON = false ;
-int MON_EVERY = 1000 ; 
-bool DEBUG_STEP = false ;
-unsigned long INST_CNT = 0 ;
-int STEP_CNT = 0 ;
-
-struct {
-    uint16_t pc, ea ;
-    uint8_t inst, sp, acc, x, y, status ;
-} MONITOR ;
-
-
-void insert_inst(uint8_t opcode, bool grab_inst=true){
-  DATA.write(opcode) ;
-  if (grab_inst){
-    MONITOR.inst = opcode ;
-  }
-  INST_s.pulse() ;
-  DATA.reset() ;
-}
-
-
-void monitor(bool pc_only=false){    
-    insert_inst(INST_MON, false) ;
-    
-    CTRL_OUT.pulse(CLK_ASYNC) ;
-    MONITOR.pc = DATA.read() << 8 ;
-    CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-    MONITOR.pc |= DATA.read() ;
-    CTRL_OUT.pulse(CLK_ASYNC) ;
-    if (! pc_only){
-        CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.ea = DATA.read() << 8 ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.ea |= DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.sp = DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.acc = DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.x = DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.y = DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ; CTRL_OUT.pulse(CLK_ASYNC) ;
-        MONITOR.status = DATA.read() ;
-        CTRL_OUT.pulse(CLK_ASYNC) ;
-    }
-    CTRL_OUT.pulse(STEP_CLR) ;
-    
-    // Reset INST register to resume normal operation.
-    insert_inst(INST_NOP, false) ;
-}
-
-
 void trace(const char *label=nullptr){
   static char buf[128] ;
 
@@ -115,17 +75,16 @@ void trace(const char *label=nullptr){
     sprintf(buf, "%8s", label) ;
   }
   else {
-    sprintf(buf, "%8d", INST_CNT) ;
+    sprintf(buf, "%8ld", INST_CNT) ;
   }
   Serial.print(buf) ;
 
   if (STEP_CNT == 0){
-    monitor() ;
-    sprintf(buf, "%2d PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X\n", 
+    sprintf(buf, " %2d PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X\n", 
       STEP_CNT, MONITOR.pc, MONITOR.inst, MONITOR.sp, MONITOR.status, MONITOR.acc, MONITOR.x, MONITOR.y, MONITOR.ea) ;
   }
   else {
-    sprintf(buf, "%2d  INST:0x%02X", STEP_CNT, MONITOR.inst) ;
+    sprintf(buf, " %2d  INST:0x%02X", STEP_CNT, MONITOR.inst) ;
   }
   Serial.print(buf) ;
 }
@@ -218,6 +177,15 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       MONITOR.inst = DATA.read() ;
     }
 
+    if (MONITOR.inst == INST_MON){
+      switch (STEP_CNT){
+        case 1: MONITOR.pc = DATA.read() << 8 ; 
+                break ;
+        case 3: MONITOR.pc |= DATA.read() ; 
+                break ;
+      }
+    }
+    
     if (PINC & 0b100){ // A2, RAM.ctrl
       process_ctrl() ;
       prev_ctrl = true ;
@@ -245,12 +213,77 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       int steps = STEP_CNT ;
       CTRL_OUT.pulse(STEP_CLR) ;
       STEP_CNT = 0 ;
-      INST_CNT++ ;
+      if (MONITOR.inst != INST_MON){
+        INST_CNT++ ;
+      }
       return ;
     }
 
     STEP_CNT++ ;
   }
+}
+
+
+void insert_inst(uint8_t opcode){
+  DATA.write(opcode) ;
+  MONITOR.inst = opcode ;
+  INST_s.pulse() ;
+  DATA.reset() ;
+}
+
+
+void monitor(bool pc_only=false){
+  uint8_t inst = MONITOR.inst ;
+  insert_inst(INST_MON) ;
+  process_inst(false) ;
+  /*
+  uint8_t step = 1 ;
+  //Serial.println(" MON") ; while (! button_pressed(STEP)){} ;
+  CTRL_OUT.pulse(CLK_ASYNC) ; mon(1) ;
+  MONITOR.pc = DATA.read() << 8 ;
+  //Serial.println(" MON PCH") ; while (! button_pressed(STEP)){} ;
+  CTRL_OUT.pulse(CLK_ASYNC) ; mon(2) ;
+  CTRL_OUT.pulse(CLK_ASYNC) ; mon(3) ;
+  MONITOR.pc |= DATA.read() ;
+  //Serial.println(" MON PCL") ; while (! button_pressed(STEP)){} ;
+  CTRL_OUT.pulse(CLK_ASYNC) ; mon(4) ;
+  */
+  if (! pc_only){
+    /*
+    CTRL_OUT.pulse(CLK_ASYNC) ;// mon(step++) ;
+    MONITOR.ea = DATA.read() << 8 ;
+    Serial.println(" MON EAH") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.ea |= DATA.read() ;
+    Serial.println(" MON EAL") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ; 
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.sp = DATA.read() ;
+    Serial.println(" MON SP") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.acc = DATA.read() ;
+    Serial.println(" MON ACC") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.x = DATA.read() ;
+    Serial.println(" MON X") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.y = DATA.read() ;
+    Serial.println(" MON Y") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    MONITOR.status = DATA.read() ;
+    Serial.println(" MON ST") ; while (! button_pressed(STEP)){} ;
+    CTRL_OUT.pulse(CLK_ASYNC) ; //mon(step++) ;
+    */
+  }
+  //CTRL_OUT.pulse(STEP_CLR) ;
+    
+  // Replace original instruction
+  insert_inst(inst) ;
 }
 
 
@@ -261,6 +294,9 @@ void reset6502(PROG *prog){
   // Reset latches
   CTRL_OUT.pulse(CLK_SYNC) ;
 
+  monitor() ;
+  trace("INIT  ->") ;
+  
   // Initialize INST register to RST1
   insert_inst(INST_RST1) ;
   process_inst(false) ;
@@ -295,24 +331,30 @@ void reset6502(PROG *prog){
   insert_inst(INST_RST2) ;
   process_inst(false) ;
 
+  // We must place another instruction here because RST2 doesn't load the next instruction.
+  insert_inst(INST_NOP) ;
+
+  monitor() ;
   trace("RESET ->") ;
   Serial.println(F("---")) ;
 }
 
 
-void process_interrupt(uint8_t inst){   
+void process_interrupt(uint8_t opcode){   
+  uint8_t inst = MONITOR.inst ;
+  monitor() ;
   trace("INTR  ->") ;
   
-  insert_inst(inst) ;
+  insert_inst(opcode) ;
+  
+  DATA.write(opcode) ;        // Enable opcode onto the data bus
+  process_inst(false, 2) ;    // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
+  DATA.reset() ;              // Reset the data bus
+  process_inst(false) ;       // Finish the instruction
 
-  DATA.write(inst) ;   // Enable opcode onto the data bus
-  process_inst(2) ;    // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
-  DATA.reset() ;       // Reset the data bus
-  process_inst() ;     // Finish the instruction
-
+  monitor() ;
   trace("      <-") ;
-
-  insert_inst(INST_NOP, false) ;
+  insert_inst(inst) ;
 }
 
 
@@ -326,15 +368,16 @@ void loop(){
     }
     monitor(true) ;
     if (MONITOR.pc == prev_pc){
-      bool done = prog->is_done(pc) ;
+      bool done = prog->is_done(MONITOR.pc) ;
       Serial.println(F("---")) ;
+      monitor() ;
       trace("TRAP! ->") ;
       Serial.println(done ? F("\nSUCCESS :)") : F("\nERROR :(")) ;
       while (1){} ;
     } 
     prev_pc = MONITOR.pc ;
 
-    /*if ((pc >= 0x35b2)&&(pc < 0x35b4)){
+    /*if ((MONITOR.pc >= 0x35b2)&&(MONITOR.pc < 0x35b4)){
         DEBUG_MON = true ;
         DEBUG_STEP = true ;
     }
