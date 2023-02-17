@@ -170,7 +170,8 @@ const char *msg_addr = "addr" ;
 const char *msg_oper = "oper" ; 
 void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
   // Update the flags values for use in branch instructions. 
-  STATUS.latch() ;
+  // No longer required with CRTL4 in place
+  // STATUS.latch() ;
   
   uint8_t step_offset = 0 ;
   bool fetch_done = false, addr_done = false ;

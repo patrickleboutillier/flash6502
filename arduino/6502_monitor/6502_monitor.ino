@@ -121,7 +121,7 @@ void setup() {
   ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
   ST_ALU_C_from_C.setup() ;
 
-  STATUS.setup() ;
+  //STATUS.setup() ;
   
   //CTRLSIG::check() ;
   
