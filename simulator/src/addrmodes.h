@@ -1,5 +1,5 @@
 uint8_t fetch(uint8_t step) { // 1 cycle
-    if ((INST == INST_RST1)||(INST == INST_RST2)||(INST == INST_MON)){
+    if ((INST == INST_PC)||(INST == INST_MON)||(INST == INST_RST1)||(INST == INST_RST2)){
         enum { COUNTER_BASE = __COUNTER__ } ;
         #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
 

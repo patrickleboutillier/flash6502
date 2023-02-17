@@ -1877,9 +1877,29 @@ uint8_t mon(uint8_t step){
         // STATUS
         case NEXT:  ST_e.toggle() ; break ;
         case NEXT:  ST_e.toggle() ; break ;
-
+        
         case NEXT:  INST_done = 1 ; break ;
-                
+        
+        default:    return 0 ;
+    }
+    return 1 ;
+}
+
+
+uint8_t pc(uint8_t step){
+    enum { COUNTER_BASE = __COUNTER__ } ;
+    #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
+    
+    switch (step) {
+        // PCh
+        case NEXT:  PC_e.toggle() ; Ah2D_e.toggle() ; break ;
+        case NEXT:  PC_e.toggle() ; Ah2D_e.toggle() ; break ;
+        // PCl
+        case NEXT:  PC_e.toggle() ; Al2D_e.toggle() ; break ;
+        case NEXT:  PC_e.toggle() ; Al2D_e.toggle() ; break ;      
+        
+        case NEXT:  INST_done = 1 ; break ;
+        
         default:    return 0 ;
     }
     return 1 ;
