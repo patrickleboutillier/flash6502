@@ -80,11 +80,6 @@ void write_mc(uint8_t inst, uint8_t flags, uint8_t step, uint64_t cw){
 
 
 void generate_microcode(){
-    //boot_STEP_clr.pulse() ;
-    // At this point, INST is driving the control signals with whatever random value it contains at startup.
-    // The enabled control signals when step and phase are both 0 are PC_e and RAM_e (see fetch()).
-    // By pulsing the CLK 3 times, we get to STEP 3, where all the control signals have their default values.
-    //CLK.pulse() ; CLK.pulse() ; CLK.pulse() ;
     assert(CU.make_cw() == CU.get_default_cw()) ;
     
     printf("uint64_t microcode[] = {\n") ;
@@ -101,8 +96,7 @@ void generate_microcode(){
 
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false ;
-        int step = 0 ;
-        for (; step < 64 ; step++){
+        for (int step = 0 ; step < 64 ; step++){
             assert(INST == inst) ;
             assert(STATUS.N == ((flags >> 3) & 1)) ;
             assert(STATUS.V == ((flags >> 2) & 1)) ;
@@ -127,8 +121,7 @@ void generate_microcode(){
             }
             
             uint8_t more = (*optable[inst])(step - op_start) ;
-            uint64_t cw = (more ? CU.make_cw() : CU.get_default_cw()) ;
-            write_mc(inst, flags, step, cw) ;
+            write_mc(inst, flags, step, (more ? CU.make_cw() : CU.get_default_cw())) ;
         }
     }
     printf("} ;\n") ;
