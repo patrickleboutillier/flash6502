@@ -382,7 +382,7 @@ int process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
         if (CTRL_IN.out2){ // INST_done
             int steps = STEP_CNT ; 
             CTRL_OUT.pulse(STEP_CLR) ;
-            // In theory we should do process_ctrl here, but there is nthing happening on step 0...
+            // In theory we should do process_ctrl here, but there is nothing happening on step 0...
             STEP_CNT = 0 ;
             if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
                 INST_CNT++ ;
