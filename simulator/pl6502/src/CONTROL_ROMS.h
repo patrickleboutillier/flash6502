@@ -62,38 +62,40 @@ class CONTROL_2_ROM : public component {
 
         uint8_t make_cw(){
             return 
-                SP_down << 7 |
-                SP_s    << 6 |
-                SP_e    << 5 |
-                PC_up   << 4 |
-                PC_e    << 3 |
-                INST_s  << 2 |
-                RAM_s   << 1 |
-                RAM_e   << 0 ;
+                SP_e    << 7 |
+                PC_e    << 6 |
+                RAM_e   << 5 |
+                SP_down << 4 |
+                SP_s    << 3 |
+                PC_up   << 2 |
+                INST_s  << 1 |
+                RAM_s   << 0 ;
         }
 
         void always(const void *trigger){
             uint8_t prev = make_cw() ;
             uint8_t cw = (microcode[inst << 10 | n << 9 | v << 8 | z << 7 | c << 6 | step] >> 8) & 0xFF ;
 
-            set_signal_1(SP_down,   7) ;
-            set_signal_1(SP_s,      6) ;
-            set_signal_1(SP_e,      5) ;
-            
-            // PC_up for reset sequence.
-            if (! n){
-                PC_up = 0 ;
-            }
-            else {
-                set_signal_1(PC_up, 4) ;
-            }
+            set_signal_1(SP_e,      7) ;
 
             // PC_e for reset sequence.
             if (! v){
                 PC_e = 0 ;
             }
             else {
-                set_signal_1(PC_e,  3) ;
+                set_signal_1(PC_e,  6) ;
+            }
+
+            set_signal_1(RAM_e,     5) ;
+            set_signal_1(SP_down,   4) ;
+            set_signal_1(SP_s,      3) ;
+            
+            // PC_up for reset sequence.
+            if (! n){
+                PC_up = 0 ;
+            }
+            else {
+                set_signal_1(PC_up, 2) ;
             }
 
             // INST_s for reset sequence and interrupts
@@ -101,7 +103,7 @@ class CONTROL_2_ROM : public component {
                 INST_s = 1 ;
             }
             else {
-                set_signal_1(INST_s, 2) ;
+                set_signal_1(INST_s, 1) ;
             }
             
             // RAM_s for reset sequence.
@@ -109,10 +111,8 @@ class CONTROL_2_ROM : public component {
                 RAM_s = 0 ;
             }
             else {
-                set_signal_1(RAM_s, 1) ;
+                set_signal_1(RAM_s, 0) ;
             }
-            
-            set_signal_1(RAM_e,     0) ;
         } ;
 } ;
 

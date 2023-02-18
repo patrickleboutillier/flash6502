@@ -113,13 +113,13 @@ void setup() {
   INST_s.setup() ;
   RAM_s.setup() ; RAM_e.setup() ;
   
-  Al2D_e.setup() ; EAl_e.setup() ; 
+  //Al2D_e.setup() ; EAl_e.setup() ; 
   //PCl_s.setup() ; PCh_s.setup() ; EAh_s.setup() ; EAl_s.setup() ; 
   //Ah2D_e.setup() ; EAh_e.setup() ; 
     
-  ST_clk.setup() ;
-  ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
-  ST_ALU_C_from_C.setup() ;
+  //ST_clk.setup() ;
+  //ST_NZ_s.setup() ; ST_V_s.setup() ; ST_C_s.setup() ; ST_ALU_C_s.setup() ; ST_I_s.setup() ; ST_bi.setup() ;
+  //ST_ALU_C_from_C.setup() ;
 
   //STATUS.setup() ;
   
