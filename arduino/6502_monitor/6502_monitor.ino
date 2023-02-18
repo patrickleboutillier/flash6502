@@ -131,7 +131,7 @@ void setup() {
     DEBUG_MON = true ;
   }
 
-  reset6502(prog) ;
+  reset6502(prog /*, 0x2014*/) ;
 }
 
 
