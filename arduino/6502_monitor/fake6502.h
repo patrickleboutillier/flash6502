@@ -218,7 +218,7 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
     }
     
     SYNC:
-    CTRL_OUT.pulse(CLK_SYNC) ;  
+    CLK_sync.pulse() ;  
         
     if (PINC & 0b100){ // A2, RAM.ctrl
       process_ctrl() ;
@@ -264,9 +264,9 @@ void insert_inst(uint8_t opcode, bool process=true){
   DATA.write(opcode) ;
   MONITOR.inst = opcode ;
   INST_s.toggle() ;
-  CTRL_OUT.pulse(CLK_SYNC) ; 
+  CLK_sync.pulse() ; 
   INST_s.toggle() ;
-  CTRL_OUT.pulse(CLK_SYNC) ; 
+  CLK_sync.pulse() ; 
   DATA.reset() ;
 
   if (process){
@@ -288,7 +288,7 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   CTRL_OUT.pulse(STEP_CLR) ;
   CTRL_OUT.pulse(PC_CLR) ;
   // Reset latches
-  CTRL_OUT.pulse(CLK_SYNC) ;
+  CLK_sync.pulse() ;
 
   monitor_sample() ;
   monitor_trace("INIT  ->") ;
@@ -304,15 +304,15 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
     DATA.write(data) ;
     PC_e.toggle() ; 
     RAM_s.toggle() ;
-    CTRL_OUT.pulse(CLK_SYNC) ; 
+    CLK_sync.pulse() ;
     RAM_s.toggle() ;
-    CTRL_OUT.pulse(CLK_SYNC) ; 
+    CLK_sync.pulse() ; 
     PC_e.toggle() ;
     DATA.reset() ;
     PC_up.toggle() ;
-    CTRL_OUT.pulse(CLK_SYNC) ; 
+    CLK_sync.pulse() ; 
     PC_up.toggle() ;
-    CTRL_OUT.pulse(CLK_SYNC) ; 
+    CLK_sync.pulse() ; 
   }        
   Serial.println(F("done")) ;
   Serial.print(F("LOAD  -> ")) ;

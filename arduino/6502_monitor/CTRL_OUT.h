@@ -3,7 +3,7 @@
 
 
 #define CLK_ASYNC  0b00100
-#define CLK_SYNC   0b01000
+//#define CLK_SYNC   0b01000
 #define STEP_CLR   0b01100
 #define RAM_S      0b10000
 #define INST_S     0b10100

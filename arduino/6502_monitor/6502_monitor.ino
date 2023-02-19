@@ -20,6 +20,7 @@ bool HALTED = false ;
 #define CTRL_ADDR3 A7
 
 BUS DATA ;                    // 9, 8, 7, 6, 5, 4, 3, 2
+CTRLSIG CLK_sync(NULL, A1, true) ;
 CTRLSIG CTRL_src(NULL, 13) ;
 CTRL_OUT CTRL_OUT ;           // 12, 11, 10
 
@@ -95,6 +96,7 @@ void setup() {
   pinMode(CTRL, INPUT) ;
 
   DATA.setup() ;
+  CLK_sync.setup() ;
   CTRL_src.setup() ;
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
