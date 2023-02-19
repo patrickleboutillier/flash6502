@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "STATUS.h"
+#include "CTRL_OUT.h"
 #include "CONTROL_ROMS.h"
 #include "ALU.h"
 #include "inst.h"
@@ -13,6 +14,10 @@ CONTROL_3_ROM C3 ;
 CONTROL_4_ROM C4 ;
 CONTROL_5_ROM C5 ;
 CONTROL_UNIT CU(&C1, &C2, &C3, &C4, &C5) ;
+
+output<1> ctrl_PC_e(1) ;
+output<3> ctrl_out_cmd ;
+CTRL_OUT CTRL_OUT(&ctrl_out_cmd) ;
 
 STATUS STATUS ;
 uint8_t INST ;
@@ -80,6 +85,11 @@ void write_mc(uint8_t inst, uint8_t flags, uint8_t step, uint64_t cw){
 
 
 void generate_microcode(){
+    CTRL_OUT.PC_up.connect(C2.n) ;
+    ctrl_PC_e.connect(C2.v) ;
+    CTRL_OUT.INST_s.connect(C2.z) ;
+    CTRL_OUT.RAM_s.connect(C2.c) ;
+
     assert(CU.make_cw() == CU.get_default_cw()) ;
     
     printf("uint64_t microcode[] = {\n") ;
@@ -93,6 +103,10 @@ void generate_microcode(){
         STATUS.V = (flags >> 2) & 1 ;
         STATUS.Z = (flags >> 1) & 1 ;
         STATUS.C = (flags >> 0) & 1 ;
+        CTRL_OUT.PC_up = (flags >> 3) & 1 ;
+        ctrl_PC_e = (flags >> 2) & 1 ;
+        CTRL_OUT.INST_s = (flags >> 1) & 1 ;
+        CTRL_OUT.RAM_s = (flags >> 0) & 1 ;
 
         uint8_t addr_start = 0, op_start = 0 ;
         bool fetch_done = false, addr_done = false ;
@@ -102,6 +116,10 @@ void generate_microcode(){
             assert(STATUS.V == ((flags >> 2) & 1)) ;
             assert(STATUS.Z == ((flags >> 1) & 1)) ;
             assert(STATUS.C == ((flags >> 0) & 1)) ;
+            assert(CTRL_OUT.PC_up == ((flags >> 3) & 1)) ;
+            assert(ctrl_PC_e == ((flags >> 2) & 1)) ;
+            assert(CTRL_OUT.INST_s == ((flags >> 1) & 1)) ;
+            assert(CTRL_OUT.RAM_s == ((flags >> 0) & 1)) ;
 
             if (! fetch_done){
                 if (fetch(step)){

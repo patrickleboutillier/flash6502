@@ -63,7 +63,7 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
  
 output<1> ctrl_PC_e(1) ;
-not_<1> not_INST_s, not_PC_clr ;
+not_<1> not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -216,8 +216,7 @@ void init6502(){
     INST.data_out.connect(C2.inst) ;
     CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
-    CTRL_OUT.INST_s.connect(not_INST_s.a) ;
-    not_INST_s.b.connect(C2.z) ;
+    CTRL_OUT.INST_s.connect(C2.z) ;
     CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 

@@ -99,7 +99,7 @@ class CONTROL_2_ROM : public component {
             }
 
             // INST_s for reset sequence and interrupts
-            if (z){
+            if (! z){
                 INST_s = 1 ;
             }
             else {
