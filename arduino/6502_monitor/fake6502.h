@@ -11,7 +11,7 @@
 
 // Some globals useful for debugging.
 bool DEBUG_MON = false ;
-int MON_EVERY = 1000 ; 
+int MON_EVERY = 100 ; 
 bool DEBUG_STEP = false ;
 unsigned long INST_CNT = 0 ;
 int STEP_CNT = 0 ;
@@ -132,37 +132,40 @@ void process_ctrl(){
 
 
 void process_monitor(bool grab_inst){
-    if ((grab_inst)&&(STEP_CNT == 1)){
+    // See fetch()
+    if ((grab_inst)&&(STEP_CNT == 3)){
       MONITOR.inst = DATA.read() ;
     }
-    
+
+    // See pc()
     if (MONITOR.inst == INST_PC){
       switch (STEP_CNT){
-        case 1: MONITOR.pc = DATA.read() << 8 ; 
+        case 2: MONITOR.pc = DATA.read() << 8 ; 
                 break ;
-        case 3: MONITOR.pc |= DATA.read() ; 
+        case 4: MONITOR.pc |= DATA.read() ; 
                 break ;
       }
     }
+    // See mon()
     else if (MONITOR.inst == INST_MON){
       switch (STEP_CNT){
-        case  1: MONITOR.pc = DATA.read() << 8 ; 
+        case  2: MONITOR.pc = DATA.read() << 8 ; 
                  break ;
-        case  3: MONITOR.pc |= DATA.read() ; 
+        case  4: MONITOR.pc |= DATA.read() ; 
                  break ;
-        case  5: MONITOR.ea = DATA.read() << 8 ; 
+        case  6: MONITOR.ea = DATA.read() << 8 ; 
                  break ;
-        case  7: MONITOR.ea |= DATA.read() ; 
+        case  8: MONITOR.ea |= DATA.read() ; 
                  break ;
-        case  9: MONITOR.sp = DATA.read() ; 
+        case 10: MONITOR.sp = DATA.read() ; 
                  break ;
-        case 11: MONITOR.acc = DATA.read() ; 
+        case 12: MONITOR.acc = DATA.read() ; 
                  break ;
-        case 13: MONITOR.x = DATA.read() ; 
+        case 14: MONITOR.x = DATA.read() ; 
                  break ;
-        case 15: MONITOR.y = DATA.read() ; 
+        case 16: MONITOR.y = DATA.read() ; 
                  break ;
-        case 17: MONITOR.status = DATA.read() ; 
+        case 18: MONITOR.status = DATA.read() ; 
                  break ;
         }
     }
@@ -180,6 +183,8 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
   bool fetch_done = false, addr_done = false ;
   bool prev_ctrl = false ; 
   while (STEP_CNT <= max_step){    
+    process_monitor(grab_inst) ;
+    
     if (STEP_CNT > 0){
       // This already happened for step 0 when we called STEP_CLR
       CTRL_OUT.pulse(CLK_ASYNC) ;    
@@ -223,8 +228,6 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       ctrl_cache = 0 ;
       DATA.reset() ;
     }
-
-    process_monitor(grab_inst) ;
         
     if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
       if ((DEBUG_MON)||(DEBUG_STEP)){
