@@ -19,10 +19,10 @@ bool HALTED = false ;
 #define CTRL_ADDR2 A6
 #define CTRL_ADDR3 A7
 
-BUS DATA ;                    // 9, 8, 7, 6, 5, 4, 3, 2
+BUS DATA ;                          // 9, 8, 7, 6, 5, 4, 3, 2
 CTRLSIG CLK_sync(NULL, A1, true) ;
 CTRLSIG CTRL_src(NULL, 13) ;
-CTRL_OUT CTRL_OUT ;           // 12, 11, 10
+CTRL_OUT CTRL_OUT(&CLK_sync) ;      // 12, 11, 10
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
@@ -113,7 +113,8 @@ void setup() {
   ST_src.setup() ; */
 
   INST_s.setup() ;
-  RAM_s.setup() ; RAM_e.setup() ;
+  RAM_s.setup() ; 
+  RAM_e.setup() ;
   
   //Al2D_e.setup() ; EAl_e.setup() ; 
   //PCl_s.setup() ; PCh_s.setup() ; EAh_s.setup() ; EAl_s.setup() ; 

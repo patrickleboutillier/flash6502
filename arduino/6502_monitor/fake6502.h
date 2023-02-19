@@ -11,7 +11,7 @@
 
 // Some globals useful for debugging.
 bool DEBUG_MON = false ;
-int MON_EVERY = 100 ; 
+int MON_EVERY = 1000 ; 
 bool DEBUG_STEP = false ;
 unsigned long INST_CNT = 0 ;
 int STEP_CNT = 0 ;
@@ -303,10 +303,13 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
     DATA.write(data) ;
     PC_e.toggle() ; 
-    RAM_s.toggle() ;
-    CLK_sync.pulse() ;
-    RAM_s.toggle() ;
-    CLK_sync.pulse() ; 
+    
+    CTRL_OUT.pulse_with_sync(RAM_S) ;
+    //CTRL_OUT.on(RAM_S) ;
+    //CLK_sync.pulse() ;
+    //CTRL_OUT.off(RAM_S) ;
+    //CLK_sync.pulse() ;
+    
     PC_e.toggle() ;
     DATA.reset() ;
     PC_up.toggle() ;
