@@ -102,7 +102,8 @@ void setup() {
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
   SP_down.setup() ; SP_s.setup() ; SP_e.setup() ; 
-  PC_up.setup() ; PC_e.setup() ;
+  // PC_up.setup() ; 
+  PC_e.setup() ;
   A_s.setup() ;
 
   // CTRL ROM 3
@@ -112,8 +113,8 @@ void setup() {
   ST_e.setup() ;
   ST_src.setup() ; */
 
-  INST_s.setup() ;
-  RAM_s.setup() ; 
+  // INST_s.setup() ;
+  // RAM_s.setup() ; 
   RAM_e.setup() ;
   
   //Al2D_e.setup() ; EAl_e.setup() ; 

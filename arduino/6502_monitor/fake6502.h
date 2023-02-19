@@ -263,10 +263,7 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
 void insert_inst(uint8_t opcode, bool process=true){
   DATA.write(opcode) ;
   MONITOR.inst = opcode ;
-  INST_s.toggle() ;
-  CLK_sync.pulse() ; 
-  INST_s.toggle() ;
-  CLK_sync.pulse() ; 
+  CTRL_OUT.pulse_with_sync(INST_S) ;
   DATA.reset() ;
 
   if (process){
@@ -302,20 +299,15 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   // Load the program to RAM
   for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
     DATA.write(data) ;
-    PC_e.toggle() ; 
-    
+    PC_e.toggle() ;     
     CTRL_OUT.pulse_with_sync(RAM_S) ;
-    //CTRL_OUT.on(RAM_S) ;
-    //CLK_sync.pulse() ;
-    //CTRL_OUT.off(RAM_S) ;
-    //CLK_sync.pulse() ;
-    
     PC_e.toggle() ;
     DATA.reset() ;
-    PC_up.toggle() ;
-    CLK_sync.pulse() ; 
-    PC_up.toggle() ;
-    CLK_sync.pulse() ; 
+    CTRL_OUT.pulse_with_sync(PC_UP) ;
+    //PC_up.toggle() ;
+    //CLK_sync.pulse() ; 
+    //PC_up.toggle() ;
+    //CLK_sync.pulse() ; 
   }        
   Serial.println(F("done")) ;
   Serial.print(F("LOAD  -> ")) ;
