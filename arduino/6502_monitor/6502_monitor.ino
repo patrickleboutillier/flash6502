@@ -22,15 +22,17 @@ bool HALTED = false ;
 BUS DATA ;                          // 9, 8, 7, 6, 5, 4, 3, 2
 CTRLSIG CLK_sync(NULL, A1, true) ;
 CTRLSIG CTRL_src(NULL, 13) ;
+CTRLSIG CTRL_PC_e(NULL, A0, true) ;
 CTRL_OUT CTRL_OUT(&CLK_sync) ;      // 12, 11, 10
 
 //CTRL1, CTRL2
 Extension E1(1, "X, Y, ACC, ADDRl") ;
-CTRLSIG X_e(&E1, 12, true), X_s(&E1, 11), Y_e(&E1, A0, true), Y_s(&E1, A1) ;
-CTRLSIG ACC_s(&E1, 9), ACC_e(&E1, 10, true) ;
+CTRLSIG X_e(&E1, 12, true), X_s(&E1, 11), ACC_s(&E1, 9), ACC_e(&E1, 10, true) ;
+CTRLSIG Y_e(&E1, A0, true), Y_s(&E1, A1), A_s(&E1, A2) ;
+
 CTRLSIG SP_down(&E1, 8, true), SP_s(&E1, 7, true), SP_e(&E1, 6, true),  
   PC_up(&E1, 4, true), PC_e(&E1, 3, true) ;
-CTRLSIG A_s(&E1, A2) ;
+
 CTRLSIG INST_s(&E1, 0) ; 
 CTRLSIG RAM_s(&E1, 1, true) ; 
 CTRLSIG EAl_e(&E1, 2, true), PCl_s(&E1, 13, true) ;
@@ -97,13 +99,14 @@ void setup() {
 
   DATA.setup() ;
   CLK_sync.setup() ;
+  CTRL_PC_e.setup() ;
   CTRL_src.setup() ;
   
   X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
   A_s.setup() ;
 
-  PC_e.setup() ;  
+  // PC_e.setup() ;  
   // SP_e.setup() ; 
   // SP_down.setup() ; SP_s.setup() ; 
   // PC_up.setup() ; 
@@ -128,13 +131,14 @@ void setup() {
   //STATUS.setup() ;
   
   //CTRLSIG::check() ;
-  
+
+  /*
   if (! digitalRead(STEP)){
     Serial.println(F("STEP button held down, entering step mode.\n")) ;
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
-
+  */
   reset6502(prog /*, 0x2014*/) ;
 }
 
