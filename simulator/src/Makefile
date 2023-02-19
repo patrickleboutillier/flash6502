@@ -17,6 +17,12 @@ clean:
 
 
 FLASH=SST39SF020A
+flash_CTRL1:
+	minipro -p $(FLASH) -w CONTROL_1_ROM.bin
+
+flash_CTRL2:
+	minipro -p $(FLASH) -w CONTROL_2_ROM.bin
+
 flash_CTRL3:
 	minipro -p $(FLASH) -w CONTROL_3_ROM.bin
 
