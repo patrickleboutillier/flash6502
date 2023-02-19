@@ -304,10 +304,6 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
     PC_e.toggle() ;
     DATA.reset() ;
     CTRL_OUT.pulse_with_sync(PC_UP) ;
-    //PC_up.toggle() ;
-    //CLK_sync.pulse() ; 
-    //PC_up.toggle() ;
-    //CLK_sync.pulse() ; 
   }        
   Serial.println(F("done")) ;
   Serial.print(F("LOAD  -> ")) ;
