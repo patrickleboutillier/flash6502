@@ -22,6 +22,7 @@ struct {
 } MONITOR ;
 
 #define INST MONITOR.inst
+bool INST_done = 0 ; 
 
 #include "addrmodes.h"
 #include "ops.h"
@@ -244,7 +245,8 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       }
     }
                
-    if (INST_done){
+    // if (INST_done){
+    if (PINC & 0b1000){ // A3, INST_done
       // Reset step counter.
       int steps = STEP_CNT ;
       CTRL_OUT.pulse(STEP_CLR) ;
@@ -298,11 +300,9 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   CTRL_OUT.pulse(PC_CLR) ;
   // Load the program to RAM
   for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
-    DATA.write(data) ;
-    //PC_e.toggle() ;     
+    DATA.write(data) ; 
     CTRL_PC_e.toggle() ;
     CTRL_OUT.pulse_with_sync(RAM_S) ;
-    //PC_e.toggle() ;
     CTRL_PC_e.toggle() ;
     DATA.reset() ;
     CTRL_OUT.pulse_with_sync(PC_UP) ;
@@ -355,8 +355,9 @@ void loop(){
   uint16_t prev_pc = 0xFFFF ;
   while (1) {
     if (HALTED){
-      // Infinite loop...
-      continue ;
+      pinMode(LED_BUILTIN, OUTPUT) ;
+      digitalWrite(LED_BUILTIN, HIGH) ;
+      while (1){} ;
     }
     monitor_sample(true) ;
     if (MONITOR.pc == prev_pc){

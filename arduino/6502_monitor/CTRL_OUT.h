@@ -40,13 +40,13 @@ class CTRL_OUT {
       clk_sync->pulse() ;
     }
 
-    inline void on(uint8_t cmd){
+    /* inline void on(uint8_t cmd){
       PORTB |= cmd ;
     }
 
     inline void off(uint8_t cmd){
       PORTB &= 0b11100011 ;
-    }
+    } */
 } ;
 
 

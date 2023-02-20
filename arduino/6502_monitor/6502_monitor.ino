@@ -11,8 +11,11 @@ bool HALTED = false ;
 #include "IO.h"
 
 
-// Push button
-#define STEP A0         // push button
+// Push button  
+#define NMI   A5
+#define IQR   A4
+#define STEP  NMI      
+
 #define CTRL A2         // Activate controller for vectors and IO
 #define CTRL_ADDR0 A2
 #define CTRL_ADDR1 A3
@@ -69,9 +72,6 @@ CTRLSIG ST_clk(&E3, 1, true) ;
 VECTORS VECTORS ;
 IO IO ;
 
-byte INST = 0 ;
-bool INST_done = 0 ; 
-
 #include "PROG.h"
 PROG TestSuite("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 
@@ -102,9 +102,9 @@ void setup() {
   CTRL_PC_e.setup() ;
   CTRL_src.setup() ;
   
-  X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
+  /*X_e.setup() ; X_s.setup() ; Y_e.setup() ; Y_s.setup() ;
   ACC_s.setup() ; ACC_e.setup() ;
-  A_s.setup() ;
+  A_s.setup() ; */
 
   // PC_e.setup() ;  
   // SP_e.setup() ; 
@@ -132,15 +132,21 @@ void setup() {
   
   //CTRLSIG::check() ;
 
-  /*
   if (! digitalRead(STEP)){
     Serial.println(F("STEP button held down, entering step mode.\n")) ;
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
-  */
+
   reset6502(prog /*, 0x2014*/) ;
 }
+
+
+const uint8_t hello[] = {
+  /* PC:0x0000 */  0x48,  0x65,  0x6C,  0x6C,  0x6F,  0x20,  0x57,  0x6F,  0x72,  0x6C,  0x64,  0x21,  0x0A,  0x00,  0x00,  0x00,
+  /* PC:0x0010 */  0xA0,  0x00,  0xB1,  0x0E,  0xF0,  0x07,  0x8D,  0xF1,  0xFF,  0xC8,  0x4C,  0x12,  0x00,  0x8D,  0xF9,  0xFF,
+  /* PC:0x0020 */  0x40
+} ;
 
 
 PROG *detect_loader(){
@@ -162,5 +168,6 @@ PROG *detect_loader(){
     Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
   }
 
-  return new PROG("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
+  // return new PROG("TestSuite", &E1, 14649, 0x0400, 0x38A7, 0x3899, 0x3699) ;
+  return new PROG("Hello", hello, 0x0021, false, 0x0010, 0x0020, 0x0020) ;
 }
