@@ -19,55 +19,7 @@ int STEP_CNT = 0 ;
 struct {
     uint16_t pc, ea ;
     uint8_t inst, sp, acc, x, y, status ;
-} MONITOR ;
-
-#define INST MONITOR.inst
-bool INST_done = 0 ; 
-
-#include "addrmodes.h"
-#include "ops.h"
-
-typedef uint8_t (*func6502)(uint8_t step) ;
-
-PROGMEM const func6502 addrtable[256] = {
-/*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |    */
-/* 0 */     imp, indx,  imp,  imp,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 0 */
-/* 1 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 1 */
-/* 2 */    abso, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 2 */
-/* 3 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 3 */
-/* 4 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm, abso, abso, abso, imp, /* 4 */
-/* 5 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 5 */
-/* 6 */     imp, indx,  imp, indx,   zp,   zp,   zp,   zp,  imp,  imm,  acc,  imm,  ind, abso, abso, imp, /* 6 */
-/* 7 */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp, absy, absx, absx, absx, imp, /* 7 */
-/* 8 */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* 8 */
-/* 9 */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, imp, /* 9 */
-/* A */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* A */
-/* B */     rel, indy,  imp, indy,  zpx,  zpx,  zpy,  zpy,  imp, absy,  imp, absy, absx, absx, absy, imp, /* B */
-/* C */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* C */
-/* D */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, imp, /* D */
-/* E */     imm, indx,  imm, indx,   zp,   zp,   zp,   zp,  imp,  imm,  imp,  imm, abso, abso, abso, imp, /* E */
-/* F */     rel, indy,  imp, indy,  zpx,  zpx,  zpx,  zpx,  imp, absy,  imp,  imp, absx, absx, absx, imp  /* F */
-} ;
-
-PROGMEM const func6502 optable[256] = {
-/*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |       */
-/* 0 */      brk,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  php,  ora,  asl,  nop,  nop,  ora,  asl,  pc,   /* 0 */
-/* 1 */      bpl,  ora,  nop,  nop,  nop,  ora,  asl,  nop,  clc,  ora,  nop,  nop,  nop,  ora,  asl,  mon,  /* 1 */
-/* 2 */      jsr,  and_, nop,  nop,  bit_, and_, rol,  nop,  plp,  and_, rol,  nop,  bit_, and_, rol,  rst1, /* 2 */
-/* 3 */      bmi,  and_, nop,  nop,  nop,  and_, rol,  nop,  sec,  and_, nop,  nop,  nop,  and_, rol,  rst2, /* 3 */
-/* 4 */      rti,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  pha,  eor,  lsr,  nop,  jmp,  eor,  lsr,  nop,  /* 4 */
-/* 5 */      bvc,  eor,  nop,  nop,  nop,  eor,  lsr,  nop,  cli_, eor,  nop,  nop,  nop,  eor,  lsr,  nop,  /* 5 */
-/* 6 */      rts,  adc,  nop,  nop,  nop,  adc,  ror,  nop,  pla,  adc,  ror,  nop,  jmp,  adc,  ror,  nop,  /* 6 */
-/* 7 */      bvs,  adc,  nop,  nop,  nop,  adc,  ror,  nop,  sei_, adc,  nop,  nop,  nop,  adc,  ror,  nop,  /* 7 */
-/* 8 */      nop,  sta,  nop,  nop,  sty,  sta,  stx,  nop,  dey,  nop,  txa,  nop,  sty,  sta,  stx,  nop,  /* 8 */
-/* 9 */      bcc,  sta,  nop,  nop,  sty,  sta,  stx,  nop,  tya,  sta,  txs,  nop,  nop,  sta,  nop,  nop,  /* 9 */
-/* A */      ldy,  lda,  ldx,  nop,  ldy,  lda,  ldx,  nop,  tay,  lda,  tax,  nop,  ldy,  lda,  ldx,  nop,  /* A */
-/* B */      bcs,  lda,  nop,  nop,  ldy,  lda,  ldx,  nop,  clv,  lda,  tsx,  nop,  ldy,  lda,  ldx,  nop,  /* B */
-/* C */      cpy,  cmp,  nop,  nop,  cpy,  cmp,  dec,  nop,  iny,  cmp,  dex,  nop,  cpy,  cmp,  dec,  nop,  /* C */
-/* D */      bne,  cmp,  nop,  nop,  nop,  cmp,  dec,  nop,  cld,  cmp,  nop,  nop,  nop,  cmp,  dec,  nop,  /* D */
-/* E */      cpx,  sbc,  nop,  nop,  cpx,  sbc,  inc,  nop,  inx,  sbc,  nop,  sbc,  cpx,  sbc,  inc,  nop,  /* E */
-/* F */      beq,  sbc,  nop,  nop,  nop,  sbc,  inc,  nop,  sed,  sbc,  nop,  nmi,  nop,  sbc,  inc,  irq   /* F */
-} ;
+} MONITOR, MONITOR_PREV ;
 
 
 void monitor_trace(const char *label=nullptr, bool nl=true){
@@ -135,6 +87,7 @@ void process_ctrl(){
 void process_monitor(bool grab_inst){
     // See fetch()
     if ((grab_inst)&&(STEP_CNT == 3)){
+      MONITOR_PREV = MONITOR ;
       MONITOR.inst = DATA.read() ;
     }
 
@@ -172,16 +125,8 @@ void process_monitor(bool grab_inst){
     }
 }
 
-const char *msg_fetch = "fetch" ;
-const char *msg_addr = "addr" ;
-const char *msg_oper = "oper" ; 
+
 void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
-  // Update the flags values for use in branch instructions. 
-  // No longer required with CRTL4 in place
-  // STATUS.latch() ;
-  
-  uint8_t step_offset = 0 ;
-  bool fetch_done = false, addr_done = false ;
   bool prev_ctrl = false ; 
   while (STEP_CNT <= max_step){    
     process_monitor(grab_inst) ;
@@ -189,39 +134,10 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
     if (STEP_CNT > 0){
       // This already happened for step 0 when we called STEP_CLR
       CTRL_OUT.pulse(CLK_ASYNC) ;    
+      CTRL_OUT.pulse_sync() ;  
     }
-
-    const char *msg = NULL ;
-    if (! fetch_done){
-      if (fetch(STEP_CNT)){
-        msg = msg_fetch ;
-        goto SYNC ;
-      } 
-      fetch_done = true ;
-      step_offset = STEP_CNT ;
-    }
-    if (! addr_done){
-      func6502 f = pgm_read_word(&(addrtable[INST])) ;
-      if (f(STEP_CNT - step_offset)){
-        msg = msg_addr ;
-        goto SYNC ;
-      }
-      addr_done = true ;
-      step_offset = STEP_CNT ;
-    }
-
-    {
-      func6502 f = pgm_read_word(&(optable[INST])) ;
-      if (f(STEP_CNT - step_offset)){
-        msg = msg_oper ;
-        goto SYNC ;
-      }
-    }
-    
-    SYNC:
-    CLK_sync.pulse() ;  
-        
-    if (PINC & 0b100){ // A2, RAM.ctrl
+     
+    if (PINC & 0b100){ // A2, RAM_ctrl
       process_ctrl() ;
       prev_ctrl = true ;
     }
@@ -229,15 +145,17 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       ctrl_cache = 0 ;
       DATA.reset() ;
     }
-        
+
+    if ((MON_EVERY == 1)&&(MONITOR.inst == 0xEA)&&(MONITOR_PREV.inst == 0x10)){
+      monitor_trace(nullptr, false) ;
+      pause() ;
+    }
     if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
       if ((DEBUG_MON)||(DEBUG_STEP)){
         monitor_trace(nullptr, false) ;
         if (DEBUG_STEP){
           Serial.print(F("  ")) ;
-          Serial.print(msg) ;
-          Serial.print(F(" ")) ;
-          Serial.print(STEP_CNT - step_offset) ;
+          Serial.print(STEP_CNT) ;
           Serial.print(" done...") ;
           while (! button_pressed(STEP)){} ;
         }
@@ -245,15 +163,14 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       }
     }
                
-    // if (INST_done){
     if (PINC & 0b1000){ // A3, INST_done
-      // Reset step counter.
-      int steps = STEP_CNT ;
-      CTRL_OUT.pulse(STEP_CLR) ;
-      STEP_CNT = 0 ;
       if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
         INST_CNT++ ;
       }
+      // Reset step counter.
+      CTRL_OUT.pulse(STEP_CLR) ;
+      CTRL_OUT.pulse_sync() ; 
+      STEP_CNT = 0 ;
       return ;
     }
    
@@ -287,7 +204,7 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   CTRL_OUT.pulse(STEP_CLR) ;
   CTRL_OUT.pulse(PC_CLR) ;
   // Reset latches
-  CLK_sync.pulse() ;
+  CTRL_OUT.pulse_sync() ;
 
   monitor_sample() ;
   monitor_trace("INIT  ->") ;
@@ -374,13 +291,13 @@ void loop(){
     } 
     prev_pc = MONITOR.pc ;
 
-    /*if (MONITOR.pc == 0x201A){
-      DEBUG_MON = true ;
+    if (INST_CNT == 29000){
+      MON_EVERY = 1 ;
     }
-    if (MONITOR.pc > 0x2024){
-      DEBUG_MON = false ;
-    }*/
-  
+    if (INST_CNT == 31000){
+      MON_EVERY = 1000 ;
+    }
+      
     if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
       monitor_sample() ;
       monitor_trace() ; 

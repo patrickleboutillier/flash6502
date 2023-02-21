@@ -24,50 +24,50 @@ class IO {
     
     // Not the real address here, just the lower 4 bits.
     uint8_t get_byte(uint8_t addr){
-        switch (addr){
-            case 0x0: {
-              if (_loader){
-                Serial.write(LOADER_CMD) ;
-                Serial.write(LOADER_STDIN) ;
-              }
-              uint8_t data ;
-              while (!Serial.available()) ;
-              Serial.readBytes(&data, 1) ;
-              return data ; // stdin
-            }
+      switch (addr){
+        case 0x0: {
+          if (_loader){
+            Serial.write(LOADER_CMD) ;
+            Serial.write(LOADER_STDIN) ;
+          }
+          uint8_t data ;
+          while (!Serial.available()) ;
+          Serial.readBytes(&data, 1) ;
+          return data ; // stdin
         }
-        
-        return 0 ;
+      }
+      
+      return 0 ;
     }
 
     // Not the real address here, just the lower 4 bits.
     void set_byte(uint8_t addr, uint8_t data){
-        switch (addr){
-            case 0x0: // stdin
-              return ;
-            case 0x1: // stdout 
-              if (_loader){
-                Serial.write(LOADER_CMD) ;
-                Serial.write(LOADER_STDOUT) ;
-              }
-              Serial.print((char)data) ;
-              return ;
-            case 0x2: // stderr 
-              if (_loader){
-                Serial.write(LOADER_CMD) ;
-                Serial.write(LOADER_STDERR) ;
-              }
-              Serial.print((char)data) ;
-              return ;
-            case 0x9: // halt
-                Serial.println("HALTED!") ;
-                if (_loader){
-                  Serial.write(LOADER_CMD) ;
-                  Serial.write(LOADER_HALT) ;
-                }
-                HALTED = true ;
-                return ;
-        }
+      switch (addr){
+        case 0x0: // stdin
+          return ;
+        case 0x1: // stdout 
+          if (_loader){
+            Serial.write(LOADER_CMD) ;
+            Serial.write(LOADER_STDOUT) ;
+          }
+          Serial.print((char)data) ;
+          return ;
+        case 0x2: // stderr 
+          if (_loader){
+            Serial.write(LOADER_CMD) ;
+            Serial.write(LOADER_STDERR) ;
+          }
+          Serial.print((char)data) ;
+          return ;
+        case 0x9: // halt
+          Serial.println("HALTED!") ;
+          if (_loader){
+            Serial.write(LOADER_CMD) ;
+            Serial.write(LOADER_HALT) ;
+          }
+          HALTED = true ;
+          return ;
+      }
     }
 } ;
 

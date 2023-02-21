@@ -12,16 +12,19 @@
 
 
 // Pins 12, 11, 10: PORTB, bits 4, 3, 2
-
+// Sync is A1: PORTC, bit 2
 class CTRL_OUT {
-  private:
-    CTRLSIG *clk_sync ;
-    
   public:
-    CTRL_OUT(CTRLSIG *_clk_sync){
-      clk_sync = _clk_sync ;
+    CTRL_OUT(){
       // Set pins to output  
       DDRB |= 0b00011100 ;
+      DDRC |= 0b00000010 ;
+    }
+    
+    inline void pulse_sync(){
+      // Set control bits (bits 4, 3, 2), which are already 0.
+      PORTC |= 0b00000010 ;
+      PORTC &= 0b11111101 ;
     }
     
     inline void pulse(uint8_t cmd){
@@ -34,19 +37,11 @@ class CTRL_OUT {
     inline void pulse_with_sync(uint8_t cmd){
       // Set control bits (bits 4, 3, 2), which are already 0.
       PORTB |= cmd ;
-      clk_sync->pulse() ;
+      pulse_sync() ;
       // Clear control bits
       PORTB &= 0b11100011 ;
-      clk_sync->pulse() ;
+      pulse_sync() ;
     }
-
-    /* inline void on(uint8_t cmd){
-      PORTB |= cmd ;
-    }
-
-    inline void off(uint8_t cmd){
-      PORTB &= 0b11100011 ;
-    } */
 } ;
 
 
