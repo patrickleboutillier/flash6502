@@ -1,4 +1,4 @@
-#include "BUS.h"
+#include "DATA.h"
 #include "CTRLSIG.h"
 #include "CTRL_OUT.h"
 #include "VECTORS.h"
@@ -12,8 +12,9 @@ bool HALTED = false ;
 
 // Push button  
 #define NMI   A5
-#define IQR   A4
+#define IRQ   A4
 #define STEP  NMI      
+#define MON   IRQ   
 
 #define CTRL A2         // Activate controller for vectors and IO
 #define CTRL_ADDR0 A2
@@ -21,10 +22,8 @@ bool HALTED = false ;
 #define CTRL_ADDR2 A6
 #define CTRL_ADDR3 A7
 
-BUS DATA ;                          // 9, 8, 7, 6, 5, 4, 3, 2
-//CTRLSIG CLK_sync(NULL, A1, true) ;
+DATA DATA ;              // 9, 8, 7, 6, 5, 4, 3, 2
 CTRLSIG CTRL_src(NULL, 13) ;
-CTRLSIG CTRL_PC_e(NULL, A0, true) ;
 CTRL_OUT CTRL_OUT ;      // 12, 11, 10, A1
 VECTORS VECTORS ;
 IO IO ;
@@ -47,21 +46,18 @@ void setup() {
   Serial.println(F("Starting Flash6502")) ;  
   prog = detect_loader() ;
 
-  //Serial.print(CTRLSIG::count()) ;
-  //Serial.println(F(" control signals defined.")) ;
-  pinMode(CTRL, INPUT) ;
-
-  DATA.setup() ;
-  //CLK_sync.setup() ;
-  CTRL_PC_e.setup() ;
   CTRL_src.setup() ;
 
+  if (! digitalRead(MON)){
+    Serial.println(F("IRQ/MON button held down, entering monitor mode.\n")) ;
+    DEBUG_MON = true ;
+  }
   if (! digitalRead(STEP)){
-    Serial.println(F("STEP button held down, entering step mode.\n")) ;
+    Serial.println(F("NMI/STEP button held down, entering step mode.\n")) ;
     DEBUG_STEP = true ;
     DEBUG_MON = true ;
   }
-
+  
   reset6502(prog /*, 0x2014*/) ;
 }
 

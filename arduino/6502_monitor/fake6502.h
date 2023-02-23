@@ -10,19 +10,19 @@
 
 
 // Some globals useful for debugging.
-bool DEBUG_MON = false ;
 int MON_EVERY = 1000 ; 
+bool DEBUG_MON = false ;
 bool DEBUG_STEP = false ;
 unsigned long INST_CNT = 0 ;
-int STEP_CNT = 0 ;
+uint8_t STEP_CNT = 0 ;
 
 struct {
-    uint16_t pc, ea ;
-    uint8_t inst, sp, acc, x, y, status ;
-} MONITOR, MONITOR_PREV ;
+    uint16_t pc, ea, prev_pc ;
+    uint8_t inst, sp, acc, x, y, status, prev_inst ;
+} MONITOR ;
 
 
-void monitor_trace(const char *label=nullptr, bool nl=true){
+void monitor_trace(const char *label=nullptr, bool force_full=false, bool nl=true){
   static char buf[128] ;
 
   if (label != nullptr){
@@ -33,15 +33,15 @@ void monitor_trace(const char *label=nullptr, bool nl=true){
   }
   Serial.print(buf) ;
 
-  if (STEP_CNT == 0){
+  if ((STEP_CNT == 0)||(force_full)){
     sprintf(buf, " %2d PC:0x%04X  INST:0x%02X  EA:0x%04X ACC:%-3d X:%-3d Y:%-3d SP:0x%02X STATUS:0x%02X", 
       STEP_CNT, MONITOR.pc, MONITOR.inst, MONITOR.ea, MONITOR.acc, MONITOR.x, MONITOR.y, MONITOR.sp, MONITOR.status) ;
-    if (nl){
-      strcat(buf, "\n") ;
-    }
   }
   else {
     sprintf(buf, " %2d PC:0x%04X~ INST:0x%02X  ", STEP_CNT, MONITOR.pc, MONITOR.inst) ;
+  }
+  if (nl){
+    strcat(buf, "\n") ;
   }
   Serial.print(buf) ;
 }
@@ -87,14 +87,15 @@ void process_ctrl(){
 void process_monitor(bool grab_inst){
     // See fetch()
     if ((grab_inst)&&(STEP_CNT == 3)){
-      MONITOR_PREV = MONITOR ;
+      MONITOR.prev_inst = MONITOR.inst ;
       MONITOR.inst = DATA.read() ;
     }
 
     // See pc()
     if (MONITOR.inst == INST_PC){
       switch (STEP_CNT){
-        case 2: MONITOR.pc = DATA.read() << 8 ; 
+        case 2: MONITOR.prev_pc = MONITOR.pc ;
+                MONITOR.pc = DATA.read() << 8 ; 
                 break ;
         case 4: MONITOR.pc |= DATA.read() ; 
                 break ;
@@ -103,7 +104,8 @@ void process_monitor(bool grab_inst){
     // See mon()
     else if (MONITOR.inst == INST_MON){
       switch (STEP_CNT){
-        case  2: MONITOR.pc = DATA.read() << 8 ; 
+        case  2: MONITOR.prev_pc = MONITOR.pc ;
+                 MONITOR.pc = DATA.read() << 8 ; 
                  break ;
         case  4: MONITOR.pc |= DATA.read() ; 
                  break ;
@@ -126,7 +128,7 @@ void process_monitor(bool grab_inst){
 }
 
 
-void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
+bool process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
   bool prev_ctrl = false ; 
   while (STEP_CNT <= max_step){    
     process_monitor(grab_inst) ;
@@ -146,32 +148,51 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
       DATA.reset() ;
     }
 
-    if ((MON_EVERY == 1)&&(MONITOR.inst == 0xEA)&&(MONITOR_PREV.inst == 0x10)){
-      monitor_trace(nullptr, false) ;
-      pause() ;
+    if (MONITOR.inst == 0x10){
+      if (STEP_CNT == 0){
+        monitor_trace() ;
+      }
     }
-    if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
-      if ((DEBUG_MON)||(DEBUG_STEP)){
-        monitor_trace(nullptr, false) ;
+    bool mon = false ;
+    if ((MONITOR.inst == 0xEA)&&(MONITOR.prev_inst == 0x10)){
+      if (STEP_CNT == 3){
+        monitor_trace() ;
+        //pause() ;
+      }
+      if (STEP_CNT == 4){
+        monitor_trace() ;
+        mon = true ;
+        //pause() ;
+      }
+    }
+
+    if (DEBUG_MON){
+      if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
         if (DEBUG_STEP){
-          Serial.print(F("  ")) ;
-          Serial.print(STEP_CNT) ;
-          Serial.print(" done...") ;
-          while (! button_pressed(STEP)){} ;
+          monitor_trace(nullptr, false, false) ;
+          if (DEBUG_STEP){
+            Serial.print(F("  ")) ;
+            Serial.print(STEP_CNT) ;
+            Serial.print(" done...") ;
+            while (! button_pressed(STEP)){} ;
+          }
         }
-        Serial.println() ;
+        else {
+          monitor_trace() ;
+        }
       }
     }
                
     if (PINC & 0b1000){ // A3, INST_done
-      if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
+      if (grab_inst){
         INST_CNT++ ;
       }
       // Reset step counter.
       CTRL_OUT.pulse(STEP_CLR) ;
       CTRL_OUT.pulse_sync() ; 
       STEP_CNT = 0 ;
-      return ;
+      
+      return mon ;
     }
    
     STEP_CNT++ ;
@@ -218,9 +239,9 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   // Load the program to RAM
   for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
     DATA.write(data) ; 
-    CTRL_PC_e.toggle() ;
+    CTRL_OUT.PC_e_on() ;
     CTRL_OUT.pulse_with_sync(RAM_S) ;
-    CTRL_PC_e.toggle() ;
+    CTRL_OUT.PC_e_off() ;
     DATA.reset() ;
     CTRL_OUT.pulse_with_sync(PC_UP) ;
   }        
@@ -269,15 +290,28 @@ void process_interrupt(uint8_t opcode){
 
 void loop(){
   // Start processing instructions.
-  uint16_t prev_pc = 0xFFFF ;
   while (1) {
     if (HALTED){
       pinMode(LED_BUILTIN, OUTPUT) ;
       digitalWrite(LED_BUILTIN, HIGH) ;
       while (1){} ;
     }
-    monitor_sample(true) ;
-    if (MONITOR.pc == prev_pc){
+
+    if (process_inst()){
+      monitor_sample() ; // Full monitor
+      monitor_trace() ;       
+    }
+    else {
+      // Let's check if the PC has changed 
+      /*if ((MON_EVERY != 0)&&((INST_CNT % MON_EVERY) == 0)){
+        monitor_sample() ; // Full monitor
+        monitor_trace() ; 
+      }
+      else {*/
+        monitor_sample() ; // PC-only monitor
+      //}
+    }
+    if (MONITOR.pc == MONITOR.prev_pc){
       bool done = prog->is_done(MONITOR.pc) ;
       Serial.println(F("---")) ;
       monitor_sample() ;
@@ -289,20 +323,13 @@ void loop(){
       Serial.println(done ? F(":)") : F(":(")) ;
       while (1){} ;
     } 
-    prev_pc = MONITOR.pc ;
-
-    if (INST_CNT == 29000){
+    
+    /* if (INST_CNT == 32000){
       MON_EVERY = 1 ;
-    }
-    if (INST_CNT == 31000){
+    }*/
+    /* if (INST_CNT == 31000){
       MON_EVERY = 1000 ;
-    }
-      
-    if ((MON_EVERY)&&((INST_CNT % MON_EVERY) == 0)){
-      monitor_sample() ;
-      monitor_trace() ; 
-    }
-    process_inst() ; 
+    }*/
 
     if (! DEBUG_STEP){
       if (button_pressed(STEP)){

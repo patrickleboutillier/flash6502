@@ -1,27 +1,23 @@
-#ifndef BUS_h
-#define BUS_h
+#ifndef DATA_h
+#define DATA_h
 
-#include "Arduino.h"
 
 // Pins 9, 8, 7, 6, 5, 4, 3, 2 -> PORTB:bits 2,3,4,5,6,7, PORTD:bits 0, 1
 
-class BUS {
+class DATA {
   private:
     bool _enabled ;
     byte _cache ;
     
   public:
-    BUS(){
+    DATA(){
        _enabled = false ;
       _cache = 0 ;
+      DDRB &= ~0b00000011 ;
+      DDRD &= ~0b11111100 ; 
     }
-    
-    void setup(){
-        DDRB &= ~0b00000011 ;
-        DDRD &= ~0b11111100 ;    
-    }
-    
-    void reset(){
+
+    inline void reset(){
       if (_enabled){
         DDRB &= ~0b00000011 ;
         DDRD &= ~0b11111100 ;
@@ -29,9 +25,9 @@ class BUS {
       }
     }
     
-    byte read(){
+    inline byte read(){
       if (_enabled){
-        // One part wants to read from the BUS, while another one is writing.
+        // One part wants to read from the DATA, while another one is writing.
         // We give the reader the out cached value.
         return _cache ;
       }
@@ -39,7 +35,7 @@ class BUS {
       return (PINB & 0b00000011) << 6 | (PIND & 0b11111100) >> 2 ;
     }
     
-    void write(byte b){
+    inline void write(byte b){
       if (! _enabled){
         DDRB |= 0b00000011 ;
         DDRD |= 0b11111100 ;
