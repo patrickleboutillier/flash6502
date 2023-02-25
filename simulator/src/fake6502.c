@@ -313,8 +313,9 @@ void process_ctrl(){
 
 
 void process_monitor(bool grab_inst){
-    if ((grab_inst)&&(STEP_CNT == 1)){
+    if ((grab_inst)&&(STEP_CNT == 2)){
         MONITOR.inst = DATA.data_out ;
+        CTRL_OUT.pulse(INST_S) ;
     }
     
     if (MONITOR.inst == INST_PC){
@@ -382,6 +383,8 @@ int process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
             int steps = STEP_CNT ; 
             CTRL_OUT.pulse(STEP_CLR) ;
             // In theory we should do process_ctrl here, but there is nothing happening on step 0...
+            assert(CU.make_cw() == CU.get_default_cw()) ;
+            CTRL_OUT.pulse(CLK_SYNC) ;
             STEP_CNT = 0 ;
             if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
                 INST_CNT++ ;
