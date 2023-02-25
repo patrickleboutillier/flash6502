@@ -30,7 +30,7 @@ IO IO ;
 
 // Program to run
 PROG *prog = NULL ;
-
+bool PROGRESS = false ;
 
 #include "fake6502.h"
 
@@ -58,7 +58,7 @@ void setup() {
     DEBUG_MON = true ;
   }
   
-  reset6502(prog /*, 0x2014*/) ;
+  reset6502(prog) ;
 }
 
 
@@ -88,6 +88,8 @@ PROG *detect_loader(){
     Serial.println(F("No loader detected, continuing with built-in test suite.")) ;
   }
 
+  PROGRESS = true ;
+  
   return new PROG("TestSuite", test_suite, 14649, true, 0x0400, 0x38A7, 0x3899, 0x3699) ;
   //return new PROG("Hello", hello, 0x0021, false, 0x0010, 0x0020, 0x0020) ;
 }
