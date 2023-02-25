@@ -1,14 +1,10 @@
 #include "DATA.h"
-#include "CTRLSIG.h"
-#include "CTRL_OUT.h"
 #include "VECTORS.h"
-#include "TEST.h"
-
-#define SERIAL_TIMEOUT 1000
 bool HALTED = false ;
 #include "IO.h"
+#include "CTRL.h"
 #include "PROG.h"
-
+#include "TEST.h"
 
 // Push button  
 #define NMI   A5
@@ -16,37 +12,28 @@ bool HALTED = false ;
 #define STEP  NMI      
 #define MON   IRQ   
 
-#define CTRL A2         // Activate controller for vectors and IO
-#define CTRL_ADDR0 A2
-#define CTRL_ADDR1 A3
-#define CTRL_ADDR2 A6
-#define CTRL_ADDR3 A7
-
 DATA DATA ;              // 9, 8, 7, 6, 5, 4, 3, 2
-CTRLSIG CTRL_src(NULL, 13) ;
-CTRL_OUT CTRL_OUT ;      // 12, 11, 10, A1
 VECTORS VECTORS ;
 IO IO ;
+CTRL CTRL(&DATA, &VECTORS, &IO) ;      // 12, 11, 10, A1
 
-// Program to run
-PROG *prog = NULL ;
+
 bool PROGRESS = false ;
 
 #include "fake6502.h"
 
-  
+
 void setup() {
   // Faster analog reads
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
   Serial.begin(9600) ;
-  Serial.setTimeout(SERIAL_TIMEOUT) ;
+  Serial.setTimeout(1000) ;
   // Send null byte to indicate we have finished booting, in case a loader is present.
   Serial.write(0) ;
   Serial.println(F("Starting Flash6502")) ;  
-  prog = detect_loader() ;
 
-  CTRL_src.setup() ;
+  PROG *prog = detect_loader() ;
 
   if (! digitalRead(MON)){
     Serial.println(F("IRQ/MON button held down, entering monitor mode.\n")) ;
@@ -60,13 +47,6 @@ void setup() {
   
   reset6502(prog) ;
 }
-
-
-const uint8_t hello[] = {
-  /* PC:0x0000 */  0x48,  0x65,  0x6C,  0x6C,  0x6F,  0x20,  0x57,  0x6F,  0x72,  0x6C,  0x64,  0x21,  0x0A,  0x00,  0x00,  0x00,
-  /* PC:0x0010 */  0xA0,  0x00,  0xB1,  0x0E,  0xF0,  0x07,  0x8D,  0xF1,  0xFF,  0xC8,  0x4C,  0x12,  0x00,  0x8D,  0xF9,  0xFF,
-  /* PC:0x0020 */  0x40
-} ;
 
 
 PROG *detect_loader(){

@@ -47,49 +47,12 @@ void monitor_trace(const char *label=nullptr, bool force_full=false, bool nl=tru
 }
 
 
-uint8_t ctrl_cache = 0 ;
-void process_ctrl(){
-  if (! analogRead2Digital(CTRL_ADDR3)){  // RAM_e.read()
-    CTRL_src = 1 ;
-    uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
-    CTRL_src = 0 ;
-    // read from vectors or IO
-    if (addr < 0xA){
-      if (! ctrl_cache){
-        ctrl_cache = IO.get_byte(addr) ;
-      }
-      DATA.write(ctrl_cache) ;
-    }
-    else {
-      DATA.write(VECTORS.get_byte(addr)) ;
-    }
-  }
-  else {
-    ctrl_cache = 0 ;
-    DATA.reset() ;     
-  }
-
-  if (! analogRead2Digital(CTRL_ADDR2)){  // RAM_s.read()
-    // write to vectors or IO
-    CTRL_src = 1 ;
-    uint8_t addr = analogRead2Digital(CTRL_ADDR3) << 3 | analogRead2Digital(CTRL_ADDR2) << 2 | digitalRead(CTRL_ADDR1) << 1 | digitalRead(CTRL_ADDR0) ;  
-    CTRL_src = 0 ;
-    if (addr < 0xA){
-      IO.set_byte(addr, DATA.read()) ;
-    }
-    else {
-      VECTORS.set_byte(addr, DATA.read()) ;
-    }
-  }
-}
-
-
 void process_monitor(bool grab_inst){
     // See fetch()
     if ((grab_inst)&&(STEP_CNT == 3)){
       MONITOR.prev_inst = MONITOR.inst ;
       MONITOR.inst = DATA.read() ;
-      CTRL_OUT.pulse(INST_S) ;
+      CTRL.pulse(INST_S) ;
     }
 
     // See pc()
@@ -136,16 +99,17 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
     
     if (STEP_CNT > 0){
       // This already happened for step 0 when we called STEP_CLR
-      CTRL_OUT.pulse(CLK_ASYNC) ; 
-      CTRL_OUT.pulse_sync() ;  
+      CTRL.pulse(CLK_ASYNC) ; 
+      CTRL.pulse_sync() ;  
     }
      
     if (PINC & 0b100){ // A2, RAM_ctrl
-      process_ctrl() ;
+      CTRL.process() ;
       prev_ctrl = true ;
     }
     else if (prev_ctrl){
-      ctrl_cache = 0 ;
+      //ctrl_cache = 0 ;
+      CTRL.clear_cache() ;
       DATA.reset() ;
     }
     
@@ -172,8 +136,8 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
         INST_CNT++ ;
       }
       // Reset step counter.
-      CTRL_OUT.pulse(STEP_CLR) ;
-      CTRL_OUT.pulse_sync() ;
+      CTRL.pulse(STEP_CLR) ;
+      CTRL.pulse_sync() ;
       STEP_CNT = 0 ;
       
       return ;
@@ -187,7 +151,7 @@ void process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
 void insert_inst(uint8_t opcode, bool process=true){
   DATA.write(opcode) ;
   MONITOR.inst = opcode ;
-  CTRL_OUT.pulse(INST_S) ;
+  CTRL.pulse(INST_S) ;
   DATA.reset() ;
 
   if (process){
@@ -206,10 +170,10 @@ void monitor_sample(bool pc_only=false){
 
 void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   // Clear step counter and program counter
-  CTRL_OUT.pulse(STEP_CLR) ;
-  CTRL_OUT.pulse(PC_CLR) ;
+  CTRL.pulse(STEP_CLR) ;
+  CTRL.pulse(PC_CLR) ;
   // Reset latches
-  CTRL_OUT.pulse_sync() ;
+  CTRL.pulse_sync() ;
 
   monitor_sample() ;
   monitor_trace("INIT  ->") ;
@@ -218,16 +182,16 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   insert_inst(INST_RST1) ;
 
   Serial.print(F("- Loading program to RAM...")) ;
-  CTRL_OUT.pulse(STEP_CLR) ;
-  CTRL_OUT.pulse(PC_CLR) ;
+  CTRL.pulse(STEP_CLR) ;
+  CTRL.pulse(PC_CLR) ;
   // Load the program to RAM
   for (int data = prog->get_next_byte() ; data != -1 ; data = prog->get_next_byte()){
     DATA.write(data) ; 
-    CTRL_OUT.PC_e_on() ;
-    CTRL_OUT.pulse_with_sync(RAM_S) ;
-    CTRL_OUT.PC_e_off() ;
+    CTRL.PC_e_on() ;
+    CTRL.pulse_with_sync(RAM_S) ;
+    CTRL.PC_e_off() ;
     DATA.reset() ;
-    CTRL_OUT.pulse_with_sync(PC_UP) ;
+    CTRL.pulse_with_sync(PC_UP) ;
   }        
   Serial.println(F("done")) ;
   Serial.print(F("LOAD  -> ")) ;
@@ -243,7 +207,7 @@ void reset6502(PROG *prog, uint16_t force_start_addr=0x00){
   VECTORS.set_int(prog->int_addr()) ;
   VECTORS.set_nmi(prog->nmi_addr()) ;
 
-  CTRL_OUT.pulse(STEP_CLR) ;
+  CTRL.pulse(STEP_CLR) ;
   insert_inst(INST_RST2) ;
 
   // We must place another instruction here because RST2 doesn't load the next instruction.
@@ -278,6 +242,9 @@ void loop(){
     if (HALTED){
       pinMode(LED_BUILTIN, OUTPUT) ;
       digitalWrite(LED_BUILTIN, HIGH) ;
+      Serial.print("Duration: ") ;
+      Serial.print(millis() / 1000) ;
+      Serial.println(" seconds.") ;
       while (1){} ;
     }
 
@@ -288,7 +255,10 @@ void loop(){
       Serial.print(INST_CNT) ;
       Serial.print(" instructions executed (pc:0x") ;
       Serial.print(MONITOR.pc, HEX) ;
-      Serial.println(")") ;
+      Serial.print(", rate:") ;
+      float rate = INST_CNT / (millis() / 1000.0) ;
+      Serial.print(rate) ;
+      Serial.println(" insts/sec)") ;
     }
 
     /*
@@ -315,10 +285,11 @@ void loop(){
     } 
     */
     
-    if (! DEBUG_STEP){
-      if (button_pressed(STEP)){
-        process_interrupt(INST_NMI) ;
-      }
+    if (button_pressed(NMI)){
+      process_interrupt(INST_NMI) ;
     }
+    if (button_pressed(IRQ)){
+      process_interrupt(INST_IRQ) ;
+    }    
   }
 }

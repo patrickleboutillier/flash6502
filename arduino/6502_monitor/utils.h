@@ -26,10 +26,10 @@ bool button_pressed(uint8_t button_pin){
 }
 
 
-inline uint8_t analogRead2Digital(int apin){
+/*inline uint8_t analogRead2Digital(int apin){
   bool dv = (analogRead(apin) >= 512) ;
   return dv ;
-}
+}*/
 
 
 void pause(){
