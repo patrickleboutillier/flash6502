@@ -315,7 +315,7 @@ void process_ctrl(){
 void process_monitor(bool grab_inst){
     if ((grab_inst)&&(STEP_CNT == 2)){
         MONITOR.inst = DATA.data_out ;
-        CTRL_OUT.pulse(INST_S) ;
+        // CTRL_OUT.pulse(INST_S) ;
     }
     
     if (MONITOR.inst == INST_PC){
@@ -528,7 +528,7 @@ void loop(PROG *prog){
             max_steps = inst_steps ;
             max_inst = INST ;
         }
-        if ((INST_CNT % 100000) == 0){
+        if ((INST_CNT % 10000) == 0){
             printf("%d instructions executed (pc:0x%04X).\n", INST_CNT, MONITOR.pc) ;
         }
 
