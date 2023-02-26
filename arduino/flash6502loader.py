@@ -16,7 +16,7 @@ parser.add_argument('PROG', nargs='?')  # 64k program file
 args = parser.parse_args()
 
 # Configure the serial connection
-port = serial.Serial(port=args.PORT, baudrate=9600)
+port = serial.Serial(port=args.PORT, baudrate=115200)
 # Wait for Arduino to send null byte after reboot 
 port.read(1)
 # Send our magic number
