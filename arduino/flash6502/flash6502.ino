@@ -28,21 +28,25 @@ void halt6502() ;
 #define DEBOUNCE_INTERRUPTS     0
 #define ENABLE_MONITORING       0
 #define ENABLE_TRAP_DETECTION   0
-#define ENABLE_VERBOSITY        0
+#define ENABLE_VERBOSITY        1
 
+#if ENABLE_MONITORING
+   // We use these buttons also to enable monitoring and to do stepping. 
+  #define STEP  NMI 
+  #define MON   IRQ
+  
+  #include "MONITOR.h"
+#endif
+
+  
 DATA DATA ;              // 9, 8, 7, 6, 5, 4, 3, 2
 VECTORS VECTORS ;
 IO IO ;
 CTRL CTRL(&DATA, &VECTORS, &IO) ;      // 12, 11, 10, A1
-
+PROG *prog = nullptr ;
 
 #if ENABLE_MONITORING
-  #include "MONITOR.h"
   MONITOR MONITOR(&DATA) ;
-  
-   // We use these buttons also to enable monitoring and to do stepping. 
-  #define STEP  NMI 
-  #define MON   IRQ
   
   // Some globals useful for debugging.
   bool DEBUG_MON = false ;
@@ -61,7 +65,7 @@ void setup() {
   Serial.write(0) ;
   Serial.println(F("Starting Flash6502")) ;  
 
-  PROG *prog = detect_loader() ;
+  prog = detect_loader() ;
 
   #if ENABLE_MONITORING
     if (! digitalRead(MON)){
@@ -75,7 +79,7 @@ void setup() {
     }
   #endif
   
-  reset6502(prog, 0) ;
+  reset6502(0) ;
 }
 
 
@@ -98,12 +102,11 @@ PROG *detect_loader(){
   }
 
   QUIET = false ;
-  
   return new PROG("TestSuite", test_suite, 14649, true, 0x0400, 0x38A7, 0x3899, 0x3699) ;
 }
 
 
-void reset6502(PROG *prog, uint16_t force_start_addr){
+void reset6502(uint16_t force_start_addr){
   // Clear step counter and program counter
   CTRL.pulse(STEP_CLR) ;
   CTRL.pulse(PC_CLR) ;
@@ -233,25 +236,6 @@ void loop(){
   while (1) {
     process_inst(true, MAX_STEP) ;
 
-    #if ENABLE_VERBOSITY
-      if ((!QUIET)&&((INST_CNT & 0x3FFF) == 0)){
-        #if ENABLE_MONITORING
-          MONITOR.sample(true) ; // PC-only monitor
-        #endif
-        Serial.print(INST_CNT) ;
-        Serial.print(" instructions executed (pc:0x") ;
-        #if ENABLE_MONITORING
-          Serial.print(MONITOR.get_pc(), HEX) ;
-        #else
-          Serial.print("????") ;
-        #endif
-        Serial.print(", rate:") ;
-        float rate = INST_CNT / (millis() / 1000.0) ;
-        Serial.print(rate) ;
-        Serial.println(" insts/sec)") ;
-      }
-    #endif
-
     #if ENABLE_MONITORING
       #if ENABLE_TRAP_DETECTION
         MONITOR.sample(true) ; // PC-only monitor
@@ -271,6 +255,25 @@ void loop(){
         }
       #endif 
     #endif
+    
+    #if ENABLE_VERBOSITY
+      if ((!QUIET)&&((INST_CNT & 0x3FFF) == 0)){
+        #if ENABLE_MONITORING && !ENABLE_TRAP_DETECTION
+          MONITOR.sample(true) ; // PC-only monitor
+        #endif
+        Serial.print(INST_CNT) ;
+        Serial.print(" instructions executed (pc:0x") ;
+        #if ENABLE_MONITORING
+          Serial.print(MONITOR.get_pc(), HEX) ;
+        #else
+          Serial.print("????") ;
+        #endif
+        Serial.print(", rate:") ;
+        float rate = INST_CNT / (millis() / 1000.0) ;
+        Serial.print(rate) ;
+        Serial.println(" insts/sec)") ;
+      }
+    #endif
 
     #if ENABLE_INTERRUPTS
       #if DEBOUNCE_INTERRUPTS
@@ -284,28 +287,31 @@ void loop(){
         if (! (PINC & 0b00100000)){
           process_interrupt(INST_NMI) ;
         }
-        if (! (PINC & 0b00100000)){
+        if (! (PINC & 0b00010000)){
           process_interrupt(INST_IRQ) ;
         }
       #endif
-    #endif    
+    #endif
   }
 }
 
 
 void process_interrupt(uint8_t opcode){   
+  #if ENABLE_VERBOSITY
+    if (! QUIET){
+      Serial.println(opcode == INST_NMI ? "NMI" : "IRQ") ;
+    }
+  #endif
   #if ENABLE_MONITORING
     uint8_t inst = MONITOR.get_inst() ;
     MONITOR.sample() ;
-    MONITOR.trace("INTR  ->") ; 
+    if (DEBUG_MON){
+      MONITOR.trace("INTR  ->") ; 
+    }
   #else
     uint8_t inst = INST_NOP ;
-    #if ENABLE_VERBOSITY
-      if (! QUIET){
-        Serial.println(opcode == INST_NMI ? "NMI" : "IRQ") ;
-      }
-    #endif
   #endif
+  
   insert_inst(opcode, false) ;
   
   DATA.write(opcode) ;            // Enable opcode onto the data bus
@@ -315,22 +321,26 @@ void process_interrupt(uint8_t opcode){
 
   #if ENABLE_MONITORING
     MONITOR.sample() ;
-    MONITOR.trace("      <-") ;
+    if (DEBUG_MON){
+      MONITOR.trace("      <-") ;
+    }
   #endif
   insert_inst(inst, false) ;
 }
 
 
 void halt6502(){
-  // #IF ENABLE_VERBOSITY
-  if (!QUIET){
-    Serial.println("HALTED!") ;
-    pinMode(LED_BUILTIN, OUTPUT) ;
-    digitalWrite(LED_BUILTIN, HIGH) ;
-    Serial.print("Duration: ") ;
-    Serial.print(millis() / 1000) ;
-    Serial.println(" seconds.") ;
-  }
+  #if ENABLE_VERBOSITY
+    if (!QUIET){
+      Serial.println("HALTED!") ;
+      Serial.print("Duration: ") ;
+      Serial.print(millis() / 1000) ;
+      Serial.println(" seconds.") ;
+    }
+  #endif
+  
+  pinMode(LED_BUILTIN, OUTPUT) ;
+  digitalWrite(LED_BUILTIN, HIGH) ;
   while (1){} ; 
 }
 
