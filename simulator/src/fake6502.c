@@ -63,7 +63,7 @@ output<1> INST_e(1) ;
 counter<6> STEP ;
  
 output<1> ctrl_PC_e(1) ;
-not_<1> not_INST_s, not_PC_clr ;
+not_<1> not_PC_clr ;
 output<8> ctrl_DATA ;
 
 output<1> GND(0), VCC(1) ;
@@ -74,7 +74,12 @@ IO IO ;
 // Some globals useful for debugging.
 int INST_CNT = 0 ;
 int STEP_CNT = 0 ;
-bool DEBUG_STEP = false ;
+bool DEBUG_MON = false ;
+
+struct {
+    uint16_t pc, ea ;
+    uint8_t inst, sp, acc, x, y, status ;
+} MONITOR ;
 
 
 void init6502(){
@@ -211,8 +216,7 @@ void init6502(){
     INST.data_out.connect(C2.inst) ;
     CTRL_OUT.PC_up.connect(C2.n) ;
     ctrl_PC_e.connect(C2.v) ;
-    CTRL_OUT.INST_s.connect(not_INST_s.a) ;
-    not_INST_s.b.connect(C2.z) ;
+    CTRL_OUT.INST_s.connect(C2.z) ;
     CTRL_OUT.RAM_s.connect(C2.c) ;
     STEP.data_out.connect(C2.step) ;
 
@@ -245,19 +249,28 @@ void init6502(){
 }
 
 
-void trace(){
-    uint16_t pc = PCh << 8 | PCl ;
-    uint16_t ea = EAh << 8 | EAl ;
-    if (STEP_CNT == 0){
-        printf("%8d  ", INST_CNT) ;
+void monitor_trace(const char *label=nullptr){
+    char buf[128] ;
+    if (label != nullptr){
+        sprintf(buf, "%8s", label) ;
     }
     else {
-        printf("          ") ;
+        sprintf(buf, "%8d", INST_CNT) ;
     }
-    printf("%2d PC:0x%04X INST:0x%02X SP:0x%02X STATUS:0x%02X A:0x%02X B:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X RAM[EA]:0x%02X\n", 
-        STEP_CNT, pc, (uint8_t)INST, (uint8_t)SP, STATUS.P(),
-        (uint8_t)A, (uint8_t)B, (uint8_t)ACC, (uint8_t)X, (uint8_t)Y, ea, RAM.peek(ea)) ;
-    //printf("drivers: %d\n", DATA.data_in.nb_drivers()) ;
+    printf("%s", buf) ;
+
+    if (STEP_CNT == 0){
+        sprintf(buf, " %2d INST:0x%02X  PC:0x%04X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X\n", 
+            STEP_CNT, MONITOR.inst, MONITOR.pc, MONITOR.sp, MONITOR.status, MONITOR.acc, MONITOR.x, MONITOR.y, MONITOR.ea) ;
+    }
+    else {
+        // Here we are "cheating", the build will not allow this level of debug...
+        uint16_t pc = PCh << 8 | PCl ;
+        uint16_t ea = EAh << 8 | EAl ;
+        sprintf(buf, " %2d INST:0x%02X [PC:0x%04X SP:0x%02X STATUS:0x%02X ACC:0x%02X X:0x%02X Y:0x%02X EA:0x%04X A:0x%02X B:0x%02X RAM[EA]:0x%02X]\n", 
+            STEP_CNT, MONITOR.inst, pc, (uint8_t)SP, STATUS.P(), (uint8_t)ACC, (uint8_t)X, (uint8_t)Y, ea, (uint8_t)A, (uint8_t)B, RAM.peek(ea)) ;
+    }
+    printf("%s", buf) ;
 }
 
 
@@ -299,17 +312,57 @@ void process_ctrl(){
 }
 
 
-int process_inst(uint8_t max_steps = 0xFF){
-    if (DEBUG_STEP){
-        trace() ;
+void process_monitor(bool grab_inst){
+    if ((grab_inst)&&(STEP_CNT == 2)){
+        MONITOR.inst = DATA.data_out ;
+        // CTRL_OUT.pulse(INST_S) ;
+    }
+    
+    if (MONITOR.inst == INST_PC){
+        switch (STEP_CNT){
+            case 1: MONITOR.pc = DATA.data_out << 8 ; 
+                break ;
+            case 3: MONITOR.pc |= DATA.data_out ; 
+                break ;
+        }
+    }
+    if (MONITOR.inst == INST_MON){
+        switch (STEP_CNT){
+            case  1: MONITOR.pc = DATA.data_out << 8 ; 
+                     break ;
+            case  3: MONITOR.pc |= DATA.data_out ; 
+                     break ;
+            case  5: MONITOR.ea = DATA.data_out << 8 ; 
+                     break ;
+            case  7: MONITOR.ea |= DATA.data_out ; 
+                     break ;
+            case  9: MONITOR.sp = DATA.data_out ; 
+                     break ;
+            case 11: MONITOR.acc = DATA.data_out ; 
+                     break ;
+            case 13: MONITOR.x = DATA.data_out ; 
+                     break ;
+            case 15: MONITOR.y = DATA.data_out ; 
+                     break ;
+            case 17: MONITOR.status = DATA.data_out ; 
+                     break ;
+        }
+    }
+}
+
+
+int process_inst(bool grab_inst=true, uint8_t max_step = 0xFF){
+    if (DEBUG_MON){
+        monitor_trace() ;
     }
 
     bool prev_ctrl = false ;
-    while (STEP_CNT < max_steps){
-
+    while (STEP_CNT < max_step){
         CTRL_OUT.pulse(CLK_ASYNC) ;
         CTRL_OUT.pulse(CLK_SYNC) ;
         STEP_CNT++ ;
+
+        process_monitor(grab_inst) ;
 
         // Check if the controller needs to do something
         if (CTRL_IN.out1){ // RAM.ctrl
@@ -322,16 +375,20 @@ int process_inst(uint8_t max_steps = 0xFF){
             prev_ctrl = false ;
         }
 
-        if (DEBUG_STEP){
-            trace() ;
+        if (DEBUG_MON){
+            monitor_trace() ;
         }
 
         if (CTRL_IN.out2){ // INST_done
             int steps = STEP_CNT ; 
             CTRL_OUT.pulse(STEP_CLR) ;
-            // In theory we should do process_ctrl here, but there is nthing happening on step 0...
+            // In theory we should do process_ctrl here, but there is nothing happening on step 0...
+            assert(CU.make_cw() == CU.get_default_cw()) ;
+            CTRL_OUT.pulse(CLK_SYNC) ;
             STEP_CNT = 0 ;
-            INST_CNT++ ;
+            if ((MONITOR.inst != INST_MON)&&(MONITOR.inst != INST_PC)){
+                INST_CNT++ ;
+            }
             return steps ;
         }
     }
@@ -340,17 +397,25 @@ int process_inst(uint8_t max_steps = 0xFF){
 }
 
 
-void insert_inst(uint8_t opcode){
-    CTRL_OUT.pulse(STEP_CLR) ;
+void insert_inst(uint8_t opcode, bool process=true){
     assert(CU.make_cw() == CU.get_default_cw()) ;
     ctrl_DATA.drive(true) ;
     ctrl_DATA = opcode ;
-    ctrl_PC_e.toggle() ;
-    CTRL_OUT.pulse(RAM_S) ;
-    ctrl_PC_e.toggle() ;
+    MONITOR.inst = opcode ;
+    CTRL_OUT.pulse(INST_S) ;
     ctrl_DATA.drive(false) ;
 
-    process_inst() ;
+    if (process){
+        process_inst(false) ;        
+    }
+}
+
+
+void monitor_sample(bool pc_only=false){   
+    uint8_t inst = MONITOR.inst ;
+    insert_inst(pc_only ? INST_PC : INST_MON) ;
+    // Replace original instruction
+    insert_inst(inst, false) ;
 }
 
 
@@ -359,22 +424,16 @@ void reset6502(PROG *prog){
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
 
-    // Initialize INST register to BOOT
-    ctrl_DATA.drive(true) ;
-    ctrl_DATA = INST_BOOT ;
-    CTRL_OUT.pulse(INST_S) ;
-    ctrl_DATA.drive(false) ;
-
+    monitor_sample() ;
+    monitor_trace("INIT  ->") ;
+    
+    // Initialize INST register to RST1
     insert_inst(INST_RST1) ;
 
     CTRL_OUT.pulse(STEP_CLR) ;
     CTRL_OUT.pulse(PC_CLR) ;
     // Load the program to RAM
-    uint8_t ram0 = 0 ;
     for (int data = prog->get_next_byte(), n = 0 ; data != -1 ; data = prog->get_next_byte(), n++){
-        if (n == 0){
-            ram0 = data ;
-        }
         ctrl_DATA.drive(true) ;
         ctrl_DATA = data ;
         ctrl_PC_e.toggle() ;
@@ -397,44 +456,31 @@ void reset6502(PROG *prog){
 
     CTRL_OUT.pulse(PC_CLR) ;
     insert_inst(INST_RST2) ;
-    // TODO: Inserting the RST2 instruction squished the byte at RAM[0], we must put it back (it was saved in ram0)
-    /* This doenst work since PC is already at the reset vector value.
-    ctrl_DATA.drive(true) ;
-    ctrl_DATA = ram0 ;
-    ctrl_PC_e.toggle() ;
-    CTRL_OUT.pulse(RAM_S) ;
-    ctrl_PC_e.toggle() ;
-    ctrl_DATA.drive(false) ; */
 
-    printf("RESET -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
-        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
-        printf("---\n") ;
+    // We must place another instruction here because RST2 doesn't load the next instruction.
+    insert_inst(INST_NOP, false) ;
+
+    monitor_sample() ;
+    monitor_trace("RESET ->") ;
+    printf("---\n") ;
 }
 
 
-void process_interrupt(uint8_t inst){    
-    uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-    printf("INTR  -> PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X\n", pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP) ;
+void process_interrupt(uint8_t opcode){   
+    uint8_t inst = MONITOR.inst ; 
+    monitor_sample() ;
+    monitor_trace("INTR  ->") ;
+    insert_inst(opcode, false) ;
 
-    // Prime INST with our fake interrupt instruction. This will alter the normal
-    // fetch stage. See fetch() in addrmodes.h
-    ctrl_DATA.drive(true) ;
-    ctrl_DATA = inst ;
-    CTRL_OUT.pulse(INST_S) ;
-    process_inst(2) ;    // The opcode it still on the data bus, the next 2 steps of fetch() will store it to EAl
+    ctrl_DATA.drive(true) ;     // Enable opcode onto the data bus
+    ctrl_DATA = opcode ;
+    process_inst(false, 2) ;    // The opcode is on the data bus, the next 2 steps of fetch() will store it to EAl
     ctrl_DATA.drive(false) ;    // Reset the data bus
-    process_inst() ;            // Finish the instruction
- 
-    pc = PCh.data_out << 8 | PCl.data_out ;
-    printf("      <- PC:0x%04X  INST:0x%02X  SREG:0x%02X  SP:0x%02X  RAM[SP+1]:0x%02X  RAM[SP+2]:0x%02X  RAM[SP+3]:0x%02X\n", 
-        pc, (uint8_t)INST, (uint8_t)STATUS.sreg, (uint8_t)SP, 
-        RAM.peek(0x0100 | (((uint8_t)SP)+1)), RAM.peek(0x0100 | (((uint8_t)SP)+2)), RAM.peek(0x0100 | (((uint8_t)SP)+3))) ;
+    process_inst(false) ;       // Finish the instruction
 
-    // Reset INST register to resume normal operation. PC should now be set to the address of the proper ISR.
-    ctrl_DATA.drive(true) ;
-    ctrl_DATA = INST_NOP ;
-    CTRL_OUT.pulse(INST_S) ;
-    ctrl_DATA.drive(false) ;
+    monitor_sample() ;
+    monitor_trace("      <-") ;
+    insert_inst(inst, false) ;
 }
 
 
@@ -460,17 +506,21 @@ void loop(PROG *prog){
     int max_steps = 0 ; 
     uint8_t max_inst = 0 ;
     while (1) {
-        uint16_t pc = PCh.data_out << 8 | PCl.data_out ;
-        if (pc == prev_pc){
-            bool done = prog->is_done(pc) ;
-
-            printf("---\nTRAP! -> PC:0x%04X  SREG:0x%02X  NB_INST:%d  NB_STEPS:%d  MAX_STEPS:%d  MAX_STEPS_INST:0x%02X  %s! \n", 
-                pc, (uint8_t)STATUS.sreg, INST_CNT, nb_steps, max_steps, max_inst,
-                (done ? "SUCCESS" : "ERROR")) ;
+        monitor_sample(true) ;
+        if (MONITOR.pc == prev_pc){
+            bool done = prog->is_done(MONITOR.pc) ;
+            printf("---\n") ;
+            if (! done){
+                monitor_trace("TRAP! ->") ;
+            }
+            else {
+                printf("DONE! -> NB_INST:%d NB_STEPS:%d MAX_STEPS:%d MAX_STEPS_INST:0x%02X\n", 
+                INST_CNT, nb_steps, max_steps, max_inst) ;
+            }
             fflush(stdout) ;
             exit(! done) ;
         }
-        prev_pc = pc ;
+        prev_pc = MONITOR.pc ;
 
         int inst_steps = process_inst() ; 
         nb_steps += inst_steps ;
@@ -478,8 +528,8 @@ void loop(PROG *prog){
             max_steps = inst_steps ;
             max_inst = INST ;
         }
-        if ((INST_CNT % 100000) == 0){
-            printf("%d instructions executed (pc:0x%04X).\n", INST_CNT, pc) ;
+        if ((INST_CNT % 10000) == 0){
+            printf("%d instructions executed (pc:0x%04X).\n", INST_CNT, MONITOR.pc) ;
         }
 
         // Check for interrupts
@@ -508,12 +558,10 @@ int main(int argc, char *argv[]){
     }
     printf("\n") ;
 
-    printf("INIT  -> PC:0x%02X%02X  INST:0x%02X  SP:0x%02X  STREG:0x%02X  EA:0x%02X%02X\n", (uint8_t)PCh, (uint8_t)PCl, 
-        (uint8_t)INST, (uint8_t)SP, (uint8_t)STATUS.sreg, (uint8_t)EAh, (uint8_t)EAl) ;
     printf("PID is %d\n", getpid()) ;
     
-    if (getenv("DEBUG_STEP")){
-        DEBUG_STEP = true ;
+    if (getenv("DEBUG_MON")){
+        DEBUG_MON = true ;
     }
 
     // Reset the processor

@@ -1,9 +1,18 @@
 uint8_t fetch(uint8_t step) { // 1 cycle
-    if ((INST == INST_IRQ)||(INST == INST_NMI)){
+    if ((INST == INST_PC)||(INST == INST_MON)||(INST == INST_RST1)||(INST == INST_RST2)){
         enum { COUNTER_BASE = __COUNTER__ } ;
         #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
-    
+
+        switch (step){
+            case NEXT:  C1.INST_done = 0 ; break ;  // it's important that nothing else happens here
+            default:    return 0 ;
+        }
+    }
+    else if ((INST == INST_IRQ)||(INST == INST_NMI)){
         // Interrupt (IRQ or NMI). The controller has already setup INST, so there is nothing else to do.
+        enum { COUNTER_BASE = __COUNTER__ } ;
+        #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
+        
         switch (step){
             case NEXT:  C1.INST_done = 0 ; break ;  // it's important that nothing else happens here
             case NEXT:  C4.EAl_s.toggle() ; break ; // INST is also on the data bus at this point,
@@ -17,12 +26,7 @@ uint8_t fetch(uint8_t step) { // 1 cycle
             #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
     
             case NEXT:  C1.INST_done = 0 ; break ;   // it's important that nothing else happens here
-            case NEXT:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; 
-                        C2.INST_s.toggle() ; 
-                        #ifdef ARDUINO
-                            INST = DATA.read() ;
-                        #endif
-                        break ;
+            case NEXT:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; C2.INST_s.toggle() ; break ;
             case NEXT:  C2.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
             case NEXT:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
             default:    return 0 ;
