@@ -9,11 +9,10 @@
 #define CTRL_ADDR3 A7
 
 #define CLK_ASYNC  0b00100
-//#define CLK_SYNC   0b01000
-#define INST_S     0b01000
+//#define INST_S     0b01000
 #define STEP_CLR   0b01100
 #define RAM_S      0b10000
-//#define INST_S     0b10100
+#define INST_S     0b10100
 #define PC_UP      0b11000
 #define PC_CLR     0b11100
 
