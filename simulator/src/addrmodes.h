@@ -26,8 +26,8 @@ uint8_t fetch(uint8_t step) { // 1 cycle
             #define NEXT (__COUNTER__ - COUNTER_BASE - 1)
     
             case NEXT:  C1.INST_done = 0 ; break ;   // it's important that nothing else happens here
-            case NEXT:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; break ;
-            case NEXT:  C2.PC_up.toggle() ; break ;
+            case NEXT:  C2.PC_e.toggle() ; C2.RAM_e.toggle() ; C2.INST_s.toggle() ; break ;
+            case NEXT:  C2.INST_s.toggle() ; C2.PC_up.toggle() ; break ;
             case NEXT:  C2.RAM_e.toggle() ; C2.PC_e.toggle() ; C2.PC_up.toggle() ; break ;
             default:    return 0 ;
         }
