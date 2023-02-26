@@ -58,7 +58,7 @@ void setup() {
   // Faster analog reads
   ADCSRA = (ADCSRA & 0b11111000) | 0b100 ;
 
-  Serial.begin(9600) ;
+  Serial.begin(115200) ;
   #define SERIAL_TIMEOUT 1000
   Serial.setTimeout(SERIAL_TIMEOUT) ;
   // Send null byte to indicate we have finished booting, in case a loader is present.
