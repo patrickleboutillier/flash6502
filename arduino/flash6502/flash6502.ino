@@ -38,6 +38,7 @@ void halt6502() ;
 #endif
 
 #if ENABLE_INTERRUPTS
+  #include "BUTTON.h"
   BUTTON NMI_BUTTON(NMI), IRQ_BUTTON(IRQ) ;
 #endif
   
@@ -205,6 +206,7 @@ inline void process_inst(bool grab_inst){
     else if (prev_ctrl){
       CTRL.clear_cache() ;
       DATA.reset() ;
+      prev_ctrl = false ;
     }
   
     #if ENABLE_MONITORING

@@ -7,7 +7,7 @@
 class BUTTON {
   private:
     bool _state, _last_state ;
-    uint8 _pin ;
+    uint8_t _pin ;
     unsigned long _last_debounce_time ;
 
   public:  
