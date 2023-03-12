@@ -133,4 +133,4 @@ TODO: Description
 TODO: Description
 
 ## Schematic
-You cn find the complete KiCAD SChematic here: [KiCAD Schematic](./docs/kicad/flash6502/)
+You can find the complete KiCAD Schematic here: [KiCAD Schematic](./docs/kicad/flash6502/)
