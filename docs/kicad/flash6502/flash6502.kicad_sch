@@ -2464,9 +2464,6 @@
     (path "/5585a4a7-5b31-4632-b112-15d2da36eccc/85105e98-d111-4687-9402-fed1612efc2c"
       (reference "CTRL_AND") (unit 1) (value "74HC08") (footprint "")
     )
-    (path "/a164eb9e-2d6e-4b79-a154-790e069b981c/e1e2786f-596c-480b-af38-11652ff43492"
-      (reference "CTRL_INST_s_NOT") (unit 1) (value "74HC04") (footprint "")
-    )
     (path "/a164eb9e-2d6e-4b79-a154-790e069b981c/9ccb99a0-4c95-4961-9066-95f946d6c92a"
       (reference "CTRL_IN_MUX") (unit 1) (value "74HC157") (footprint "")
     )

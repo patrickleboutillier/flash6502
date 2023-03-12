@@ -9,14 +9,16 @@
 #define CTRL_ADDR3 A7
 
 #define CLK_ASYNC  0b00100
-//#define INST_S     0b01000
-#define STEP_CLR   0b01100
+#define STEP_CLR   0b01000
 #define RAM_S      0b10000
 #define INST_S     0b10100
 #define PC_UP      0b11000
 #define PC_CLR     0b11100
 
-#define delay()    //delayMicroseconds(5) ;
+ 
+#define CTRL_pulse_async_fast()     asm("sbi 0x05, 2\ncbi 0x05, 2\n") ;
+#define CTRL_pulse_step_clr_fast()  asm("sbi 0x05, 3\ncbi 0x05, 3\n") ;
+#define CTRL_pulse_sync_fast()      asm("cbi 0x08, 1\nsbi 0x08, 1\n") ;
 
 
 // Pins 12, 11, 10: PORTB, bits 4, 3, 2
@@ -49,49 +51,39 @@ class CTRL {
     inline void pulse_sync(){
       // Set control bits (bits 4, 3, 2), which are already 0.
       PORTC &= 0b11111101 ;
-      delay() ;
       PORTC |= 0b00000010 ;
-      delay() ;
     }
-    
+
     inline void pulse(uint8_t cmd){
       // Set control bits (bits 4, 3, 2), which are already 0.
       PORTB |= cmd ;
-      delay() ;
       // Clear control bits
       PORTB &= 0b11100011 ;            
-      delay() ;
     }
-
+    
     inline void pulse_with_sync(uint8_t cmd){
       // Set control bits (bits 4, 3, 2), which are already 0.
       PORTB |= cmd ;
-      delay() ;
       pulse_sync() ;
       // Clear control bits
       PORTB &= 0b11100011 ;
-      delay() ;
       pulse_sync() ;
     }
 
     inline void PC_e_on(){
       PORTC &= 0b11111110 ;
-      delay() ;
     }
 
     inline void PC_e_off(){
       PORTC |= 0b00000001 ;
-      delay() ;
     }
 
     inline void CTRL_src_on(){
       PORTB |= 0b00100000 ;
-      delay() ;
     }
 
     inline void CTRL_src_off(){
       PORTB &= 0b11011111 ;
-      delay() ;
     }
 
     #define analogRead2Digital(apin)  (analogRead(apin) >= 512)

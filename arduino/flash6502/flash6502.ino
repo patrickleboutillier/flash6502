@@ -33,11 +33,14 @@ void halt6502() ;
 #if ENABLE_MONITORING
    // We use these buttons also to enable monitoring and to do stepping. 
   #define STEP  NMI 
-  #define MON   IRQ
-  
+  #define MON   IRQ 
   #include "MONITOR.h"
 #endif
 
+#if ENABLE_INTERRUPTS
+  #include "BUTTON.h"
+  BUTTON NMI_BUTTON(NMI), IRQ_BUTTON(IRQ) ;
+#endif
   
 DATA DATA ;              // 9, 8, 7, 6, 5, 4, 3, 2
 VECTORS VECTORS ;
@@ -47,7 +50,6 @@ PROG *prog = nullptr ;
 
 #if ENABLE_MONITORING
   MONITOR MONITOR(&DATA) ;
-  
   // Some globals useful for debugging.
   bool DEBUG_MON = false ;
   bool DEBUG_STEP = false ;
@@ -177,24 +179,26 @@ void insert_inst(uint8_t opcode, bool process){
   DATA.reset() ;
 
   if (process){
-    process_inst(false, MAX_STEP) ; 
+    process_inst(false) ; 
   }
 }
 
 
-inline void process_inst(bool grab_inst, uint8_t max_step){
+inline void process_inst(bool grab_inst){
   bool prev_ctrl = false ; 
-  while (STEP_CNT <= max_step){    
+  while (1){    
     #if ENABLE_MONITORING
       MONITOR.process(grab_inst) ;
+      if (STEP_CNT > 0){
+        // This already happened for step 0 when we called STEP_CLR
+        CTRL_pulse_async_fast() ; 
+        CTRL_pulse_sync_fast() ;  
+      }
+    #else
+      CTRL_pulse_async_fast() ; 
+      CTRL_pulse_sync_fast() ;  
     #endif
-    
-    if (STEP_CNT > 0){
-      // This already happened for step 0 when we called STEP_CLR
-      CTRL.pulse(CLK_ASYNC) ; 
-      CTRL.pulse_sync() ;  
-    }
-
+  
     if (PINC & 0b100){ // A2, CTRL
       CTRL.process() ;
       prev_ctrl = true ;
@@ -202,8 +206,9 @@ inline void process_inst(bool grab_inst, uint8_t max_step){
     else if (prev_ctrl){
       CTRL.clear_cache() ;
       DATA.reset() ;
+      prev_ctrl = false ;
     }
-
+  
     #if ENABLE_MONITORING
       if (DEBUG_MON){
         if (DEBUG_STEP){
@@ -214,19 +219,27 @@ inline void process_inst(bool grab_inst, uint8_t max_step){
         }
       }
     #endif
-
+  
     if (PINC & 0b1000){ // A3, INST_done
-      if (grab_inst){
-        INST_CNT++ ;
-      }
+      #if ENABLE_VERBOSITY
+        #if ENABLE_MONITORING
+          if (grab_inst){
+            INST_CNT++ ;
+          }
+        #else
+          INST_CNT++ ;
+        #endif
+      #endif
       // Reset step counter.
-      CTRL.pulse(STEP_CLR) ;
-      CTRL.pulse_sync() ;
-      STEP_CNT = 0 ;
+      CTRL_pulse_step_clr_fast() ;
+      #if ENABLE_MONITORING
+        STEP_CNT = 0 ;
+      #endif
       return ;
     }
-   
-    STEP_CNT++ ;
+    #if ENABLE_MONITORING
+      STEP_CNT++ ;
+    #endif
   }
 }
 
@@ -234,7 +247,7 @@ inline void process_inst(bool grab_inst, uint8_t max_step){
 void loop(){
   // Start processing instructions.
   while (1) {
-    process_inst(true, MAX_STEP) ;
+    process_inst(true) ;
 
     #if ENABLE_MONITORING
       #if ENABLE_TRAP_DETECTION
@@ -277,10 +290,10 @@ void loop(){
 
     #if ENABLE_INTERRUPTS
       #if DEBOUNCE_INTERRUPTS
-        if (button_pressed(NMI)){
+        if (NMI_BUTTON.pressed()){
           process_interrupt(INST_NMI) ;
         }
-        if (button_pressed(IRQ)){
+        if (IRQ_BUTTON.pressed()){
           process_interrupt(INST_IRQ) ;
         }
       #else
@@ -315,9 +328,13 @@ void process_interrupt(uint8_t opcode){
   insert_inst(opcode, false) ;
   
   DATA.write(opcode) ;            // Enable opcode onto the data bus
-  process_inst(false, 2) ;        // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
+  CTRL_pulse_async_fast() ; 
+  CTRL_pulse_sync_fast() ;
+  CTRL_pulse_async_fast() ; 
+  CTRL_pulse_sync_fast() ;  
+  // process_inst(false, 2) ;        // The opcode it still on the data bus, the next 3 (0, 1, 2) steps of fetch() will store it to EAl
   DATA.reset() ;                  // Reset the data bus
-  process_inst(false, MAX_STEP) ; // Finish the instruction
+  process_inst(false) ; // Finish the instruction
 
   #if ENABLE_MONITORING
     MONITOR.sample() ;
@@ -330,47 +347,14 @@ void process_interrupt(uint8_t opcode){
 
 
 void halt6502(){
-  #if ENABLE_VERBOSITY
-    if (!QUIET){
-      Serial.println("HALTED!") ;
-      Serial.print("Duration: ") ;
-      Serial.print(millis() / 1000) ;
-      Serial.println(" seconds.") ;
-    }
-  #endif
-  
+  if (!QUIET){
+    Serial.println("HALTED!") ;
+    Serial.print("Duration: ") ;
+    Serial.print(millis() / 1000) ;
+    Serial.println(" seconds.") ;
+  }
+ 
   pinMode(LED_BUILTIN, OUTPUT) ;
   digitalWrite(LED_BUILTIN, HIGH) ;
   while (1){} ; 
-}
-
-
-////////// Utility functions //////////
-
-
-bool button_pressed(uint8_t button_pin){
-  #define DEBOUNCE_DELAY_MS 50
-  static bool button_state = LOW ;
-  static bool last_button_state = button_state ;
-  static unsigned long last_debounce_time = 0 ;
-  bool ret = 0 ;
-  bool reading = digitalRead(button_pin) ;
-  
-  if (reading != last_button_state) {
-    last_debounce_time = millis() ;
-  }
-  
-  if ((millis() - last_debounce_time) > DEBOUNCE_DELAY_MS){
-    if (reading != button_state){
-      button_state = reading ;
-      if (button_state == LOW){
-        ret = 1 ;
-      }
-    }
-  }
-
-  // save the reading. Next time through the loop, it'll be the lastButtonState:
-  last_button_state = reading ;
-   
-  return ret ;
 }
