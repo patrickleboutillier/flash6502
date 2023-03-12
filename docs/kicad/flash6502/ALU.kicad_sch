@@ -373,12 +373,6 @@
   (no_connect (at 185.42 54.61) (uuid 71f1f284-de57-45e6-9330-e88a12e40ca8))
   (no_connect (at 154.94 82.55) (uuid c502751f-c690-460e-b69b-e95f57065e6a))
 
-  (text "TODO: ALU_L_* local labels don't have pull-down resistors!"
-    (at 143.51 22.86 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid 4324f1df-9a09-4c79-9cf7-d84bb9eb91ac)
-  )
-
   (label "A5" (at 100.33 67.31 180)
     (effects (font (size 1.27 1.27)) (justify right bottom))
     (uuid 041dccc6-b129-4330-a0ea-65fb2b6363bf)
