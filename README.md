@@ -113,16 +113,24 @@ Finally the Status module also contains a SN74HC244 chip that controls the sendi
 The control signals for the Status section are *ST_e*, *ST_bi*, *ST_src*, *ST_NZ_s*, *ST_C_s*, *ST_V_s*, *ST_I_s*, *ST_ALU_C_s*, *ST_ALU_C_from_C*.
 
 ### Data Bus
-The Data Bus is really just a combination of 4 breadboards power rails, along with some LEDs to help with debugging.
+The Data Bus is really just a combination of 4 breadboard power rails, along with some LEDs to help with debugging.
 ### Address Low
 ![Address Low](./images/addrl.jpg)
+TODO: Description
 ### Address High
 ![Address High](./images/addrh.jpg)
+TODO: Description
 ### RAM
 ![RAM](./images/ram.jpg)
+TODO: Description
 ### Control Unit
 ![CU12](./images/ctrl12.jpg)
 ![CU3](./images/ctrl3.jpg)
 ![CU45](./images/ctrl45.jpg)
+TODO: Description
 ### Arduino Controller
-![Controller](./images/comtroller.jpg)
+![Controller](./images/controller.jpg)
+TODO: Description
+
+## Schematic
+You cn find the complete KiCAD SChematic here: [KiCAD Schematic](./docs/kicad/flash6502/)
