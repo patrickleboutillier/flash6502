@@ -835,7 +835,7 @@
     (uuid ffff6db5-9859-4d22-a818-6f9a0afa15e5)
   )
 
-  (text "TODO: These are not hooked-up on the board!" (at 31.75 100.33 0)
+  (text "Pull-down resistors for ALU flags" (at 31.75 100.33 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 3c78f690-143e-4958-b7fc-7b3727e161ad)
   )

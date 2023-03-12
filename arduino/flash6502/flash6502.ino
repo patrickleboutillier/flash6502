@@ -232,7 +232,6 @@ inline void process_inst(bool grab_inst){
       #endif
       // Reset step counter.
       CTRL_pulse_step_clr_fast() ;
-      CTRL_pulse_sync_fast() ;
       #if ENABLE_MONITORING
         STEP_CNT = 0 ;
       #endif
@@ -358,13 +357,4 @@ void halt6502(){
   pinMode(LED_BUILTIN, OUTPUT) ;
   digitalWrite(LED_BUILTIN, HIGH) ;
   while (1){} ; 
-}
-
-
-////////// Utility functions //////////
-
-
-// TODO: Can't use this function for 2 distinct buttons...
-bool button_pressed(uint8_t button_pin){
-
 }

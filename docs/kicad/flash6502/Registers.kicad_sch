@@ -211,7 +211,6 @@
   )
 
 
-
   (global_label "D6" (shape input) (at 154.94 52.07 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 021434e5-ef41-4308-b61c-f8f7902f84f1)
