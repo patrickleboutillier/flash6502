@@ -1,5 +1,7 @@
 
 # flash6502
+![Build](./images/build.jpg)
+
 Trying to build a 6502-compatible CPU on breadboards, using as few chips as possible.
 
 ## Introduction
@@ -34,16 +36,16 @@ The system is made up of 8 sections, which I will refer to using the following n
 - **Control Unit**: contains the stepping logic and 5 ROM chips that handle the 40 control signals. Each ROM chip receives the output of the step counting (6 bits), the output of the INST register (8 bits), as well as 4 other input signals that vary depending on the chip.
 
 ### Breadboard Block Diagram
-![Block Diagram](https://github.com/patrickleboutillier/flash6502/raw/master/images/block_architecture.jpeg)
+![Block Diagram](./images/block_architecture.jpeg)
 
 ## Sections
 ### Registers
-![Registers](https://github.com/patrickleboutillier/flash6502/raw/master/images/reg.jpg)
+![Registers](./images/reg.jpg)
 
 The Registers section contains 3 registers, ACC, X and Y, implemented using SN74HC373 chips. These registers are connected to the Data Bus. There are 6 control signals used to set or enable each of these 3 registers: *ACC_e*, *ACC_s*, *X_e*, *X_s*, *Y_e*, *Y_s*.
 
 ### ALU
-![ALU](https://github.com/patrickleboutillier/flash6502/raw/master/images/alu.jpg)
+![ALU](./images/alu.jpg)
 
 The ALU section contains 2 registers, A and B, implemented using SN74HC373 chips. These registers can be set from the Data Bus, and their outputs are fed directly into the ALU. The ALU is made up of 2 SST39SF020A Flash chips. It has 15 operations that can be selected using 4 controls bits.
 The operations are defined as such:
@@ -93,15 +95,34 @@ Here are the details of each of the pins for the 2 Flash chips, ALU Low and ALU 
 - OE#: Connected to the *ALU_e* control signal used to enable the result onto the Data Bus.
 
 #### Control signals
-The control signals for the sections are *ALU[3-0]*, *ALU_e*, *A_s* and *B_s*.
+The control signals for the ALU section are *ALU[3-0]*, *ALU_e*, *A_s* and *B_s*.
 
 ### Status
+![Status](./images/status.jpg)
+The Status section is made up of the P register, which stores the current values for the Status flags, as well a custom flag (ALU_C) to store the carry used for the ALU carry-in signal, which may be different from the Status carry (C) flag.
+
+The Status ROM is the brains of the Status module. It receives as input:
+- The outputs of the P register (the "current" Status flag values)
+- The "new" Status flag inputs, that come either from the ALU or from the Data Bus
+  - 2 SN74HC157 MUX chips are used to feed these inputs to the Status ROM 
+- Control signals that indicate which Status flags are to be set
+
+Finally the Status module also contains a SN74HC244 chip that controls the sending of the Status flags to the Data Bus when required.
+
+#### Control signals
+The control signals for the Status section are *ST_e*, *ST_bi*, *ST_src*, *ST_NZ_s*, *ST_C_s*, *ST_V_s*, *ST_I_s*, *ST_ALU_C_s*, *ST_ALU_C_from_C*.
+
 ### Data Bus
+The Data Bus is really just a combination of 4 breadboards power rails, along with some LEDs to help with debugging.
 ### Address Low
-![Address Low](https://github.com/patrickleboutillier/flash6502/raw/master/images/addrl.jpg)
+![Address Low](./images/addrl.jpg)
 ### Address High
-![Address High](https://github.com/patrickleboutillier/flash6502/raw/master/images/addrh.jpg)
+![Address High](./images/addrh.jpg)
 ### RAM
-![RAM](https://github.com/patrickleboutillier/flash6502/raw/master/images/ram.jpg)
+![RAM](./images/ram.jpg)
 ### Control Unit
+![CU12](./images/ctrl12.jpg)
+![CU3](./images/ctrl3.jpg)
+![CU45](./images/ctrl45.jpg)
 ### Arduino Controller
+![Controller](./images/comtroller.jpg)
